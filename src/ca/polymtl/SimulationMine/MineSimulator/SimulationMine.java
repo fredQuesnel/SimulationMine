@@ -23,7 +23,7 @@ public class SimulationMine {
 	//public static DecisionMaker decisionMaker;
 
 	public static JMineFrame mineFrame;
-
+ 
 	
 	public static void main(String[] args) {
 

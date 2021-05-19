@@ -9,7 +9,7 @@ import ca.polymtl.SimulationMine.MineSimulator.Mine;
 import ca.polymtl.SimulationMine.MineSimulator.Pelle;
 import ca.polymtl.SimulationMine.MineSimulator.SimulationMine;
 import ca.polymtl.SimulationMine.MineSimulator.Station;
-import lpsolve.*;
+import lpsolve.*; 
 
 public class DecisionMaker {
 
@@ -31,7 +31,7 @@ public class DecisionMaker {
 	//private double cibleTempsAttentePelle;
 
 	//mine
-	Mine mine;
+	Mine mine; 
 
 	LpSolve solver;
 
