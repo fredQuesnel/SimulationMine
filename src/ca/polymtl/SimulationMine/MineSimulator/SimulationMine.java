@@ -33,11 +33,13 @@ public class SimulationMine {
 			UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
 				| UnsupportedLookAndFeelException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
 		random = new Random();
+
+		
+		
 		
 		MineSimulator mineSimulator = new MineSimulator();
 
@@ -96,7 +98,7 @@ public class SimulationMine {
 				sommeNbVoyages += mineSimulator.getMine().getNumberOfRuns();
 
 				//reset
-				mineSimulator.chargeMine(mineSimulator.getMine().getExemple(), mineSimulator.getMine().getCamions().size(), mineSimulator.getTempsSimulationSeconds());
+				mineSimulator.chargeMine(mineSimulator.getMine().getCurrentExampleId(), mineSimulator.getMine().getCamions().size(), 0, mineSimulator.getTempsSimulationSeconds());
 			}
 
 			double effCamions = sommeEffCamions/nbSim;

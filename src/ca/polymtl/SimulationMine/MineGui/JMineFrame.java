@@ -17,6 +17,7 @@ import javax.swing.Timer;
 
 import ca.polymtl.SimulationMine.MineSimulator.Camion;
 import ca.polymtl.SimulationMine.MineSimulator.Mine;
+import ca.polymtl.SimulationMine.MineSimulator.Mine.ExampleId;
 import ca.polymtl.SimulationMine.MineSimulator.MineSimulationListener;
 import ca.polymtl.SimulationMine.MineSimulator.MineSimulator;
 import ca.polymtl.SimulationMine.MineSimulator.Pelle;
@@ -226,10 +227,10 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 
 
 
-	public void notifyListenersNewSimulationRequested(int exempleNb, int numberOfCamions,
-			double tempsSimulationSeconds) {
+	public void notifyListenersNewSimulationRequested(ExampleId selectedId, int numberOfSmallCamions,
+			int numberOfLargeCamions, double tempsSimulationSeconds) {
 		for(int i = 0 ; i < listenerList.size(); i++) {
-			listenerList.get(i).newSimulationRequested(exempleNb, numberOfCamions, tempsSimulationSeconds);
+			listenerList.get(i).newSimulationRequested(selectedId, numberOfSmallCamions, numberOfLargeCamions, tempsSimulationSeconds);
 			//SimulationMine.mine.setMeteoFactor(meteoFactor);
 		}
 	}

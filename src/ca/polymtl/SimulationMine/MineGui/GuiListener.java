@@ -3,6 +3,7 @@ package ca.polymtl.SimulationMine.MineGui;
 import java.awt.Event;
 import java.awt.event.AWTEventListener;
 
+import ca.polymtl.SimulationMine.MineSimulator.Mine.ExampleId;
 import ca.polymtl.SimulationMine.MineSimulator.Pelle;
 
 public interface GuiListener extends AWTEventListener {
@@ -30,7 +31,7 @@ public interface GuiListener extends AWTEventListener {
 
 	public void numberSampleChanged(int currentNValue);
 
-	public void newSimulationRequested(int exempleNb, int numberOfCamions, double tempsSimulationSeconds);
+	public void newSimulationRequested(ExampleId selectedId, int numberOfSmallCamions, int numberOfLargeCamions, double tempsSimulationSeconds);
 
 	public void automaticCompletionRequested();
 

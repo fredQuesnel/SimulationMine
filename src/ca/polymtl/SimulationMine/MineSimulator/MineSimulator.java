@@ -9,6 +9,7 @@ import javax.swing.Timer;
 import ca.polymtl.SimulationMine.MineGui.GuiEvent;
 import ca.polymtl.SimulationMine.MineGui.GuiListener;
 import ca.polymtl.SimulationMine.MineGui.SommaireFrame;
+import ca.polymtl.SimulationMine.MineSimulator.Mine.ExampleId;
 import ca.polymtl.SimulationMine.decisionMaker.CustomDecisionMaker;
 import ca.polymtl.SimulationMine.decisionMaker.DecisionMaker;
 
@@ -54,7 +55,7 @@ public class MineSimulator implements GuiListener {
 		//Créé la mine et l'initialise
 		//
 		mine = new Mine();
-		mine.init(Mine.EXEMPLE2, 20);
+		mine.init(Mine.exampleIds.get(0), 20, 0);
 
 		//Créé l'engin de décision
 		//
@@ -109,13 +110,13 @@ public class MineSimulator implements GuiListener {
 	/*
 	 * reset la mine selon un exemple donne
 	 */
-	public void chargeMine(int ExempleNb, int nbCamions, double temps) {
+	public void chargeMine(ExampleId exempleId, int nbSmallCamions, int nbLargeCamions, double temps) {
 	
 		setPauseMode();
 	
 		//reinitialise la nouvelle mine
 		//
-		mine.init(ExempleNb, nbCamions);
+		mine.init(exempleId, nbSmallCamions, nbLargeCamions);
 		warmup();
 	
 		notifyListenersMineReset();
@@ -476,14 +477,14 @@ public class MineSimulator implements GuiListener {
 
 
 	@Override
-	public void newSimulationRequested(int exempleNb, int numberOfCamions, double tempsSimulationSeconds) {
+	public void newSimulationRequested(ExampleId exempleId, int numberOfSmallCamions, int numberOfLargeCamions, double tempsSimulationSeconds) {
 		
 		if(this.sommaireFrame!= null) {
 			sommaireFrame.dispose();
 		}
 		sommaireFrame = null;
 		
-		this.chargeMine(exempleNb, numberOfCamions, tempsSimulationSeconds);
+		this.chargeMine(exempleId, numberOfSmallCamions, numberOfLargeCamions, tempsSimulationSeconds);
 
 	}
 

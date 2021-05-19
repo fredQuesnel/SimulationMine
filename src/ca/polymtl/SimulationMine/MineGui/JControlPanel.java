@@ -61,7 +61,7 @@ public class JControlPanel extends JPanel{
 	//parametres de simulation
 	//
 	private JComboBox mineComboBox;
-	private JTextField nbCamionsTextField;
+	private JTextField nbSmallCamionsTextField;
 	private JTextField tempsSimulationTextField;
 
 	//controle de la simulation
@@ -82,7 +82,7 @@ public class JControlPanel extends JPanel{
 
 	//valeurs des champs
 	protected double selectedTempsSimulation;
-	protected int selectedNumberOfCamions;
+	protected int selectedNumberOfSmallCamions;
 
 	protected int predictN;
 	protected int predictRho;
@@ -99,9 +99,15 @@ public class JControlPanel extends JPanel{
 
 	private BufferedImage floconImage;
 
-	private BufferedImage camionImage;
+	private BufferedImage camionSmallImage;
+	
+	private BufferedImage camionLargeImage;
 
 	private BufferedImage horlogeImage;
+
+	private JTextField nbLargeCamionsTextField;
+
+	private int selectedNumberOfLargeCamions;
 
 	public JControlPanel(JMineFrame frame ){
 		super();
@@ -179,22 +185,37 @@ public class JControlPanel extends JPanel{
 		//Image de camion
 		//
 
-		BufferedImage camionImageLarge = null;
+		BufferedImage smallCamionImageLarge = null;
+		BufferedImage largeCamionImageLarge = null;
 
 		try {
-			camionImageLarge = ImageIO.read(new File("images/camionFois.png"));
+			smallCamionImageLarge = ImageIO.read(new File("images/camion_small_fois.png"));
+			largeCamionImageLarge = ImageIO.read(new File("images/camion_large_fois.png"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
 		int camionX = 65;
 		int camionY = 30;
-		camionImage = new BufferedImage(camionX, camionY, BufferedImage.TYPE_INT_ARGB);
-		g2 = camionImage.createGraphics();
+		camionSmallImage = new BufferedImage(camionX, camionY, BufferedImage.TYPE_INT_ARGB);
+		g2 = camionSmallImage.createGraphics();
 
+		
 		g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-		g2.drawImage(camionImageLarge, 0, 0, camionX, camionY, null);
+		g2.drawImage(smallCamionImageLarge, 0, 0, camionX, camionY, null);
 		g2.dispose();
+		
+		
+
+		camionLargeImage = new BufferedImage(camionX, camionY, BufferedImage.TYPE_INT_ARGB);
+		g2 = camionLargeImage.createGraphics();
+
+		
+		
+		g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+		g2.drawImage(largeCamionImageLarge, 0, 0, camionX, camionY, null);
+		g2.dispose();
+
 
 		//Image d'horloge
 		//
@@ -405,17 +426,23 @@ public class JControlPanel extends JPanel{
 
 
 
-		JLabel nbCamionsLabel = new JLabel(new ImageIcon(camionImage));
-		createNumberCamionsTextField();
+		JLabel nbCamionsSmallLabel = new JLabel(new ImageIcon(camionSmallImage));
+		createNumberCamionsSmallTextField();
+
+		JLabel nbCamionsLargeLabel = new JLabel(new ImageIcon(camionLargeImage));
+		createNumberCamionsLargeTextField();
+
+
 
 		createTempsSimulationTextField();
 		JLabel horlogeLabel = new JLabel(new ImageIcon(horlogeImage));
+
 		gc.fill = GridBagConstraints.HORIZONTAL;
 		gc.weightx = 1;
 
 		gc.gridx = 0;
 		gc.gridy = 0;
-		gc.gridwidth = 3;
+		gc.gridwidth = 4;
 		gc.anchor = GridBagConstraints.CENTER;
 		simulationSpecsPanel.add(createDropdownButton(), gc);
 
@@ -423,14 +450,28 @@ public class JControlPanel extends JPanel{
 		gc.gridy = 1;
 		gc.gridwidth = 1;
 		gc.anchor = GridBagConstraints.EAST;
-		simulationSpecsPanel.add(nbCamionsLabel, gc);
+		simulationSpecsPanel.add(nbCamionsSmallLabel, gc);
 
 		gc.gridx = 1;
 		gc.gridy = 1;
 		gc.gridwidth = 1;
 		gc.anchor = GridBagConstraints.EAST;
-		simulationSpecsPanel.add(nbCamionsTextField, gc);
+		simulationSpecsPanel.add(nbSmallCamionsTextField, gc);
 
+
+		gc.gridx = 2;
+		gc.gridy = 1;
+		gc.gridwidth = 1;
+		gc.anchor = GridBagConstraints.EAST;
+		simulationSpecsPanel.add(nbCamionsLargeLabel, gc);
+
+		gc.gridx = 3;
+		gc.gridy = 1;
+		gc.gridwidth = 1;
+		gc.anchor = GridBagConstraints.EAST;
+		simulationSpecsPanel.add(nbLargeCamionsTextField, gc);
+
+		
 
 		gc.gridx = 0;
 		gc.gridy = 2;
@@ -447,11 +488,108 @@ public class JControlPanel extends JPanel{
 
 		gc.gridx = 0;
 		gc.gridy = 3;
-		gc.gridwidth = 3;
+		gc.gridwidth = 4;
 		gc.anchor = GridBagConstraints.CENTER;
 		simulationSpecsPanel.add(createLoadButton(), gc);
 
 		return simulationSpecsPanel;
+	}
+
+	private void createNumberCamionsSmallTextField() {
+	
+		Mine mine = parentFrame.getMine();
+		//nbCamionsLabel.setMaximumSize(new Dimension(100, 40));
+		//nbCamionsLabel.setMinimumSize(new Dimension(100, 40));
+		//nbCamionsLabel.setPreferredSize(new Dimension(100, 40));
+	
+	
+		this.nbSmallCamionsTextField = new JTextField();
+		this.selectedNumberOfSmallCamions = mine.getCamions().size();
+		nbSmallCamionsTextField.setText(""+mine.getCamions().size());
+		nbSmallCamionsTextField.setMaximumSize(new Dimension(50, 50));
+		nbSmallCamionsTextField.setMinimumSize(new Dimension(50, 20));
+		nbSmallCamionsTextField.setPreferredSize(new Dimension(50, 20));
+		nbSmallCamionsTextField.addFocusListener(new FocusListener() {
+	
+	
+			@Override
+			public void focusGained(FocusEvent arg0) {
+	
+	
+			}
+	
+			@Override
+			public void focusLost(FocusEvent arg0) {
+				//valide le texte
+				try {
+					int nbCamions =  Integer.valueOf(nbSmallCamionsTextField.getText());
+					nbSmallCamionsTextField.setBackground(Color.white);
+					selectedNumberOfSmallCamions = nbCamions;
+					if(selectedNumberOfSmallCamions < 1) {
+						throw new NumberFormatException();
+					}
+				}
+				catch(NumberFormatException exception) {
+					nbSmallCamionsTextField.setText("");
+					nbSmallCamionsTextField.setBackground(Color.red);
+				}
+	
+	
+	
+			}
+	
+		});
+	}
+
+	//Cree le textfield dans lequel l'utilisateur choisis le nombre de camions
+	//
+	private void createNumberCamionsLargeTextField() {
+
+
+		Mine mine = parentFrame.getMine();
+		//nbCamionsLabel.setMaximumSize(new Dimension(100, 40));
+		//nbCamionsLabel.setMinimumSize(new Dimension(100, 40));
+		//nbCamionsLabel.setPreferredSize(new Dimension(100, 40));
+
+
+		this.nbLargeCamionsTextField = new JTextField();
+		this.selectedNumberOfLargeCamions = mine.getCamions().size();
+		nbLargeCamionsTextField.setText(""+mine.getCamions().size());
+		nbLargeCamionsTextField.setMaximumSize(new Dimension(50, 50));
+		nbLargeCamionsTextField.setMinimumSize(new Dimension(50, 20));
+		nbLargeCamionsTextField.setPreferredSize(new Dimension(50, 20));
+		nbLargeCamionsTextField.addFocusListener(new FocusListener() {
+
+
+			@Override
+			public void focusGained(FocusEvent arg0) {
+
+
+			}
+
+			@Override
+			public void focusLost(FocusEvent arg0) {
+				//valide le texte
+				try {
+					int nbCamions =  Integer.valueOf(nbLargeCamionsTextField.getText());
+					nbLargeCamionsTextField.setBackground(Color.white);
+					selectedNumberOfLargeCamions = nbCamions;
+					if(selectedNumberOfLargeCamions < 1) {
+						throw new NumberFormatException();
+					}
+				}
+				catch(NumberFormatException exception) {
+					nbLargeCamionsTextField.setText("");
+					nbLargeCamionsTextField.setBackground(Color.red);
+				}
+
+
+
+			}
+
+		});
+
+
 	}
 
 	private JPanel createSimulationControlPanel() {
@@ -511,7 +649,7 @@ public class JControlPanel extends JPanel{
 				String optStrategy = optStrategyTextField.getText();
 				if(DecisionMaker.isFunctionStringValid(optStrategy)) {
 					optStrategyTextField.setBackground(Color.white);
-					
+
 					parentFrame.notifyListenersScoreFunctionChanged(optStrategyTextField.getText());
 				}
 				else{
@@ -751,6 +889,7 @@ public class JControlPanel extends JPanel{
 				int result = JOptionPane.showConfirmDialog (null, "Voulez-vous vraiment arrêter cette simulation et en démarrer une nouvelle?","Attention", dialogButton);
 				if(result == JOptionPane.YES_OPTION) {
 					int indexSelected = mineComboBox.getSelectedIndex();
+					ExampleId selectedId = (ExampleId) mineComboBox.getSelectedItem();
 					int exempleNb=-1;
 					if(indexSelected == 0) {
 						exempleNb = Mine.EXEMPLE1;
@@ -758,7 +897,7 @@ public class JControlPanel extends JPanel{
 					else if(indexSelected == 1) {
 						exempleNb = Mine.EXEMPLE2;
 					}
-					parentFrame.notifyListenersNewSimulationRequested(exempleNb, getNumberOfCamions(), getTempsSimulationSeconds());
+					parentFrame.notifyListenersNewSimulationRequested(selectedId, getNumberOfSmallCamions(), getNumberOfLargeCamions(), getTempsSimulationSeconds());
 
 
 				}
@@ -800,52 +939,6 @@ public class JControlPanel extends JPanel{
 
 		});
 		return checkBox;
-	}
-
-	private void createNumberCamionsTextField() {
-
-		Mine mine = parentFrame.getMine();
-		//nbCamionsLabel.setMaximumSize(new Dimension(100, 40));
-		//nbCamionsLabel.setMinimumSize(new Dimension(100, 40));
-		//nbCamionsLabel.setPreferredSize(new Dimension(100, 40));
-
-
-		this.nbCamionsTextField = new JTextField();
-		this.selectedNumberOfCamions = mine.getCamions().size();
-		nbCamionsTextField.setText(""+mine.getCamions().size());
-		nbCamionsTextField.setMaximumSize(new Dimension(50, 50));
-		nbCamionsTextField.setMinimumSize(new Dimension(50, 20));
-		nbCamionsTextField.setPreferredSize(new Dimension(50, 20));
-		nbCamionsTextField.addFocusListener(new FocusListener() {
-
-
-			@Override
-			public void focusGained(FocusEvent arg0) {
-
-
-			}
-
-			@Override
-			public void focusLost(FocusEvent arg0) {
-				//valide le texte
-				try {
-					int nbCamions =  Integer.valueOf(nbCamionsTextField.getText());
-					nbCamionsTextField.setBackground(Color.white);
-					selectedNumberOfCamions = nbCamions;
-					if(selectedNumberOfCamions < 1) {
-						throw new NumberFormatException();
-					}
-				}
-				catch(NumberFormatException exception) {
-					nbCamionsTextField.setText("");
-					nbCamionsTextField.setBackground(Color.red);
-				}
-
-
-
-			}
-
-		});
 	}
 
 	//panel contenant un champs texte indiquant le temps total de simulation
@@ -955,9 +1048,9 @@ public class JControlPanel extends JPanel{
 		JButton resetButton = new JButton();
 		final int exemple = mine.getExemple();
 		final int nbCamions = mine.getCamions().size();
-		
+
 		resetButton.addActionListener(new ActionListener() {
-			
+
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				parentFrame.notifyListenersResetSimulationRequested();
@@ -992,7 +1085,7 @@ public class JControlPanel extends JPanel{
 				else {
 					optStrategyTextField.setEditable(false);
 					parentFrame.notifyListenersPauseButtonPressed();
-					
+
 				}
 
 
@@ -1017,34 +1110,34 @@ public class JControlPanel extends JPanel{
 		Mine mine = parentFrame.getMine();
 
 		final JComboBox<Mine.ExampleId> comboBox = new JComboBox<Mine.ExampleId>();
-		
+
 		comboBox.setRenderer( new ListCellRenderer<Mine.ExampleId>(){
-			
-			
+
+
 			@Override
 			public JLabel getListCellRendererComponent(JList<? extends ExampleId> list, ExampleId value, int index,
 					boolean isSelected, boolean cellHasFocus) {
 
-						        
-		        if (isSelected) {
-		            setBackground(list.getSelectionBackground());
-		            setForeground(list.getSelectionForeground());
-		        } else {
-		            setBackground(list.getBackground());
-		            setForeground(list.getForeground());
-		        }
+
+				if (isSelected) {
+					setBackground(list.getSelectionBackground());
+					setForeground(list.getSelectionForeground());
+				} else {
+					setBackground(list.getBackground());
+					setForeground(list.getForeground());
+				}
 
 				// TODO Auto-generated method stub
 				return new JLabel(value.getName());
 			}
-			
+
 		});
 		comboBox.setMaximumSize(new Dimension(1000, 30));
-		
+
 		ArrayList<Mine.ExampleId> exampleIds = Mine.exampleIds;
 		for(int i = 0; i < exampleIds.size(); i++){
 			//Ajoute les 2  options possibles
-			
+
 			comboBox.addItem(exampleIds.get(i));
 		}
 
@@ -1057,9 +1150,12 @@ public class JControlPanel extends JPanel{
 
 	}
 
-	public int getNumberOfCamions() {
+	public int getNumberOfSmallCamions() {
+		return this.selectedNumberOfSmallCamions;
+	}
 
-		return this.selectedNumberOfCamions;
+	public int getNumberOfLargeCamions() {
+		return this.selectedNumberOfLargeCamions;
 	}
 
 
