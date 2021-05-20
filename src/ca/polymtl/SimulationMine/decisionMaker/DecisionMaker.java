@@ -31,9 +31,9 @@ public class DecisionMaker {
 	//private double cibleTempsAttentePelle;
 
 	//mine
-	Mine mine; 
+	protected static Mine mine; 
 
-	LpSolve solver;
+	private LpSolve solver;
 
 	public DecisionMaker(Mine mine) {
 		this.mine = mine;
@@ -823,7 +823,7 @@ return (attenteEspereeCamionSeconds-cibleAttenteCamionSeconds)*Math.abs((attente
 		//
 		else if(camion.getState() == Camion.ETAT_EN_CHARGE) {
 			Pelle p = (Pelle) camion.getCurrentStation();
-			Station stationRetour = p.getReturnStation();
+			Station stationRetour = selectReturnStation(camion, p);
 			double distance = p.getLocation().distance(stationRetour.getLocation());
 			double tempsChargeRestant = camion.getChargeRemaining()/p.AVERAGE_CHARGE_SPEED;
 			double tempsDeplacement = distance/camion.getAvgSpeed();
@@ -842,7 +842,7 @@ return (attenteEspereeCamionSeconds-cibleAttenteCamionSeconds)*Math.abs((attente
 			Pelle p = (Pelle) camion.getObjective();
 			double tempsAvantDebutRemplissage = calculeTempsEspereAvantRemplissage(camion, (Pelle) camion.getObjective());
 			double tempsRemplissage = 100/p.AVERAGE_CHARGE_SPEED;
-			double tempsRetour = p.getLocation().distance(p.getReturnStation().getLocation())/camion.getAvgSpeed();
+			double tempsRetour = p.getLocation().distance(selectReturnStation(camion, p).getLocation())/camion.getAvgSpeed();
 			return tempsAvantDebutRemplissage+ tempsRemplissage+tempsRetour;
 
 		}
@@ -863,7 +863,7 @@ return (attenteEspereeCamionSeconds-cibleAttenteCamionSeconds)*Math.abs((attente
 			tempsAttente+= position*100/p.AVERAGE_CHARGE_SPEED;
 
 			double tempsRemplissage = 100/p.AVERAGE_CHARGE_SPEED;
-			double tempsRetour = p.getLocation().distance(p.getReturnStation().getLocation())/camion.getAvgSpeed();
+			double tempsRetour = p.getLocation().distance(selectReturnStation(camion, p).getLocation())/camion.getAvgSpeed();
 			return tempsAttente+ tempsRemplissage+tempsRetour;
 		}
 		throw new IllegalStateException();
@@ -914,6 +914,23 @@ return (attenteEspereeCamionSeconds-cibleAttenteCamionSeconds)*Math.abs((attente
 			return false;
 		}
 		return true;
+	}
+
+
+	//Choisis la station de retours pour un camion qui viens de se faire remplir à la pelle
+	public static Station selectReturnStation(Camion camion, Pelle pelle) {
+		Station returnStation = null;
+		//si remplis de sterile, choisis parmis les steriles
+		if(pelle.getRockType().getPercentIron() == 0 && pelle.getRockType().getPercentSulfur() ==0) {
+			returnStation = mine.getSteriles().get(0);
+		}
+		else {
+			returnStation = mine.getConcentrateurs().get(0);
+		}
+		//sinon, choisis parmis les concentrateurs
+		
+		
+		return returnStation;
 	}
 
 }

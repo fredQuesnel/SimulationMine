@@ -3,6 +3,8 @@ import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
 
+import ca.polymtl.SimulationMine.decisionMaker.DecisionMaker;
+
 public class Pelle extends Station{
 	/*
 	 * constantes
@@ -30,7 +32,7 @@ public class Pelle extends Station{
 	//-----------------------
 	//station de retour des camions
 	//
-	private Station returnStation;
+	//private Station returnStation;
 
 	//type de roches
 	//
@@ -158,16 +160,20 @@ public class Pelle extends Station{
 	 * 
 	 * @return La station où sont envoyés les camions après le remplissage
 	 */
+	/*
 	public Station getReturnStation() {
 		return returnStation;
 	}
+	*/
 
 	/*
 	 * set la station de retour de la pelle
 	 */
+	/*
 	protected void setReturnStation(Station returnStation) {
 		this.returnStation = returnStation;
 	}
+	*/
 
 	/**
 	 * 
@@ -262,6 +268,7 @@ public class Pelle extends Station{
 		//
 		if(camionIsFull) {
 
+			Station returnStation = DecisionMaker.selectReturnStation(camionEnRemplissage, this);
 			//nouvelle dest. du camion
 			camionEnRemplissage.setObjective(returnStation);
 

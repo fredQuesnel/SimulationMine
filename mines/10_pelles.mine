@@ -14,4 +14,6 @@ pelle min "pelle8" 2300 1900 15 0.5 3
 pelle ste "pelle9" 8000 8000 0 0 5.9
 pelle min "pelle10" 4600 5300 24 2.7 4
 concentrateur "concentrateur" 1000 1000
+concentrateur "concentrateur2" 2000 2000
 sterile "sterile" 9000 9000
+sterile "sterile2" 3000 9000

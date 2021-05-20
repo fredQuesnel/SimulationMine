@@ -25,7 +25,7 @@ public class TravelTimePredictor {
 	private int predictFunctionNumberSample;
 	private double predictFunctionWeight;
 
-	
+
 	//historique des temps de parcours. La clé est une string indiquant l'origine/destination
 	//une prédiction de -1 signifie aucune prédiction
 	private HashMap<String, ArrayList<Double>> historyMap;
@@ -42,11 +42,11 @@ public class TravelTimePredictor {
 
 		this.predictFunctionNumberSample = TravelTimePredictor.DEFAULT_PREDICT_FUNCTION_NB_SAMLE;
 		this.predictFunctionWeight = TravelTimePredictor.DEFAULT_PREDICT_FUNCTION_WEIGHT;
-		
+
 		//historique
 		this.historyMap = new HashMap<String, ArrayList<Double>>();
 		this.predictionMap = new HashMap<String, ArrayList<Double>>();
-		
+
 	}
 
 
@@ -69,7 +69,7 @@ public class TravelTimePredictor {
 
 	}
 
-	
+
 	public static String getMapKeyForODPair(Station origine, Station destination) {
 		return origine.getId()+":"+destination.getId();
 	}
@@ -77,11 +77,11 @@ public class TravelTimePredictor {
 
 	//Option "erreur précédente" dans le logiciel
 	private double predictTravelTimeWeightedError(Station origine, Station destination) {
-		
+
 		ArrayList<Pelle> pelles = mine.getPelles();
 		//Station concentrateur = mine.getConcentrateur();
 		//Station sterile = mine.getSterile();
-		
+
 		//retrouve l'historique des temps de parcours
 		String ODKey = getMapKeyForODPair(origine, destination);
 		ArrayList<Double> historyForOD = this.historyMap.get(ODKey);
@@ -127,37 +127,49 @@ public class TravelTimePredictor {
 
 				//erreur concentrateur-pelle
 				//
-				String key = getMapKeyForODPair(p.getReturnStation(), p);
+				for(int j = 0 ; j < mine.getConcentrateurs().size(); j++) {
+					String key = getMapKeyForODPair(mine.getConcentrateurs().get(j), p);
 
-				ArrayList<Double> hm = historyMap.get(key);
-				ArrayList<Double> pm = predictionMap.get(key);
+					ArrayList<Double> hm = historyMap.get(key);
+					ArrayList<Double> pm = predictionMap.get(key);
 
-				if(hm!= null && pm != null) {
-					sommeErreurs += hm.get(hm.size()-1)-pm.get(pm.size()-1);
-					sommeTemps+= hm.get(hm.size()-1);
+					if(hm!= null && pm != null) {
+						sommeErreurs += hm.get(hm.size()-1)-pm.get(pm.size()-1);
+						sommeTemps+= hm.get(hm.size()-1);
+					}
+					key = getMapKeyForODPair(p, mine.getConcentrateurs().get(j));
+
+					hm = historyMap.get(key);
+					pm = predictionMap.get(key);
+
+					if(hm!= null && pm != null) {
+						sommeErreurs += hm.get(hm.size()-1)-pm.get(pm.size()-1);
+						sommeTemps+= hm.get(hm.size()-1);
+					}
 				}
-				//erreur sterile-pelle
-				key = getMapKeyForODPair(p.getReturnStation(), p);
+				
+				for(int j = 0 ; j < mine.getSteriles().size(); j++) {
+					//erreur sterile-pelle
+					String key = getMapKeyForODPair(mine.getSteriles().get(j), p);
+	
+					ArrayList<Double> hm = historyMap.get(key);
+					ArrayList<Double> pm = predictionMap.get(key);
+	
+					if(hm!= null && pm != null) {
+						sommeErreurs += hm.get(hm.size()-1)-pm.get(pm.size()-1);
+						sommeTemps+= hm.get(hm.size()-1);
+					}
+					
+					key = getMapKeyForODPair(p, mine.getSteriles().get(j));
 
-				hm = historyMap.get(key);
-				pm = predictionMap.get(key);
+					hm = historyMap.get(key);
+					pm = predictionMap.get(key);
 
-				if(hm!= null && pm != null) {
-					sommeErreurs += hm.get(hm.size()-1)-pm.get(pm.size()-1);
-					sommeTemps+= hm.get(hm.size()-1);
+					if(hm!= null && pm != null) {
+						sommeErreurs += hm.get(hm.size()-1)-pm.get(pm.size()-1);
+						sommeTemps+= hm.get(hm.size()-1);
+					}
 				}
-
-				//erreur pelle-point de retour
-				key = getMapKeyForODPair(p, p.getReturnStation());
-
-				hm = historyMap.get(key);
-				pm = predictionMap.get(key);
-
-				if(hm!= null && pm != null) {
-					sommeErreurs += hm.get(hm.size()-1)-pm.get(pm.size()-1);
-					sommeTemps+= hm.get(hm.size()-1);
-				}
-
 			}
 
 
@@ -253,7 +265,7 @@ public class TravelTimePredictor {
 		//System.out.println("retourne "+avgTime);
 		return avgTime;
 	}
-	
+
 	//enregistre l'historique de temps de parcours du camion
 	// Cela inclus le temps réel de parcours et le temps prédit
 	//
@@ -290,7 +302,7 @@ public class TravelTimePredictor {
 
 	public void setPredictFunction(int newPredictFunctionIndex) {
 		this.fPredictFunction = newPredictFunctionIndex;
-		
+
 	}
 
 
@@ -298,7 +310,7 @@ public class TravelTimePredictor {
 
 	public void setWeight(double rhoValue) {
 		this.predictFunctionWeight = rhoValue;
-		
+
 	}
 
 

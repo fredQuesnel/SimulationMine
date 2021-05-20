@@ -353,12 +353,7 @@ public class JMinePanel extends JPanel{
 				Concentrateur concentrateur = mine.getConcentrateurs().get(j);
 				if(concentrateur != null) {
 					Point pointConcentrateur = convertPointToWindow(concentrateur.getLocation());
-					if(p.getReturnStation() == concentrateur) {
-						g.setColor(Color.green);
-					}
-					else {
-						g.setColor(Color.DARK_GRAY);
-					}
+					g.setColor(Color.green);
 					g.drawLine((int) pointConcentrateur.getX(), (int) pointConcentrateur.getY(), (int) pointPelle.getX(), (int) pointPelle.getY());
 				}
 			}
@@ -368,12 +363,7 @@ public class JMinePanel extends JPanel{
 				Sterile sterile = mine.getSteriles().get(j);
 				if(sterile!= null) {
 					Point pointSterile = convertPointToWindow(sterile.getLocation());
-					if(p.getReturnStation() == sterile) {
-						g.setColor(Color.green);
-					}
-					else {
-						g.setColor(Color.DARK_GRAY);
-					}
+					g.setColor(Color.green);
 					g.drawLine((int) pointSterile.getX(), (int) pointSterile.getY(), (int) pointPelle.getX(), (int) pointPelle.getY());
 				}
 			}

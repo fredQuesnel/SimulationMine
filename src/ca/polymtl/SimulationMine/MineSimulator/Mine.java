@@ -571,17 +571,6 @@ public class Mine {
 
 			}
 			
-			//set les stations de retour
-			for(int i = 0 ; i < pelles.size(); i++) {
-				Pelle p = pelles.get(i);
-				if(p.getRockType().getPercentIron() == 0 && p.getRockType().getPercentSulfur() == 0) {
-					p.setReturnStation(steriles.get(0));
-				}
-				else {
-					p.setReturnStation(concentrateurs.get(0));
-				}
-
-			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
