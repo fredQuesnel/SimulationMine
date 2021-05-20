@@ -116,7 +116,7 @@ public class CustomDecisionMaker extends DecisionMaker {
 		double distanceEntreCamionEtPelle = calculeDistanceEntreCamionEtPelle(camion, pelle);
 
 		//temps espere vers la pelle (s)
-		double tempsDeParcoursEspere = calculeTempsParcoursMoyen(distanceEntreCamionEtPelle);
+		double tempsDeParcoursEspere = calculeTempsParcoursMoyen(distanceEntreCamionEtPelle, camion.getAvgSpeed());
 
 
 		//temps espere avant le debut du remplissage
@@ -195,8 +195,8 @@ public class CustomDecisionMaker extends DecisionMaker {
 		//score max
 		max = Double.MAX_VALUE;
 
-		vitesse_moyenne_camion = Camion.VITESSE_MOYENNE;
-		temps_moyen_remplissage = Camion.CHARGE_MAX/Pelle.AVERAGE_CHARGE_SPEED;
+		vitesse_moyenne_camion = camion.getAvgSpeed();
+		temps_moyen_remplissage = camion.getChargeMax()/Pelle.AVERAGE_CHARGE_SPEED;
 
 		//indique 1 si la pelle est occupee
 		pelleOccupee = 0;
@@ -220,7 +220,7 @@ public class CustomDecisionMaker extends DecisionMaker {
 
 
 		//temps espere vers la pelle (s)
-		tempsDeParcoursEspere = calculeTempsParcoursMoyen(distanceEntreCamionEtPelle);
+		tempsDeParcoursEspere = calculeTempsParcoursMoyen(distanceEntreCamionEtPelle, camion.getAvgSpeed());
 
 
 		//nombre de camions presentement en route pour la pelle
@@ -240,7 +240,7 @@ public class CustomDecisionMaker extends DecisionMaker {
 			//temps de remplissage restant = charge restante / vitesse moyenne charge
 			double esperanceTempsRemplissageRestant = camionEnRemplissage.getChargeRemaining()/Pelle.AVERAGE_CHARGE_SPEED;
 
-			tempsRestantAvantFinPelle = esperanceTempsRemplissageRestant + pelle.getCamionsEnAttente().size()*Camion.CHARGE_MAX/Pelle.AVERAGE_CHARGE_SPEED;
+			tempsRestantAvantFinPelle = esperanceTempsRemplissageRestant + pelle.getCamionsEnAttente().size()*camion.getChargeMax()/Pelle.AVERAGE_CHARGE_SPEED;
 		}
 
 

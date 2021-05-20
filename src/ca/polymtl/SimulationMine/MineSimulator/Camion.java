@@ -1,19 +1,19 @@
 package ca.polymtl.SimulationMine.MineSimulator;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D.Double;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class Camion {
+public abstract class Camion {
 
 	/*
 	 * Constantes
 	 */
-	//vitesse en m/s (moyenne et ecart type)
-	//
-	/** Vitesse moyenne du camion	 */
-	public static final double VITESSE_MOYENNE = 9;
-	/** Écart type sur la vitesse du camion	 */
-	private static final double ECART_TYPE_VITESSE = 0.6;//ancien 0.5
+
+
+
 
 	//etats possibles
 	//
@@ -28,8 +28,6 @@ public class Camion {
 	/** État indiquant un camion qui viens juste d'arriver à sa destination.	 */
 	public static int ETAT_JUSTE_ARRIVE = 5;
 
-	/** Charge maximum du camion.	 */
-	public static double CHARGE_MAX = 100.;
 
 
 
@@ -57,7 +55,7 @@ public class Camion {
 	// Station (null si à aucune station)
 	//
 	private Station currentStation;
-	
+
 	/** 
 	 * 
 	 * @return Station courante du camion (indéfini si le camion n'est pas à une station)
@@ -77,7 +75,7 @@ public class Camion {
 	public RockType getRockType() {
 		return rockType;
 	}
-	
+
 	protected void setRockType(RockType rt) {
 		this.rockType = rt;
 	}
@@ -98,10 +96,21 @@ public class Camion {
 	private double iterTotalTime;
 	private double iterCurrentTime;
 	private boolean iterFinished;
+	private BufferedImage goingEastImage;
+	private BufferedImage goingWestImage;
 
 	//constructeur
 	//
-	public Camion(Station station, Mine mine) {
+	public Camion(Station station, Mine mine, BufferedImage goingEastImage) {
+
+		this.goingEastImage = goingEastImage;
+		this.goingWestImage = goingEastImage;
+		// Flip the image horizontally
+		AffineTransform tx = AffineTransform.getScaleInstance(-1, 1);
+		tx.translate(-(this.goingWestImage).getWidth(null), 0);
+		AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+		this.goingWestImage = op.filter(this.goingWestImage, null);
+
 		this.mine = mine;
 
 		this.speed = 2;
@@ -202,8 +211,14 @@ public class Camion {
 	//retourne une vitesse aleatoire 
 	//
 	private double getRandomSpeed() {
-		return SimulationMine.random.nextGaussian()*ECART_TYPE_VITESSE+VITESSE_MOYENNE;
+		return SimulationMine.random.nextGaussian()*getStdSpeed()+getAvgSpeed();
 	}
+
+
+	public abstract double getChargeMax();
+
+	public abstract double getAvgSpeed();
+	public abstract double getStdSpeed();
 
 	/**
 	 * 
@@ -269,20 +284,20 @@ public class Camion {
 			throw new IllegalStateException();
 		}
 		//System.out.println("remplis : "+chargeTime+" secondes");
-		
-		
+
+
 		if(getRemainingTimeInTurn() < 0.0001){
 			iterFinished = true;
 		}
-		
+
 		if(chargeTime > this.getRemainingTimeInTurn()) {
 			chargeTime = this.getRemainingTimeInTurn();
 			this.iterFinished = true;
 		}
 
-		if(charge + chargeTime*chargeSpeed > CHARGE_MAX) {
-			this.charge = CHARGE_MAX;
-			this.iterCurrentTime += (CHARGE_MAX- this.charge)/chargeSpeed;
+		if(charge + chargeTime*chargeSpeed > this.getChargeMax()) {
+			this.charge = this.getChargeMax();
+			this.iterCurrentTime += (this.getChargeMax()- this.charge)/chargeSpeed;
 		}
 		else {
 			this.charge+= chargeTime*chargeSpeed;
@@ -382,7 +397,15 @@ public class Camion {
 	//retourne la charge restante
 	//
 	public double getChargeRemaining() {
-		return Camion.CHARGE_MAX-this.getCharge();
+		return this.getChargeMax()-this.getCharge();
+	}
+
+	public BufferedImage getGoingEastImage() {
+		return goingEastImage;
+	}
+
+	public BufferedImage getGoingWestImage() {
+		return goingWestImage;
 	}
 
 	//retourne le temps maximum ou le camion peut etre en charge dans l'iteration courante
@@ -427,7 +450,7 @@ public class Camion {
 	 */
 	public boolean isFull() {
 
-		if(this.charge >= Camion.CHARGE_MAX) {
+		if(this.charge >= this.getChargeMax()) {
 			return true;
 		}
 		else {
@@ -482,4 +505,10 @@ public class Camion {
 	public double getNbVisitAtStation(Station station){
 		return this.nbVisitPerPelle.get(station).intValue();
 	}
+
+
+
+
+
 }
+

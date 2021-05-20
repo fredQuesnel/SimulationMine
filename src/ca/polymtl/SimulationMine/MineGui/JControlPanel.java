@@ -888,15 +888,9 @@ public class JControlPanel extends JPanel{
 				int dialogButton = JOptionPane.YES_NO_OPTION;
 				int result = JOptionPane.showConfirmDialog (null, "Voulez-vous vraiment arrêter cette simulation et en démarrer une nouvelle?","Attention", dialogButton);
 				if(result == JOptionPane.YES_OPTION) {
-					int indexSelected = mineComboBox.getSelectedIndex();
 					ExampleId selectedId = (ExampleId) mineComboBox.getSelectedItem();
-					int exempleNb=-1;
-					if(indexSelected == 0) {
-						exempleNb = Mine.EXEMPLE1;
-					}
-					else if(indexSelected == 1) {
-						exempleNb = Mine.EXEMPLE2;
-					}
+					System.out.println("selected id : "+selectedId.getName()+" "+selectedId.getFileName());
+					
 					parentFrame.notifyListenersNewSimulationRequested(selectedId, getNumberOfSmallCamions(), getNumberOfLargeCamions(), getTempsSimulationSeconds());
 
 

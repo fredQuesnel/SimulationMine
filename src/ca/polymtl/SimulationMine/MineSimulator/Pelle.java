@@ -71,7 +71,7 @@ public class Pelle extends Station{
 	/*
 	 * Constructeur
 	 */
-	public Pelle(int i, int j, String id, double cibleAttenteCamionsSeconds, double cibleCamionsParHeure) {
+	public Pelle(int i, int j, String id, double cibleCamionsParHeure) {
 
 		super(i,j, id);
 		this.camionsEnAttente = new ArrayList<Camion>();

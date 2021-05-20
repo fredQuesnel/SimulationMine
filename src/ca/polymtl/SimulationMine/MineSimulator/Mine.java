@@ -1,11 +1,15 @@
 package ca.polymtl.SimulationMine.MineSimulator;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Scanner;
 import java.util.regex.Pattern;
+
+import javax.imageio.ImageIO;
 
 import ca.polymtl.SimulationMine.decisionMaker.TravelTimePredictor;
 
@@ -480,11 +484,13 @@ public class Mine {
 		erasePreviousMine();
 
 		System.out.println("charge mine "+exempleId.getName());
+		
+		
 		//retrouve l'objet ExampleId de l'exemple
 		ExampleId exId = null;
 		for(int i = 0 ; i < exampleIds.size(); i++){
 			System.out.println("Compare "+exampleIds.get(i).getName()+" "+exampleIds.get(i).getId());
-			if(exampleIds.get(i).getName().equals(exampleIds.get(i).getName())){
+			if(exampleIds.get(i).getName().equals(exempleId.getName())){
 				exId = exampleIds.get(i);
 				break;
 			}
@@ -528,7 +534,7 @@ public class Mine {
 					double tauxFe = scanner.nextDouble();
 					double tauxS = scanner.nextDouble();
 					double cible = scanner.nextDouble();
-					Pelle pelle = new Pelle(posX, posY, nom, -1, cible);
+					Pelle pelle = new Pelle(posX, posY, nom, cible);
 					pelle.setRockType(tauxFe, tauxS);
 					System.out.println(nom+" "+posX+" "+posY+" "+tauxFe+" "+tauxS+" "+cible);
 					pelles.add(pelle);
@@ -577,10 +583,75 @@ public class Mine {
 
 		this.exemple = this.currentExampleId.getId();
 		
+		BufferedImage smallCamionImage = null;
+		BufferedImage largeCamionImage = null;
 		//Cree les camions
 		//
+		try {
+			smallCamionImage = ImageIO.read(new File("images/camion_small.png"));
+			largeCamionImage = ImageIO.read(new File("images/camion_large.png"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		for(int i = 0 ; i < nbSmallCamions; i++) {
-			Camion camion = new Camion(sterile, this);
+			Camion camion = new Camion(sterile, this, smallCamionImage) {
+				
+				/** Vitesse moyenne du camion	 */
+				public static final double VITESSE_MOYENNE = 9;
+				/** Écart type sur la vitesse du camion	 */
+				private static final double ECART_TYPE_VITESSE = 0.6;//ancien 0.5
+				/** Charge maximum du camion.	 */
+				public static final double CHARGE_MAX = 60.;
+				
+				@Override
+				public double getAvgSpeed() {
+					return VITESSE_MOYENNE;
+				}
+
+				@Override
+				public double getStdSpeed() {
+					return ECART_TYPE_VITESSE;
+				}
+
+				@Override
+				public double getChargeMax() {
+					// TODO Auto-generated method stub
+					return CHARGE_MAX;
+				}
+				
+			};
+			camions.add(camion);
+		}
+		
+		for(int i = 0 ; i < nbLargeCamions; i++) {
+			Camion camion = new Camion(sterile, this, largeCamionImage) {
+				
+				/** Vitesse moyenne du camion	 */
+				public static final double VITESSE_MOYENNE = 5;
+				/** Écart type sur la vitesse du camion	 */
+				private static final double ECART_TYPE_VITESSE = 0.3;//ancien 0.5
+				/** Charge maximum du camion.	 */
+				public static final double CHARGE_MAX = 100.;
+				
+				@Override
+				public double getAvgSpeed() {
+					return VITESSE_MOYENNE;
+				}
+
+				@Override
+				public double getStdSpeed() {
+					return ECART_TYPE_VITESSE;
+				}
+
+				@Override
+				public double getChargeMax() {
+					// TODO Auto-generated method stub
+					return CHARGE_MAX;
+				}
+				
+			};
 			camions.add(camion);
 		}
 		
@@ -604,142 +675,6 @@ public class Mine {
 
 	}
 
-
-
-	//cree l'instance de mine conforme a l'exemple 1
-	//
-	private void initExemple1(int nbCamions, int nbLargeCamions) {
-
-
-		//initialise la mine en tant que tel
-		//
-
-		this.concentrateur = new Concentrateur(1000, 1000, "concentrateur");
-
-		this.sterile = new Station (9000, 9000, "sterile");
-
-		this.camions = new ArrayList<Camion>();
-
-		//TODO créer les types de roche
-		//TODO Créer les plans par defaut
-		this.pelles = new ArrayList<Pelle>();
-		Pelle pelle1 = new Pelle(3000, 3000, "pelle1", 30, 5);
-		pelle1.setReturnStation(concentrateur);
-		pelle1.setRockType(20, 1);
-		pelles.add(pelle1);
-
-		Pelle pelle2 = new Pelle(2000, 4000, "pelle2", 30, 5);
-		pelle2.setReturnStation(sterile);
-		pelle2.setRockType(0, 0);
-		pelles.add(pelle2);
-
-
-		Pelle pelle3 = new Pelle(5000, 3000, "pelle3", 30, 5);
-		pelle3.setReturnStation(concentrateur);
-		pelle3.setRockType(40, 3);
-		pelles.add(pelle3);
-
-		Pelle pelle4 = new Pelle(3000, 8000, "pelle4", 30, 5);
-		pelle4.setReturnStation(concentrateur);
-		pelle4.setRockType(25, 2.6);
-		pelles.add(pelle4);
-
-
-		//cree les camions
-		for(int i = 0 ; i < nbCamions; i++) {
-			Camion camion = new Camion(sterile, this);
-			//SimulationMine.decisionMaker.giveObjectiveToCamion(camion);
-			camions.add(camion);
-		}
-
-
-		//cree les handles des donnees
-		this.dataSeriesHandles = new ArrayList<String>();
-		dataSeriesHandles.add("reel:"+TravelTimePredictor.getMapKeyForODPair(sterile, pelle3 ));
-		dataSeriesHandles.add("pred:"+TravelTimePredictor.getMapKeyForODPair(sterile, pelle3 ));
-		dataSeriesHandles.add("reel:"+TravelTimePredictor.getMapKeyForODPair(concentrateur, pelle1 ));
-		dataSeriesHandles.add("pred:"+TravelTimePredictor.getMapKeyForODPair(concentrateur, pelle1 ));
-	}
-
-	//cree l'instance de mine conforme a l'exemple 1
-	//
-	private void initExemple2(int nbCamions, int nbLargeCamions) {
-		System.out.println("ici");
-		this.concentrateur = new Concentrateur(1000, 1000, "concentrateur");
-
-		this.sterile = new Station (9000, 9000, "sterile");
-
-		this.camions = new ArrayList<Camion>();
-
-
-		Pelle pelle1 = new Pelle(500, 8000, "pelle1", 30, 3);
-		pelle1.setReturnStation(concentrateur);
-		pelle1.setRockType(38, 3);
-		pelles.add(pelle1);
-
-
-		Pelle pelle2 = new Pelle(6500, 3300, "pelle2", 30, 3);
-		pelle2.setReturnStation(sterile);
-		pelle2.setRockType(0, 0);
-		pelles.add(pelle2);
-
-		Pelle pelle3 = new Pelle(5000, 7000, "pelle3", 30, 5);
-		pelle3.setReturnStation(concentrateur);
-		pelle3.setRockType(20, 0.1);
-		pelles.add(pelle3);
-
-		Pelle pelle4 = new Pelle(4500, 400, "pelle4", 30, 3);
-		pelle4.setReturnStation(sterile);
-		pelle4.setRockType(0, 0);
-		pelles.add(pelle4);
-
-		Pelle pelle5 = new Pelle(1000, 4000, "pelle5", 30, 2);
-		pelle5.setReturnStation(concentrateur);
-		pelle5.setRockType(20, 1.6);
-		pelles.add(pelle5);
-
-
-		Pelle pelle6 = new Pelle(2500, 5600, "pelle6", 30, 3);
-		pelle6.setReturnStation(concentrateur);
-		pelle6.setRockType(33, 2.0);
-		pelles.add(pelle6);
-
-		Pelle pelle7 = new Pelle(9000, 5000, "pelle7", 30, 5.5);
-		pelle7.setReturnStation(concentrateur);
-		pelle7.setRockType(43, 4.2);
-		pelles.add(pelle7);
-
-		Pelle pelle8 = new Pelle(2300, 1900, "pelle8", 30, 3);
-		pelle8.setReturnStation(concentrateur);
-		pelle8.setRockType(15, 0.5 );
-		pelles.add(pelle8);
-
-		Pelle pelle9 = new Pelle(8000, 8000, "pelle9", 30, 5.9);
-		pelle9.setReturnStation(sterile);
-		pelle9.setRockType(0, 0);
-		pelles.add(pelle9);
-
-		Pelle pelle10 = new Pelle(4600, 5300, "pelle10", 30, 4);
-		pelle10.setReturnStation(concentrateur);
-		pelle10.setRockType(24, 2.7);
-		pelles.add(pelle10);
-
-
-
-		for(int i = 0 ; i < nbCamions; i++) {
-			Camion camion = new Camion(sterile, this);
-
-			//SimulationMine.decisionMaker.giveObjectiveToCamion(camion);
-			camions.add(camion);
-		}
-		//cree les handles des donnees
-		this.dataSeriesHandles = new ArrayList<String>();
-		dataSeriesHandles.add("reel:"+TravelTimePredictor.getMapKeyForODPair(sterile, pelle1 ));
-		dataSeriesHandles.add("pred:"+TravelTimePredictor.getMapKeyForODPair(sterile, pelle1 ));
-		dataSeriesHandles.add("reel:"+TravelTimePredictor.getMapKeyForODPair(sterile, pelle7 ));
-		dataSeriesHandles.add("pred:"+TravelTimePredictor.getMapKeyForODPair(sterile, pelle7 ));
-
-	}
 
 
 	/**

@@ -55,8 +55,6 @@ public class JMinePanel extends JPanel{
 	private static int CAMION_WIDTH = 30;
 	private static int CAMION_HEIGHT = 20;
 
-	private BufferedImage camionGoingEastImage;
-	private BufferedImage camionGoingWestImage;
 	private BufferedImage pelleImage;
 
 	private BufferedImage sterileImage;
@@ -69,7 +67,6 @@ public class JMinePanel extends JPanel{
 	private JPanel progressBarPanel;
 	private JProgressBar progressBar;
 	private Rectangle bounds;
-	//private JControlPanel controlPanel;
 
 
 	//constructeur
@@ -124,9 +121,7 @@ public class JMinePanel extends JPanel{
 
 		});
 
-		//this.setLayout(new GridBagLayout());
 		GridBagConstraints gc = new GridBagConstraints();
-		//gc.anchor= GridBagConstraints.CENTER;
 
 		//cree la barre de progres
 		//
@@ -173,15 +168,6 @@ public class JMinePanel extends JPanel{
 			concentrateurImage = ImageIO.read(new File("images/concentrateur.png"));
 
 			backgroundImage = ImageIO.read(new File("images/background.png"));
-
-			camionGoingEastImage = camionImage;
-			camionGoingWestImage = camionImage;
-
-			// Flip the image horizontally
-			AffineTransform tx = AffineTransform.getScaleInstance(-1, 1);
-			tx.translate(-camionGoingWestImage.getWidth(null), 0);
-			AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
-			camionGoingWestImage = op.filter(camionGoingWestImage, null);
 		} catch (IOException e) {
 
 		}
@@ -576,16 +562,12 @@ public class JMinePanel extends JPanel{
 	private void paintCamion(Camion camion, Graphics g) {
 		Point point = convertPointToWindow(camion.getLocation());
 		g.setColor(Color.RED);
-
-
-
+		
+		BufferedImage camionImage = camion.getGoingWestImage();
 		if(camion.isGoingEast()) {
-			g.drawImage(camionGoingEastImage, (int) (point.getX()-CAMION_WIDTH/2), (int) (point.getY()-CAMION_HEIGHT/2), (int) (point.getX()+CAMION_WIDTH/2), (int) (point.getY()+CAMION_HEIGHT/2), 0, 0, camionGoingEastImage.getWidth(), camionGoingEastImage.getHeight(), null);
+			camionImage = camion.getGoingEastImage();
 		}
-		else {
-			g.drawImage(camionGoingWestImage, (int) (point.getX()-CAMION_WIDTH/2), (int) (point.getY()-CAMION_HEIGHT/2), (int) (point.getX()+CAMION_WIDTH/2), (int) (point.getY()+CAMION_HEIGHT/2), 0, 0, camionGoingWestImage.getWidth(), camionGoingWestImage.getHeight(), null);
-		}
-
+		g.drawImage(camionImage, (int) (point.getX()-CAMION_WIDTH/2), (int) (point.getY()-CAMION_HEIGHT/2), (int) (point.getX()+CAMION_WIDTH/2), (int) (point.getY()+CAMION_HEIGHT/2), 0, 0, camionImage.getWidth(), camionImage.getHeight(), null);
 
 
 	}

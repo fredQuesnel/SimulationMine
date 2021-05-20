@@ -483,7 +483,7 @@ public class MineSimulator implements GuiListener {
 			sommaireFrame.dispose();
 		}
 		sommaireFrame = null;
-		
+		System.out.println("charge mine "+exempleId.getName()+" "+exempleId.getFileName());
 		this.chargeMine(exempleId, numberOfSmallCamions, numberOfLargeCamions, tempsSimulationSeconds);
 
 	}
