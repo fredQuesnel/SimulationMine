@@ -86,8 +86,8 @@ public class SommaireFrame extends JFrame {
 	private double ecartTypeAttentePelle;
 	private Object pourcentMinerai;
 	private Object pourcentSouffre;
-	private double nbVoyageMinerai;
-	private double nbVoyageSterile;
+	private double quantiteMinerai;
+	private double quantiteSterile;
 	private ArrayList<Pair<Pelle, Double>> tauxPelles;
 	private ArrayList<Pair<Pelle, Double>> planPelles;
 
@@ -144,8 +144,8 @@ public class SommaireFrame extends JFrame {
 		//
 		this.nbVoyage = mine.getNumberOfRuns();
 
-		this.nbVoyageMinerai = mine.getConcentrateur().getTotalQuantity();
-		this.nbVoyageSterile = nbVoyage-nbVoyageMinerai;
+		this.quantiteMinerai = mine.getConcentrateur().getTotalQuantity();
+		this.quantiteSterile = mine.getSterile().getTotalQuantity();
 
 		this.percentEffCamionsMin = mine.getMinCamionEfficiency();
 		this.percentEffCamionsMax = mine.getMaxCamionEfficiency();
@@ -352,7 +352,7 @@ public class SommaireFrame extends JFrame {
 		outString+=this.nomMine+"\t"+this.nbCamions+"\t"+this.dureeSimulationSeconds+"\t";
 
 		//sommaire de productivité
-		outString += this.nbVoyageMinerai +"\t"+this.nbVoyageSterile +"\t"+this.nbVoyage +"\t"+this.pourcentMinerai+"\t"+this.pourcentSouffre;
+		outString += this.quantiteMinerai +"\t"+this.quantiteSterile +"\t"+this.nbVoyage +"\t"+this.pourcentMinerai+"\t"+this.pourcentSouffre;
 		outString +="\t"+this.percentEffPellesMax+"\t"+this.percentEffPellesAvg+"\t"+this.percentEffPellesMin+"\t"+this.percentEffCamionsMax+"\t"+this.percentEffCamionsAvg+"\t"+this.percentEffCamionsMin+"\t"+this.attenteMoyenGlobalPelles+"\t"+this.attenteMoyenGlobalCamions+"\t";
 
 
@@ -640,7 +640,7 @@ public class SommaireFrame extends JFrame {
 		gc.gridy++;
 		//Nombres de voyages
 		//
-		String nbVoyageText = "Nombre de voyages : ";
+		String nbVoyageText = "Quantités livrées : ";
 		JLabel nbVoyageLabel = new JLabel(nbVoyageText);
 		nbVoyageLabel.setFont(fontNormal);
 		sommaireProdPanel.add(nbVoyageLabel, gc);
@@ -650,7 +650,7 @@ public class SommaireFrame extends JFrame {
 		//Au concentrateur
 		gc.insets = new Insets(5, 10+2*tabWidth, 0, 0);
 		gc.gridy++;
-		String qteConcText = "Au concentrateur : "+df.format(this.nbVoyageMinerai)+" chargements";
+		String qteConcText = "Au concentrateur : "+df.format(this.quantiteMinerai)+" tonnes";
 		JLabel qteConcLabel = new JLabel(qteConcText);
 		qteConcLabel.setFont(fontNormal);
 		sommaireProdPanel.add(qteConcLabel, gc);
@@ -659,7 +659,7 @@ public class SommaireFrame extends JFrame {
 		//Sterile
 		gc.insets = new Insets(5, 10+2*tabWidth, 0, 0);
 		gc.gridy++;
-		String qteSterileText = "Au stérile : "+df.format(this.nbVoyageSterile)+" chargements";
+		String qteSterileText = "Au stérile : "+df.format(this.quantiteSterile)+" tonnes";
 		JLabel qteSterileLabel = new JLabel(qteSterileText);
 		qteSterileLabel.setFont(fontNormal);
 		sommaireProdPanel.add(qteSterileLabel, gc);
@@ -668,7 +668,7 @@ public class SommaireFrame extends JFrame {
 		//Total
 		gc.insets = new Insets(5, 10+2*tabWidth, 0, 0);
 		gc.gridy++;
-		String qteTotalText = "Total : "+df.format(this.nbVoyage)+" chargements";
+		String qteTotalText = "Total : "+df.format(this.quantiteMinerai+this.quantiteSterile)+" tonnes";
 		JLabel qteTotalLabel = new JLabel(qteTotalText);
 		qteTotalLabel.setFont(fontNormal);
 		sommaireProdPanel.add(qteTotalLabel, gc);

@@ -22,10 +22,10 @@ public class Concentrateur extends Station {
 	
 
 	//ajoute un load du type de roche spécifié
-	private void addLoad(RockType rockType) {
-		quantityIron += rockType.getPercentIron()/100;
-		quantitySulfur += rockType.getPercentSulfur()/100;
-		totalQuantity += 1.;
+	private void addLoad(RockType rockType, double numberTons) {
+		quantityIron += rockType.getPercentIron()/100*numberTons;
+		quantitySulfur += rockType.getPercentSulfur()/100*numberTons;
+		totalQuantity += numberTons;
 	}
 
 
@@ -33,7 +33,7 @@ public class Concentrateur extends Station {
 		camion.setStateIdle();
 		camion.setNumberOfRuns(camion.getNumberOfRuns()+1);
 		camion.setSpeed(0);
-		addLoad(camion.getRockType());
+		addLoad(camion.getRockType(), camion.getChargeMax());
 	}
 
 	/**

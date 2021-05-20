@@ -133,7 +133,7 @@ public class Mine {
 
 
 
-	private Station sterile;
+	private Sterile sterile;
 	private ArrayList<Pelle> pelles;
 	private ArrayList<Camion> camions;
 	private double meteoFactor;
@@ -457,7 +457,7 @@ public class Mine {
 	 * 
 	 * @return Station de stérile
 	 */
-	public Station getSterile() {
+	public Sterile getSterile() {
 		return sterile;
 	}
 
@@ -554,7 +554,7 @@ public class Mine {
 					nom = nom.substring(1, nom.length()-1);
 					int posX = scanner.nextInt();
 					int posY = scanner.nextInt();
-					Concentrateur sterile = new Concentrateur(posX, posY, nom);
+					Sterile sterile = new Sterile(posX, posY, nom);
 					this.sterile = sterile;
 				}
 				else {

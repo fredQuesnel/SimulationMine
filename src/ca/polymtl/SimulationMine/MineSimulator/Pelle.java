@@ -11,7 +11,7 @@ public class Pelle extends Station{
 	//public final static double ECART_TYPE_CHARGE_TIME=60;//1 min
 
 	//vitesse en pourcentage de chargement par seconde
-	/** Vitesse moyenne de remplissage (en %/ secondes)*/
+	/** Vitesse moyenne de remplissage (en tonnes secondes)*/
 	public final static double AVERAGE_CHARGE_SPEED = 1./6.;
 	/** Écart type sur la vitesse de remplissage*/
 	public final static double ECART_TYPE_CHARGE_SPEED = 1./30.;
