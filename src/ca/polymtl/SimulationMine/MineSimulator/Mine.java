@@ -129,11 +129,11 @@ public class Mine {
 
 
 
-	private Concentrateur concentrateur;
+	private ArrayList<Concentrateur> concentrateurs;
 
 
 
-	private Sterile sterile;
+	private ArrayList<Sterile> steriles;
 	private ArrayList<Pelle> pelles;
 	private ArrayList<Camion> camions;
 	private double meteoFactor;
@@ -146,10 +146,15 @@ public class Mine {
 	private TravelTimePredictor travelTimePredictor;
 
 	private ExampleId currentExampleId;
+
+	private int numberLargeCamions;
+
+	private int numberSmallCamions;
 	//------------------------------------------
 	// constructeur qui construit une mine vide
 	//------------------------------------------
 	public Mine() {
+
 
 		this.pelles = new ArrayList<Pelle>();
 		this.camions= new ArrayList<Camion>();
@@ -254,10 +259,12 @@ public class Mine {
 	private void erasePreviousMine() {
 		this.time = 0;
 		this.inWarmup = false;
-		this.concentrateur = null;
-		this.sterile = null;
+		this.concentrateurs = new ArrayList<Concentrateur>();
+		this.steriles = new ArrayList<Sterile>();
 		this.pelles = new ArrayList<Pelle>();
 		this.camions = new ArrayList<Camion>();
+		this.numberLargeCamions = 0;
+		this.numberSmallCamions = 0;
 		this.dataSeriesHandles = null;
 
 	}
@@ -303,8 +310,8 @@ public class Mine {
 	 * 
 	 * @return Le concentrateur
 	 */
-	public Concentrateur getConcentrateur() {
-		return concentrateur;
+	public ArrayList<Concentrateur> getConcentrateurs() {
+		return concentrateurs;
 	}
 
 
@@ -457,8 +464,8 @@ public class Mine {
 	 * 
 	 * @return Station de stérile
 	 */
-	public Sterile getSterile() {
-		return sterile;
+	public ArrayList<Sterile> getSteriles() {
+		return steriles;
 	}
 
 	/**
@@ -484,8 +491,8 @@ public class Mine {
 		erasePreviousMine();
 
 		System.out.println("charge mine "+exempleId.getName());
-		
-		
+
+
 		//retrouve l'objet ExampleId de l'exemple
 		ExampleId exId = null;
 		for(int i = 0 ; i < exampleIds.size(); i++){
@@ -505,7 +512,7 @@ public class Mine {
 		//
 		try {
 			System.out.println("mines/"+currentExampleId.getFileName());
-			
+
 			Scanner scanner = new Scanner(new File("mines/"+currentExampleId.getFileName()));
 			//pour que le point délimite la pratie fractionnaire
 			scanner.useLocale(Locale.US);
@@ -546,7 +553,7 @@ public class Mine {
 					int posX = scanner.nextInt();
 					int posY = scanner.nextInt();
 					Concentrateur concentrateur = new Concentrateur(posX, posY, nom);
-					this.concentrateur = concentrateur;
+					concentrateurs.add( concentrateur );
 				}
 				else if(scanner.hasNext("sterile")) {
 					scanner.next();
@@ -555,23 +562,25 @@ public class Mine {
 					int posX = scanner.nextInt();
 					int posY = scanner.nextInt();
 					Sterile sterile = new Sterile(posX, posY, nom);
-					this.sterile = sterile;
+					steriles.add(sterile);
 				}
 				else {
 					scanner.next();
 				}
-				
-				//set les stations de retour
-				for(int i = 0 ; i < pelles.size(); i++) {
-					Pelle p = pelles.get(i);
-					if(p.getRockType().getPercentIron() == 0 && p.getRockType().getPercentSulfur() == 0) {
-						p.setReturnStation(sterile);
-					}
-					else {
-						p.setReturnStation(concentrateur);
-					}
-					
+
+
+			}
+			
+			//set les stations de retour
+			for(int i = 0 ; i < pelles.size(); i++) {
+				Pelle p = pelles.get(i);
+				if(p.getRockType().getPercentIron() == 0 && p.getRockType().getPercentSulfur() == 0) {
+					p.setReturnStation(steriles.get(0));
 				}
+				else {
+					p.setReturnStation(concentrateurs.get(0));
+				}
+
 			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -582,7 +591,7 @@ public class Mine {
 		this.name = this.currentExampleId.getName();
 
 		this.exemple = this.currentExampleId.getId();
-		
+
 		BufferedImage smallCamionImage = null;
 		BufferedImage largeCamionImage = null;
 		//Cree les camions
@@ -594,17 +603,19 @@ public class Mine {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
+		this.numberSmallCamions = nbSmallCamions;
+		this.numberLargeCamions = nbLargeCamions;
 		for(int i = 0 ; i < nbSmallCamions; i++) {
-			Camion camion = new Camion(sterile, this, smallCamionImage) {
-				
+			Camion camion = new Camion(steriles.get(0), this, smallCamionImage) {
+
 				/** Vitesse moyenne du camion	 */
 				public static final double VITESSE_MOYENNE = 9;
 				/** Écart type sur la vitesse du camion	 */
 				private static final double ECART_TYPE_VITESSE = 0.6;//ancien 0.5
 				/** Charge maximum du camion.	 */
 				public static final double CHARGE_MAX = 60.;
-				
+
 				@Override
 				public double getAvgSpeed() {
 					return VITESSE_MOYENNE;
@@ -620,21 +631,21 @@ public class Mine {
 					// TODO Auto-generated method stub
 					return CHARGE_MAX;
 				}
-				
+
 			};
 			camions.add(camion);
 		}
-		
+
 		for(int i = 0 ; i < nbLargeCamions; i++) {
-			Camion camion = new Camion(sterile, this, largeCamionImage) {
-				
+			Camion camion = new Camion(steriles.get(0), this, largeCamionImage) {
+
 				/** Vitesse moyenne du camion	 */
 				public static final double VITESSE_MOYENNE = 5;
 				/** Écart type sur la vitesse du camion	 */
 				private static final double ECART_TYPE_VITESSE = 0.3;//ancien 0.5
 				/** Charge maximum du camion.	 */
 				public static final double CHARGE_MAX = 100.;
-				
+
 				@Override
 				public double getAvgSpeed() {
 					return VITESSE_MOYENNE;
@@ -650,17 +661,17 @@ public class Mine {
 					// TODO Auto-generated method stub
 					return CHARGE_MAX;
 				}
-				
+
 			};
 			camions.add(camion);
 		}
-		
+
 		//cree les handles des donnees
 		this.dataSeriesHandles = new ArrayList<String>();
 		for(int i = 0 ; i < pelles.size(); i++) {
 			if(pelles.get(i).getId().equals("pelle1") || pelles.get(i).getId().equals("pelle3") ) {
-				dataSeriesHandles.add("reel:"+TravelTimePredictor.getMapKeyForODPair(sterile, pelles.get(i) ));
-				dataSeriesHandles.add("pred:"+TravelTimePredictor.getMapKeyForODPair(sterile, pelles.get(i) ));
+				dataSeriesHandles.add("reel:"+TravelTimePredictor.getMapKeyForODPair(steriles.get(0), pelles.get(i) ));
+				dataSeriesHandles.add("pred:"+TravelTimePredictor.getMapKeyForODPair(steriles.get(0), pelles.get(i) ));
 			}
 		}
 		/*if(this.exemple == Mine.EXEMPLE1) {
@@ -706,8 +717,13 @@ public class Mine {
 		for(int i = 0 ; i < this.pelles.size(); i++) {
 			pelles.get(i).resetStats();
 		}
+		for(int i = 0 ; i < concentrateurs.size(); i++) {
+			concentrateurs.get(i).resetStats();
+		}
+		for(int i = 0 ; i < steriles.size(); i++) {
+			steriles.get(i).resetStats();
+		}
 
-		concentrateur.resetStats();
 	}
 
 
@@ -739,6 +755,24 @@ public class Mine {
 
 	public ExampleId getCurrentExampleId() {
 		return this.currentExampleId;
+	}
+
+
+
+
+
+
+	public int getNumberLargeCamions() {
+		return this.numberLargeCamions;
+	}
+
+
+
+
+
+
+	public int getNumberSmallCamions() {
+		return this.numberSmallCamions;
 	}
 
 

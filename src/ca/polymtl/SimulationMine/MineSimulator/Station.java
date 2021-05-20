@@ -2,7 +2,7 @@ package ca.polymtl.SimulationMine.MineSimulator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Point2D.Double;
 
-public class Station {
+public abstract class Station {
 
 	private Point2D.Double location;
 	private String id;
@@ -22,15 +22,9 @@ public class Station {
 	}
 	
 	
-	protected void resetStats() {
-		
-	};
+	protected abstract void resetStats();
 	
-	protected void setCamionOnArrival(Camion camion) {
-		camion.setStateIdle();
-		camion.setNumberOfRuns(camion.getNumberOfRuns()+1);
-		camion.setSpeed(0);
-	}
+	protected abstract void setCamionOnArrival(Camion camion);
 
 	/**
 	 * 

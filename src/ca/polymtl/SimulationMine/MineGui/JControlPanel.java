@@ -504,8 +504,8 @@ public class JControlPanel extends JPanel{
 	
 	
 		this.nbSmallCamionsTextField = new JTextField();
-		this.selectedNumberOfSmallCamions = mine.getCamions().size();
-		nbSmallCamionsTextField.setText(""+mine.getCamions().size());
+		this.selectedNumberOfSmallCamions = mine.getNumberSmallCamions();
+		nbSmallCamionsTextField.setText(""+this.selectedNumberOfSmallCamions);
 		nbSmallCamionsTextField.setMaximumSize(new Dimension(50, 50));
 		nbSmallCamionsTextField.setMinimumSize(new Dimension(50, 20));
 		nbSmallCamionsTextField.setPreferredSize(new Dimension(50, 20));
@@ -525,7 +525,7 @@ public class JControlPanel extends JPanel{
 					int nbCamions =  Integer.valueOf(nbSmallCamionsTextField.getText());
 					nbSmallCamionsTextField.setBackground(Color.white);
 					selectedNumberOfSmallCamions = nbCamions;
-					if(selectedNumberOfSmallCamions < 1) {
+					if(selectedNumberOfSmallCamions < 0) {
 						throw new NumberFormatException();
 					}
 				}
@@ -553,8 +553,8 @@ public class JControlPanel extends JPanel{
 
 
 		this.nbLargeCamionsTextField = new JTextField();
-		this.selectedNumberOfLargeCamions = mine.getCamions().size();
-		nbLargeCamionsTextField.setText(""+mine.getCamions().size());
+		this.selectedNumberOfLargeCamions = mine.getNumberLargeCamions();
+		nbLargeCamionsTextField.setText(""+selectedNumberOfLargeCamions);
 		nbLargeCamionsTextField.setMaximumSize(new Dimension(50, 50));
 		nbLargeCamionsTextField.setMinimumSize(new Dimension(50, 20));
 		nbLargeCamionsTextField.setPreferredSize(new Dimension(50, 20));
@@ -574,12 +574,12 @@ public class JControlPanel extends JPanel{
 					int nbCamions =  Integer.valueOf(nbLargeCamionsTextField.getText());
 					nbLargeCamionsTextField.setBackground(Color.white);
 					selectedNumberOfLargeCamions = nbCamions;
-					if(selectedNumberOfLargeCamions < 1) {
+					if(selectedNumberOfLargeCamions < 0) {
 						throw new NumberFormatException();
 					}
 				}
 				catch(NumberFormatException exception) {
-					nbLargeCamionsTextField.setText("");
+					//nbLargeCamionsTextField.setText("");
 					nbLargeCamionsTextField.setBackground(Color.red);
 				}
 
@@ -884,22 +884,37 @@ public class JControlPanel extends JPanel{
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				//confirme qu'on arrete la simulation
-				int dialogButton = JOptionPane.YES_NO_OPTION;
-				int result = JOptionPane.showConfirmDialog (null, "Voulez-vous vraiment arrêter cette simulation et en démarrer une nouvelle?","Attention", dialogButton);
-				if(result == JOptionPane.YES_OPTION) {
-					ExampleId selectedId = (ExampleId) mineComboBox.getSelectedItem();
-					System.out.println("selected id : "+selectedId.getName()+" "+selectedId.getFileName());
+				//valide les arguments
+				if(validSimulationArguments()) {
+				
+					//confirme qu'on arrete la simulation
+					int dialogButton = JOptionPane.YES_NO_OPTION;
+					int result = JOptionPane.showConfirmDialog (null, "Voulez-vous vraiment arrêter cette simulation et en démarrer une nouvelle?","Attention", dialogButton);
+					if(result == JOptionPane.YES_OPTION) {
+						ExampleId selectedId = (ExampleId) mineComboBox.getSelectedItem();
+						System.out.println("selected id : "+selectedId.getName()+" "+selectedId.getFileName());
+						
+						parentFrame.notifyListenersNewSimulationRequested(selectedId, getNumberOfSmallCamions(), getNumberOfLargeCamions(), getTempsSimulationSeconds());
+	
+	
+					}
+				}
+				else {
+					JOptionPane.showMessageDialog(null, "Impossible de démarrer une simulation avec les paramètres spécifiés.");
 					
-					parentFrame.notifyListenersNewSimulationRequested(selectedId, getNumberOfSmallCamions(), getNumberOfLargeCamions(), getTempsSimulationSeconds());
-
-
 				}
 
 			}
 		});
 
 		return loadButton;
+	}
+
+	protected boolean validSimulationArguments() {
+		if(selectedNumberOfLargeCamions >= 0 && selectedNumberOfSmallCamions >= 0  && selectedTempsSimulation > 0) {
+			return true;
+		}
+		return false;
 	}
 
 	private Component createAutoCompleteButton() {

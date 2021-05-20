@@ -79,8 +79,8 @@ public class TravelTimePredictor {
 	private double predictTravelTimeWeightedError(Station origine, Station destination) {
 		
 		ArrayList<Pelle> pelles = mine.getPelles();
-		Station concentrateur = mine.getConcentrateur();
-		Station sterile = mine.getSterile();
+		//Station concentrateur = mine.getConcentrateur();
+		//Station sterile = mine.getSterile();
 		
 		//retrouve l'historique des temps de parcours
 		String ODKey = getMapKeyForODPair(origine, destination);
@@ -127,7 +127,7 @@ public class TravelTimePredictor {
 
 				//erreur concentrateur-pelle
 				//
-				String key = getMapKeyForODPair(concentrateur, p);
+				String key = getMapKeyForODPair(p.getReturnStation(), p);
 
 				ArrayList<Double> hm = historyMap.get(key);
 				ArrayList<Double> pm = predictionMap.get(key);
@@ -137,7 +137,7 @@ public class TravelTimePredictor {
 					sommeTemps+= hm.get(hm.size()-1);
 				}
 				//erreur sterile-pelle
-				key = getMapKeyForODPair(sterile, p);
+				key = getMapKeyForODPair(p.getReturnStation(), p);
 
 				hm = historyMap.get(key);
 				pm = predictionMap.get(key);

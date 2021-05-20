@@ -105,12 +105,15 @@ public abstract class Camion {
 
 		this.goingEastImage = goingEastImage;
 		this.goingWestImage = goingEastImage;
-		// Flip the image horizontally
-		AffineTransform tx = AffineTransform.getScaleInstance(-1, 1);
-		tx.translate(-(this.goingWestImage).getWidth(null), 0);
-		AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
-		this.goingWestImage = op.filter(this.goingWestImage, null);
-
+		if(goingEastImage != null) {
+			// Flip the image horizontally
+			AffineTransform tx = AffineTransform.getScaleInstance(-1, 1);
+			tx.translate(-(this.goingWestImage).getWidth(null), 0);
+			AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+			this.goingWestImage = op.filter(this.goingWestImage, null);
+		}
+		
+		
 		this.mine = mine;
 
 		this.speed = 2;

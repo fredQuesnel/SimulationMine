@@ -34,11 +34,13 @@ import javax.swing.JProgressBar;
 import javax.swing.Timer;
 
 import ca.polymtl.SimulationMine.MineSimulator.Camion;
+import ca.polymtl.SimulationMine.MineSimulator.Concentrateur;
 import ca.polymtl.SimulationMine.MineSimulator.Mine;
 import ca.polymtl.SimulationMine.MineSimulator.MineSimulationListener;
 import ca.polymtl.SimulationMine.MineSimulator.Pelle;
 import ca.polymtl.SimulationMine.MineSimulator.SimulationMine;
 import ca.polymtl.SimulationMine.MineSimulator.Station;
+import ca.polymtl.SimulationMine.MineSimulator.Sterile;
 import javafx.scene.control.ProgressBar;
 
 public class JMinePanel extends JPanel{
@@ -246,15 +248,19 @@ public class JMinePanel extends JPanel{
 			//
 			paintRoutes(g, mine);
 
-			//peint le concentrateur
-			if(mine.getConcentrateur()!= null) {
+			//peint les concentrateurs
+			for(int i = 0 ; i < mine.getConcentrateurs().size(); i++) {
+				if(mine.getConcentrateurs().get(i)!= null) {
 
-				paintConcentrateur(mine.getConcentrateur(), g);
+					paintConcentrateur(mine.getConcentrateurs().get(i), g);
+				}
 			}
 
-			//peint le sterile
-			if(mine.getSterile()!= null) {
-				paintSterile(mine.getSterile(), g);
+			//peint les steriles
+			for(int i = 0 ; i < mine.getSteriles().size(); i++) {
+				if(mine.getSteriles().get(i)!= null) {
+					paintSterile(mine.getSteriles().get(i), g);
+				}
 			}
 
 
@@ -295,7 +301,7 @@ public class JMinePanel extends JPanel{
 		Point point = convertPointToWindow(station.getLocation());
 		//g.fillOval((int) (point.getX()-STATION_WIDTH/2), (int) (point.getY()-STATION_HEIGHT/2), STATION_WIDTH, STATION_HEIGHT);
 		g.drawImage(concentrateurImage, (int) (point.getX()-STATION_WIDTH/2), (int) (point.getY()-STATION_HEIGHT/2), (int) (point.getX()+STATION_WIDTH/2), (int) (point.getY()+STATION_HEIGHT/2), 0, 0, concentrateurImage.getWidth(), concentrateurImage.getHeight(), null);
-	
+
 		g.setColor(Color.BLACK);
 
 
@@ -331,9 +337,9 @@ public class JMinePanel extends JPanel{
 
 	//peint les chemins reliant le concentrateur  et le stérile aux pelles
 	private void paintRoutes(Graphics g, Mine mine) {
-		Station concentrateur = mine.getConcentrateur();
+		//Station concentrateur = mine.getConcentrateur();
 
-		Station sterile = mine.getSterile();
+		//Station sterile = mine.getSterile();
 
 		ArrayList<Pelle> pelles = mine.getPelles();
 
@@ -343,29 +349,34 @@ public class JMinePanel extends JPanel{
 
 			//lien avec concentrateur
 			//
-			if(concentrateur != null) {
-				Point pointConcentrateur = convertPointToWindow(concentrateur.getLocation());
-				if(p.getReturnStation() == concentrateur) {
-					g.setColor(Color.green);
+			for(int j = 0 ; j < mine.getConcentrateurs().size(); j++) {
+				Concentrateur concentrateur = mine.getConcentrateurs().get(j);
+				if(concentrateur != null) {
+					Point pointConcentrateur = convertPointToWindow(concentrateur.getLocation());
+					if(p.getReturnStation() == concentrateur) {
+						g.setColor(Color.green);
+					}
+					else {
+						g.setColor(Color.DARK_GRAY);
+					}
+					g.drawLine((int) pointConcentrateur.getX(), (int) pointConcentrateur.getY(), (int) pointPelle.getX(), (int) pointPelle.getY());
 				}
-				else {
-					g.setColor(Color.DARK_GRAY);
-				}
-				g.drawLine((int) pointConcentrateur.getX(), (int) pointConcentrateur.getY(), (int) pointPelle.getX(), (int) pointPelle.getY());
 			}
-			//lien avec sterile
+			//lien avec steriles
 			//
-			if(sterile!= null) {
-				Point pointSterile = convertPointToWindow(sterile.getLocation());
-				if(p.getReturnStation() == sterile) {
-					g.setColor(Color.green);
+			for(int j = 0 ; j < mine.getSteriles().size(); j++) {
+				Sterile sterile = mine.getSteriles().get(j);
+				if(sterile!= null) {
+					Point pointSterile = convertPointToWindow(sterile.getLocation());
+					if(p.getReturnStation() == sterile) {
+						g.setColor(Color.green);
+					}
+					else {
+						g.setColor(Color.DARK_GRAY);
+					}
+					g.drawLine((int) pointSterile.getX(), (int) pointSterile.getY(), (int) pointPelle.getX(), (int) pointPelle.getY());
 				}
-				else {
-					g.setColor(Color.DARK_GRAY);
-				}
-				g.drawLine((int) pointSterile.getX(), (int) pointSterile.getY(), (int) pointPelle.getX(), (int) pointPelle.getY());
 			}
-
 		}
 
 	}
@@ -562,7 +573,7 @@ public class JMinePanel extends JPanel{
 	private void paintCamion(Camion camion, Graphics g) {
 		Point point = convertPointToWindow(camion.getLocation());
 		g.setColor(Color.RED);
-		
+
 		BufferedImage camionImage = camion.getGoingWestImage();
 		if(camion.isGoingEast()) {
 			camionImage = camion.getGoingEastImage();

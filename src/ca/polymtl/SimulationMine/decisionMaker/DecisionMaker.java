@@ -113,13 +113,30 @@ public class DecisionMaker {
 	//
 	protected double computeDecisionScore(Camion camion, Pelle pelle, String scoreFunctionString) throws EvalError {
 
+		boolean objectiveIsConcentrator = false;
+		boolean objectiveIsSterile = false;
+		
+		for(int i = 0 ; i < mine.getConcentrateurs().size(); i++) {
+			if(camion.getObjective() == mine.getConcentrateurs().get(i)) {
+				objectiveIsConcentrator = true;
+				break;
+			}
+		}
+		for(int i = 0 ; i < mine.getSteriles().size(); i++) {
+			if(camion.getObjective() == mine.getSteriles().get(i)) {
+				objectiveIsSterile= true;
+				break;
+			}
+		}
+		
+		
 		//erreur si le camion n'est pas soit : 
 		//idle 
 		//en route vers sterile ou concentrateur
 		//vient d'arriver au sterile ou concentrateur
 		if(camion.getState() != Camion.ETAT_INACTIF &&
-				!(camion.getState() == Camion.ETAT_EN_ROUTE && (camion.getObjective() == mine.getConcentrateur() || camion.getObjective() == mine.getSterile())) &&
-				!(camion.getState() == Camion.ETAT_JUSTE_ARRIVE && (camion.getObjective() == mine.getConcentrateur() || camion.getObjective() == mine.getSterile()))) {
+				!(camion.getState() == Camion.ETAT_EN_ROUTE && (objectiveIsConcentrator|| objectiveIsSterile)) &&
+				!(camion.getState() == Camion.ETAT_JUSTE_ARRIVE && (objectiveIsConcentrator|| objectiveIsSterile))) {
 			//throw new IllegalArgumentException("le camion est dans un mauvais état");
 		}
 
@@ -779,6 +796,23 @@ return (attenteEspereeCamionSeconds-cibleAttenteCamionSeconds)*Math.abs((attente
 
 
 	private double calculeTempsAvantDispo(Camion camion) {
+		
+		boolean objectiveIsConcentrator = false;
+		boolean objectiveIsSterile = false;
+		
+		for(int i = 0 ; i < mine.getConcentrateurs().size(); i++) {
+			if(camion.getObjective() == mine.getConcentrateurs().get(i)) {
+				objectiveIsConcentrator = true;
+				break;
+			}
+		}
+		for(int i = 0 ; i < mine.getSteriles().size(); i++) {
+			if(camion.getObjective() == mine.getSteriles().get(i)) {
+				objectiveIsSterile= true;
+				break;
+			}
+		}
+		
 		//si le camion est inactif
 		//
 		if(camion.getState()== Camion.ETAT_INACTIF || camion.getState()== Camion.ETAT_JUSTE_ARRIVE) {
@@ -797,14 +831,14 @@ return (attenteEspereeCamionSeconds-cibleAttenteCamionSeconds)*Math.abs((attente
 		}
 		//camion en route vers sterile ou concentrateur
 		//
-		else if(camion.getState() == Camion.ETAT_EN_ROUTE && (camion.getObjective().equals( mine.getSterile()) || camion.getObjective().equals( mine.getConcentrateur() ))) {
+		else if(camion.getState() == Camion.ETAT_EN_ROUTE && (objectiveIsConcentrator || objectiveIsSterile)) {
 			double distance = camion.getLocation().distance(camion.getObjective().getLocation());
 			double tempsDeplacement = distance/camion.getAvgSpeed();
 			return tempsDeplacement;
 		}
 		//camion en route vers pelle
 		//
-		else if(camion.getState() == Camion.ETAT_EN_ROUTE && !camion.getObjective().equals(mine.getConcentrateur()) && !camion.getObjective().equals(mine.getSterile())) {
+		else if(camion.getState() == Camion.ETAT_EN_ROUTE && !objectiveIsConcentrator && !objectiveIsSterile ) {
 			Pelle p = (Pelle) camion.getObjective();
 			double tempsAvantDebutRemplissage = calculeTempsEspereAvantRemplissage(camion, (Pelle) camion.getObjective());
 			double tempsRemplissage = 100/p.AVERAGE_CHARGE_SPEED;
@@ -850,7 +884,7 @@ return (attenteEspereeCamionSeconds-cibleAttenteCamionSeconds)*Math.abs((attente
 
 	public static boolean isFunctionStringValid(String function) {
 
-		Camion camion = new Camion(dummyMine.getSterile(), dummyMine, null) {
+		Camion camion = new Camion(dummyMine.getSteriles().get(0), dummyMine, null) {
 
 			@Override
 			public double getAvgSpeed() {

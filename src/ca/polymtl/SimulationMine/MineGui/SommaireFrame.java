@@ -35,6 +35,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 import ca.polymtl.SimulationMine.MineSimulator.Camion;
+import ca.polymtl.SimulationMine.MineSimulator.Concentrateur;
 import ca.polymtl.SimulationMine.MineSimulator.Mine;
 import ca.polymtl.SimulationMine.MineSimulator.MineSimulator;
 import ca.polymtl.SimulationMine.MineSimulator.Pelle;
@@ -84,8 +85,8 @@ public class SommaireFrame extends JFrame {
 	private double ecartTypeAttenteCamions;
 	private double attenteMoyenGlobalPelles;
 	private double ecartTypeAttentePelle;
-	private Object pourcentMinerai;
-	private Object pourcentSouffre;
+	private double pourcentFer;
+	private double pourcentSouffre;
 	private double quantiteMinerai;
 	private double quantiteSterile;
 	private ArrayList<Pair<Pelle, Double>> tauxPelles;
@@ -144,8 +145,16 @@ public class SommaireFrame extends JFrame {
 		//
 		this.nbVoyage = mine.getNumberOfRuns();
 
-		this.quantiteMinerai = mine.getConcentrateur().getTotalQuantity();
-		this.quantiteSterile = mine.getSterile().getTotalQuantity();
+		this.quantiteMinerai =0;
+		for(int i = 0 ; i < mine.getConcentrateurs().size(); i++ ) {
+			quantiteMinerai+= mine.getConcentrateurs().get(i).getTotalQuantity();
+		}
+		
+		this.quantiteSterile = 0;
+		for(int i = 0 ; i < mine.getSteriles().size(); i++) {
+			quantiteSterile+= mine.getSteriles().get(i).getTotalQuantity();
+		}
+		
 
 		this.percentEffCamionsMin = mine.getMinCamionEfficiency();
 		this.percentEffCamionsMax = mine.getMaxCamionEfficiency();
@@ -157,8 +166,19 @@ public class SommaireFrame extends JFrame {
 
 		//Qualité du mélange
 		//
-		this.pourcentMinerai = mine.getConcentrateur().getPercentIron();
-		this.pourcentSouffre = mine.getConcentrateur().getPercentSulfur();
+		double totalFer = 0;
+		double totalSoufre = 0;
+		double totalMineraiConc = 0;
+		for(int i = 0 ; i < mine.getConcentrateurs().size(); i++) {
+			//Concentrateur
+			Concentrateur concentrateur = mine.getConcentrateurs().get(i);
+			totalFer += concentrateur.getQuantityIron();
+			totalSoufre+= concentrateur.getQuantitySulfur();
+			totalMineraiConc+= concentrateur.getTotalQuantity();
+		}
+		
+		this.pourcentFer = totalFer/totalMineraiConc*100;
+		this.pourcentSouffre = totalSoufre/totalMineraiConc*100;
 
 		ArrayList<Pelle> pelles = mine.getPelles();
 		
@@ -352,7 +372,7 @@ public class SommaireFrame extends JFrame {
 		outString+=this.nomMine+"\t"+this.nbCamions+"\t"+this.dureeSimulationSeconds+"\t";
 
 		//sommaire de productivité
-		outString += this.quantiteMinerai +"\t"+this.quantiteSterile +"\t"+this.nbVoyage +"\t"+this.pourcentMinerai+"\t"+this.pourcentSouffre;
+		outString += this.quantiteMinerai +"\t"+this.quantiteSterile +"\t"+this.nbVoyage +"\t"+this.pourcentFer+"\t"+this.pourcentSouffre;
 		outString +="\t"+this.percentEffPellesMax+"\t"+this.percentEffPellesAvg+"\t"+this.percentEffPellesMin+"\t"+this.percentEffCamionsMax+"\t"+this.percentEffCamionsAvg+"\t"+this.percentEffCamionsMin+"\t"+this.attenteMoyenGlobalPelles+"\t"+this.attenteMoyenGlobalCamions+"\t";
 
 
@@ -689,7 +709,7 @@ public class SommaireFrame extends JFrame {
 		//Fer
 		gc.insets = new Insets(5, 10+2*tabWidth, 0, 0);
 		gc.gridy++;
-		String ferText = "Fer : "+df.format(this.pourcentMinerai)+"%";
+		String ferText = "Fer : "+df.format(this.pourcentFer)+"%";
 		JLabel ferLabel = new JLabel(ferText);
 		ferLabel.setFont(fontNormal);
 		sommaireProdPanel.add(ferLabel, gc);

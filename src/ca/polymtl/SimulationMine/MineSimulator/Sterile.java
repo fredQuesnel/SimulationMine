@@ -24,5 +24,9 @@ public class Sterile extends Station {
 		return totalQuantity;
 	}
 
-	
+	@Override
+	protected void resetStats() {
+		totalQuantity = 0;
+		
+	}
 }

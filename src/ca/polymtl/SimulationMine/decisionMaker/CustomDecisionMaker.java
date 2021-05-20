@@ -99,16 +99,23 @@ public class CustomDecisionMaker extends DecisionMaker {
 		// Liste des pelles
 		ArrayList<Pelle> pelles = mine.getPelles();
 		
-		//Concentrateur
-		Concentrateur concentrateur = mine.getConcentrateur();
 		
-		//Sterile
-		Station sterile = mine.getSterile();
+		double totalFer = 0;
+		double totalSoufre = 0;
+		double totalMineraiConc = 0;
+		for(int i = 0 ; i < mine.getConcentrateurs().size(); i++) {
+			//Concentrateur
+			Concentrateur concentrateur = mine.getConcentrateurs().get(i);
+			totalFer += concentrateur.getQuantityIron();
+			totalSoufre+= concentrateur.getQuantitySulfur();
+			totalMineraiConc+= concentrateur.getTotalQuantity();
+		}
+		
 		
 		
 		//concentration de fer et soufre au concentrateur
-		double concentrationFer = concentrateur.getPercentIron();
-		double concentrationSoufre = concentrateur.getPercentSulfur();
+		double concentrationFer = totalFer/totalMineraiConc*100;
+		double concentrationSoufre = totalSoufre/totalMineraiConc*100;
 		
 		//distance entre le camion et la pelle (m)
 		//si le camion est en route pour un autre objectif, compte la distance entre camion et objectif + distance entre objectif et pelle

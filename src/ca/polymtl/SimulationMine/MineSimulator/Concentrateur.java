@@ -23,9 +23,10 @@ public class Concentrateur extends Station {
 
 	//ajoute un load du type de roche spécifié
 	private void addLoad(RockType rockType, double numberTons) {
-		quantityIron += rockType.getPercentIron()/100*numberTons;
-		quantitySulfur += rockType.getPercentSulfur()/100*numberTons;
+		quantityIron += rockType.getPercentIron()/100.*numberTons;
+		quantitySulfur += rockType.getPercentSulfur()/100.*numberTons;
 		totalQuantity += numberTons;
+		
 	}
 
 
