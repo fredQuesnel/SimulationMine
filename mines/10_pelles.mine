@@ -17,3 +17,7 @@ concentrateur "concentrateur" 1000 1000
 concentrateur "concentrateur2" 2000 2000
 sterile "sterile" 9000 9000
 sterile "sterile2" 3000 9000
+
+display "pelle3" "sterile"
+display "pelle1" "concentrateur"
+display "pelle4" "concentrateur"

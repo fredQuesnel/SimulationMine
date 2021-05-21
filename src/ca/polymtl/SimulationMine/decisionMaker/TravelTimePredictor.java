@@ -70,10 +70,16 @@ public class TravelTimePredictor {
 	}
 
 
+	
 	public static String getMapKeyForODPair(Station origine, Station destination) {
-		return origine.getId()+":"+destination.getId();
+		if( origine.getId().compareTo(destination.getId()) < 0 ){
+			return origine.getId()+":"+destination.getId();	
+		}
+		else{
+			return destination.getId()+":"+origine.getId();
+		}
+		
 	}
-
 
 	//Option "erreur précédente" dans le logiciel
 	private double predictTravelTimeWeightedError(Station origine, Station destination) {

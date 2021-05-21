@@ -45,6 +45,7 @@ public class TravelTimeChart extends JFrame implements MineSimulationListener{
 	}
 
 	private void setChart(ArrayList<String> dataSeriesHandles, double tempsSimulationSeconds) {
+		
 		//cree les series de donnees
 		//
 		seriesMap = new HashMap<String, XYSeries>();
@@ -119,7 +120,17 @@ public class TravelTimeChart extends JFrame implements MineSimulationListener{
 		plot.getDomainAxis().setRange(range);
 		XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
 
-		renderer.setSeriesPaint(0, Color.blue);
+		for(int i = 0 ; i < dataset.getSeriesCount(); i++) {
+			System.out.println("series : "+dataset.getSeriesKey(i));
+			if( ((String)dataset.getSeriesKey(i)).substring(0, 4).equals("reel") ) {
+				renderer.setSeriesPaint(i, Color.blue);
+			}
+			else {
+				renderer.setSeriesPaint(i, Color.red);
+			}
+			renderer.setSeriesStroke(i, new BasicStroke(2.0f));
+		}
+		/*renderer.setSeriesPaint(0, Color.blue);
 		renderer.setSeriesStroke(0, new BasicStroke(2.0f));
 
 		renderer.setSeriesPaint(1, Color.red);
@@ -129,7 +140,7 @@ public class TravelTimeChart extends JFrame implements MineSimulationListener{
 		renderer.setSeriesStroke(2, new BasicStroke(2.0f));
 
 		renderer.setSeriesPaint(3, Color.BLUE);
-		renderer.setSeriesStroke(3, new BasicStroke(2.0f));  
+		renderer.setSeriesStroke(3, new BasicStroke(2.0f));  */
 
 		plot.setRenderer(renderer);
 		plot.setBackgroundPaint(Color.white);

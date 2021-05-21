@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Scanner;
 import java.util.regex.Pattern;
@@ -491,7 +490,8 @@ public class Mine {
 		erasePreviousMine();
 
 		System.out.println("charge mine "+exempleId.getName());
-
+		
+		this.dataSeriesHandles = new ArrayList<String>();
 
 		//retrouve l'objet ExampleId de l'exemple
 		ExampleId exId = null;
@@ -564,6 +564,57 @@ public class Mine {
 					Sterile sterile = new Sterile(posX, posY, nom);
 					steriles.add(sterile);
 				}
+				else if(scanner.hasNext("display")) {
+					scanner.next();
+					String nomStation1  = scanner.next(Pattern.compile("\"\\S*\""));
+					String nomStation2  = scanner.next(Pattern.compile("\"\\S*\""));
+					
+					
+					nomStation1 = nomStation1.substring(1, nomStation1.length()-1);
+					nomStation2 = nomStation2.substring(1, nomStation2.length()-1);
+					
+					//retrouve les objets station
+					//
+					Station station1 = null;
+					Station station2 = null;
+					//regarde les pelles
+					for(int i = 0 ; i< pelles.size(); i++) {
+						if(pelles.get(i).getId().equals(nomStation1)) {
+							station1 = pelles.get(i);
+						}
+						if(pelles.get(i).getId().equals(nomStation2)) {
+							station2 = pelles.get(i);
+						}
+					}
+					//regarde les concentrateurs
+					for(int i = 0 ; i< concentrateurs.size(); i++) {
+						if(concentrateurs.get(i).getId().equals(nomStation1)) {
+							station1 = concentrateurs.get(i);
+						}
+						if(concentrateurs.get(i).getId().equals(nomStation2)) {
+							station2 = concentrateurs.get(i);
+						}
+					}
+					//regarde les steriles
+					for(int i = 0 ; i< steriles.size(); i++) {
+						if(steriles.get(i).getId().equals(nomStation1)) {
+							station1 = steriles.get(i);
+						}
+						if(steriles.get(i).getId().equals(nomStation2)) {
+							station2 = steriles.get(i);
+						}
+					}
+					
+					if(station1==null) {
+						throw new Exception("Station non définie : "+nomStation1);
+					}
+					if(station2==null) {
+						throw new Exception("Station non définie : "+nomStation2);
+					}
+					
+					dataSeriesHandles.add("reel:"+TravelTimePredictor.getMapKeyForODPair(station1, station2 ));
+					dataSeriesHandles.add("pred:"+TravelTimePredictor.getMapKeyForODPair(station1, station2 ));
+				}
 				else {
 					scanner.next();
 				}
@@ -572,6 +623,9 @@ public class Mine {
 			}
 			
 		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -656,22 +710,15 @@ public class Mine {
 		}
 
 		//cree les handles des donnees
-		this.dataSeriesHandles = new ArrayList<String>();
+		/*
+		
 		for(int i = 0 ; i < pelles.size(); i++) {
 			if(pelles.get(i).getId().equals("pelle1") || pelles.get(i).getId().equals("pelle3") ) {
 				dataSeriesHandles.add("reel:"+TravelTimePredictor.getMapKeyForODPair(steriles.get(0), pelles.get(i) ));
 				dataSeriesHandles.add("pred:"+TravelTimePredictor.getMapKeyForODPair(steriles.get(0), pelles.get(i) ));
 			}
 		}
-		/*if(this.exemple == Mine.EXEMPLE1) {
-			initExemple1(nbSmallCamions, nbLargeCamions);	
-		}
-		else if(this.exemple == Mine.EXEMPLE2) {
-			initExemple2(nbSmallCamions, nbLargeCamions);
-		}
-		else {
-			throw new IllegalArgumentException();
-		}*/
+		*/
 
 	}
 
