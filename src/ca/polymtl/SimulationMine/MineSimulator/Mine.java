@@ -183,7 +183,7 @@ public class Mine {
 		int totalRemplissagePelles = 0;
 		for(int i = 0 ; i < pelles.size(); i++) {
 			totalAttentePelles += pelles.get(i).getWaitTime();
-			totalRemplissagePelles += pelles.get(i).getNbCamionsRemplis();
+			totalRemplissagePelles += pelles.get(i).getNbCamionsTraites();
 		}
 
 		double tempsAttenteMoyen = totalAttentePelles/totalRemplissagePelles;

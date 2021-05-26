@@ -46,42 +46,22 @@ public class Pelle extends Station{
 	private final double defaultCibleCamionsParHeure;
 
 
-	//ETAT de la pelle 
-	//
-	private Camion camionEnRemplissage;
-	private ArrayList<Camion> camionsEnAttente;
 	private int state;
 	
-	//Temps passé en attente depuis le dernier remplissage
-	private double currentWaitingPeriod;
 	
 
 	private double currentChargeSpeed;
 
-	//statistiques
-	//
-	private double waitingTime;
-	private int nbCamionsRemplis;
+	
 	//	private double timeRemainingInTurn;
 
 
-	//infos sur l'iteration en cours
-	//
-	private double iterTotalTime;
-	private double iterCurrentTime;
-	private boolean iterFinished;
 	/*
 	 * Constructeur
 	 */
 	public Pelle(int i, int j, String id, double cibleCamionsParHeure) {
-
 		super(i,j, id);
-		this.camionsEnAttente = new ArrayList<Camion>();
-		camionEnRemplissage = null;
-		waitingTime = 0;
-		nbCamionsRemplis = 0;
 		this.state = this.PELLE_STATE_IDLE;
-
 		defaultCibleCamionsParHeure = cibleCamionsParHeure;
 		this.cibleCamionsParHeure = cibleCamionsParHeure;
 	}
@@ -95,48 +75,23 @@ public class Pelle extends Station{
 	 *  - Sinon, on met le camion en attente
 	 */
 	protected void setCamionOnArrival(Camion camion) {
-
+		
+		//met comme camion à traiter ou dans la file d'attente.
+		super.setCamionOnArrival(camion);
+		
 		//type de roche du camion
 		//
 		camion.setRockType(this.rockType);
 
-		//si aucun camion en remplissage, met le camion en remplissage
-		//
-		if(camionEnRemplissage == null) {
-			setCamionEnRemplissage(camion);
-			//fait attendre la pelle jusqu'a ce que le camion arrive
-			//
-			double waitingTime = camion.getIterCurrentTime()- this.iterCurrentTime;
-			if(waitingTime < 0) {
-				waitingTime = 0;
-			}
-			this.attend(waitingTime);
-
-		}
-		//sinon, ajoute le camion a la file d'attente
-		else {
-			setCamionEnAttente(camion);
-		}
-	}
-
-	/*
-	 * Met un camion dans la file d'attente
-	 */
-	private void setCamionEnAttente(Camion camion) {
-		camionsEnAttente.add(camion);
-		camion.setAttenteState();
+		
 	}
 
 	/*
 	 * Met un camion en remplissage
 	 */
-	private void setCamionEnRemplissage(Camion camion) {
-		if(this.camionEnRemplissage != null){
-			throw new IllegalStateException("Je veux mettre un camion en remplissage alors qu'il y en a deja un!");
-		}
-		this.camionEnRemplissage = camion;
+	protected void setCamionEnTraitement(Camion camion) {
+		super.setCamionEnTraitement(camion);
 		camion.setEnChargeState();
-		this.nbCamionsRemplis++;
 	}
 
 	/*
@@ -147,67 +102,7 @@ public class Pelle extends Station{
 		return SimulationMine.random.nextGaussian()*Pelle.ECART_TYPE_CHARGE_SPEED+Pelle.AVERAGE_CHARGE_SPEED;
 	}
 	 */
-	/**
-	 * 
-	 * @return Le Camion présentement en remplissage, ou null si aucun camion n'est présentement en remplissage à la station.
-	 * 
-	 */
-	public Camion getCamionEnRemplissage() {
-		return camionEnRemplissage;
-	}
-
-	/**
-	 * 
-	 * @return La station où sont envoyés les camions après le remplissage
-	 */
-	/*
-	public Station getReturnStation() {
-		return returnStation;
-	}
-	*/
-
-	/*
-	 * set la station de retour de la pelle
-	 */
-	/*
-	protected void setReturnStation(Station returnStation) {
-		this.returnStation = returnStation;
-	}
-	*/
-
-	/**
-	 * 
-	 * @return La liste des camions en attente de remplissage (excluant le camion présentement en remplissage, si il y a lieu)
-	 */
-	public ArrayList<Camion> getCamionsEnAttente() {
-		return camionsEnAttente;
-	}
-
-
-	/**
-	 * 
-	 * @return Le temps total passé par la pelle en attente.
-	 */
-	public double getWaitTime() {
-		return this.waitingTime;
-	}
-
-	//reset les stats de la pelle
-	//
-	protected void resetStats() {
-		this.waitingTime = 0;
-		this.nbCamionsRemplis = 0;
-
-	}
-
-	/**
-	 * 
-	 * @return Nombre total de camions remplis par la pelle
-	 */
-	public int getNbCamionsRemplis() {
-		return nbCamionsRemplis;
-	}
-
+	
 
 	/*
 	 * active la pelle pour remplir les camions en remplissage et/ou en attente
@@ -215,10 +110,10 @@ public class Pelle extends Station{
 	protected void activate() {
 		//Si il y a un camion en remplissage, le remplis
 		//
-		if(camionEnRemplissage == null) {
+		if(camionEnTraitement == null) {
 			throw new IllegalStateException("la pelle ne peut pas etre activee, aucun camion en remplissage");
 		}
-		//met en mode travail (si ce n'etait pas deja le cas
+		//met en mode travail (si ce n'etait pas deja le cas)
 		//
 		setWorkingMode();
 
@@ -226,31 +121,40 @@ public class Pelle extends Station{
 		//
 		double pelleRemainingTime = this.getRemainingTimeInTurn();
 
-		//determine la vitesse de remplissage
-		//
-		double chargeSpeed = this.currentChargeSpeed;
+		
 
 		//determine le temps de charge. Il s'agit du max entre
-		//	1) temps de charge max du camion
+		//	1) temps de charge pour remplir le camion
+		//	2) temps restant au camion
 		//	2) temps de charge max de la pelle
 		//
-		double chargeTime = camionEnRemplissage.getMaxChargeTimeInTurn(chargeSpeed);
-		if(chargeTime > pelleRemainingTime) {
+		double chargeTime = (camionEnTraitement.getChargeMax() - camionEnTraitement.getCharge())/this.currentChargeSpeed;
+		if(camionEnTraitement.getRemainingTimeInTurn() < chargeTime) {
+			chargeTime = camionEnTraitement.getRemainingTimeInTurn();
+		}
+		
+		if(pelleRemainingTime < chargeTime) {
 			chargeTime = pelleRemainingTime;
-
 		}
 
+		double quantite = chargeTime*this.currentChargeSpeed;
+		
 		//remplis le camion pour le temps prevu
 		//
-		camionEnRemplissage.remplis(chargeTime, chargeSpeed);
+		camionEnTraitement.remplis(quantite, chargeTime);
 
 		//tous les camions de la file d'attente attendent 
 		for(int i = 0 ; i < camionsEnAttente.size(); i++) {
-			camionsEnAttente.get(i).attend(chargeTime);
+			if(camionsEnAttente.get(i).getRemainingTimeInTurn()< chargeTime) {
+				camionsEnAttente.get(i).waitUntilEndIter();
+			}
+			else {
+				camionsEnAttente.get(i).attend(chargeTime);
+			}
 		}
 
 		//determine si camion remplis
-		boolean camionIsFull = camionEnRemplissage.isFull();
+		boolean camionIsFull = camionEnTraitement.isFull();
 
 		//incremente le temps du tour
 		//
@@ -258,7 +162,7 @@ public class Pelle extends Station{
 
 		//determine si le tour est termine
 		//
-		if(iterCurrentTime >= this.iterTotalTime) {
+		if(iterCurrentTime >= this.iterStepSize) {
 			this.iterFinished = true;
 		}
 
@@ -268,17 +172,17 @@ public class Pelle extends Station{
 		//
 		if(camionIsFull) {
 
-			Station returnStation = DecisionMaker.selectReturnStation(camionEnRemplissage, this);
+			Station returnStation = DecisionMaker.selectReturnStation(camionEnTraitement, this);
 			//nouvelle dest. du camion
-			camionEnRemplissage.setObjective(returnStation);
+			camionEnTraitement.setObjective(returnStation);
 
 			//met un nouveau camion sous la pelle (si il y en a au moins un)
 			//
-			camionEnRemplissage = null;
+			camionEnTraitement = null;
 			if(camionsEnAttente.size()!=0) {
 				Camion c = camionsEnAttente.get(0);
 				camionsEnAttente.remove(c);
-				setCamionEnRemplissage(c);
+				setCamionEnTraitement(c);
 			}
 		}
 
@@ -296,55 +200,25 @@ public class Pelle extends Station{
 		this.state = Pelle.PELLE_STATE_IDLE;
 	}
 
-	/*
-	 * retourne le temps restant dans le tour 
-	 */
-	protected double getRemainingTimeInTurn() {
-		return this.iterTotalTime-this.iterCurrentTime;
-	}
-
-	/*
-	 * Atend jusqu'à la fin du tour
-	 */
-	protected void waitForRemainingTime() {
-		this.attend(this.getRemainingTimeInTurn());
-		this.iterFinished = true;
-	}
-
-	/*
-	 * Fais attendre la pelle un temps donné, ou le reste du tour 
-	 */
-	private void attend(double time) {
+	
+	protected void attend(double time) {
 		//met en mode attente au besoin
 		//
 		setIdleMode();
-
-		//si le temps d'attente depasse le temps de l'iteration
-		//fais attendre le temps de l'iteration
-		//
-		if(time >= this.getRemainingTimeInTurn()){
-			this.currentWaitingPeriod+=this.getRemainingTimeInTurn();
-			this.waitingTime += this.getRemainingTimeInTurn();
-			this.iterCurrentTime = this.iterTotalTime;
-			this.iterFinished = true;
-		}
-		else{
-			this.currentWaitingPeriod+=time;
-			this.waitingTime+= time;
-			this.iterCurrentTime+= time;
-		}
+		super.attend(time);
 	}
+
+
+
+	
 
 	/*
 	 * prepare la pelle pour le debut d'un tour
 	 */
 	protected void setBeginStep(double stepSize) {
-		this.iterCurrentTime = 0;
-		this.iterTotalTime = stepSize;
-		this.iterFinished = false;
+		super.setBeginStep(stepSize);
 
 		computeNewChargeSpeed();
-
 	}
 
 	//TODO rendre indépendant du nombre de pas de simulation.
@@ -354,31 +228,6 @@ public class Pelle extends Station{
 
 		this.currentChargeSpeed = lambda*this.currentChargeSpeed + (1-lambda)*speedAdjust;
 
-	}
-
-	protected void makeAllCamionWaitUntilEndIter() {
-		if(this.camionEnRemplissage!= null) {
-			camionEnRemplissage.waitUntilEndIter();
-		}
-		for(int i = 0 ; i < this.camionsEnAttente.size(); i++) {
-			camionsEnAttente.get(i).waitUntilEndIter();
-		}
-	}
-
-	protected boolean iterFinished() {
-		return this.iterFinished;
-	}
-
-	/** 
-	 * 
-	 * @return Temps moyen d'attente entre le remplissage de deux camions.
-	 */
-	public double getAverageWaitTimeSeconds(){
-
-		if(this.nbCamionsRemplis==0) {
-			return 0;
-		}
-		return this.waitingTime/this.nbCamionsRemplis;
 	}
 
 	/**

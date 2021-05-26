@@ -45,6 +45,8 @@ import javafx.scene.control.ProgressBar;
 
 public class JMinePanel extends JPanel{
 
+	private static final int INFO_RECT_CONCENTRATEUR_WIDTH = 90;
+	private static final int INFO_RECT_STERILE_HEIGHT = 35;
 	private static int STATION_WIDTH = 50;
 	private static int STATION_HEIGHT = 50;
 
@@ -290,7 +292,10 @@ public class JMinePanel extends JPanel{
 	}
 
 	//peint une station
-	private void paintConcentrateur(Station station, Graphics g) {
+	private void paintConcentrateur(Concentrateur concentrateur, Graphics g) {
+
+		//format des nombres
+		DecimalFormat df = new DecimalFormat("0.0");
 		g.setColor(Color.red);
 
 		Font previousFont = g.getFont();
@@ -298,41 +303,71 @@ public class JMinePanel extends JPanel{
 		//new Font ("Sanserif", Font.BOLD, 10);
 		Font normalFont = previousFont;
 
-		Point point = convertPointToWindow(station.getLocation());
+		Point point = convertPointToWindow(concentrateur.getLocation());
 		//g.fillOval((int) (point.getX()-STATION_WIDTH/2), (int) (point.getY()-STATION_HEIGHT/2), STATION_WIDTH, STATION_HEIGHT);
 		g.drawImage(concentrateurImage, (int) (point.getX()-STATION_WIDTH/2), (int) (point.getY()-STATION_HEIGHT/2), (int) (point.getX()+STATION_WIDTH/2), (int) (point.getY()+STATION_HEIGHT/2), 0, 0, concentrateurImage.getWidth(), concentrateurImage.getHeight(), null);
 
 		g.setColor(Color.BLACK);
 
 
+
 		//rectangle d'information
 		//coordonnees rect
 		g.setColor(new Color(255, 255, 255, 170));
-
-
-		int rectWidth= 100;
-		int rectHeight=20;
-
 		int xrect =(int) point.getX()+STATION_WIDTH/2;
-		if(xrect+rectWidth > this.getWidth()){
-			xrect = this.getWidth()-rectWidth;
+		if(xrect+JMinePanel.INFO_RECT_CONCENTRATEUR_WIDTH > this.getWidth()){
+			xrect = this.getWidth()-this.INFO_RECT_CONCENTRATEUR_WIDTH;
 		}
 		if(xrect < 0){
 			xrect = 0;
 		}
-		int yrect = (int) (point.getY()-rectHeight);
-		if(yrect+15 >= this.getHeight()){
-			yrect = this.getHeight()-rectHeight;
+		int yrect = (int) (point.getY()-STATION_HEIGHT);
+		if(yrect+JMinePanel.INFO_RECT_HEIGHT >= this.getHeight()){
+			yrect = this.getHeight()-this.INFO_RECT_HEIGHT;
 		}
 		if(yrect < 0){
 			yrect = 0;
 		}
-		g.fillRect(xrect, yrect, rectWidth, rectHeight);
 
+		int paddingx = 2;
+
+		g.fillRect(xrect, yrect, this.INFO_RECT_CONCENTRATEUR_WIDTH, this.INFO_RECT_HEIGHT);
+
+		//ID de la pelle
 		g.setColor(Color.black);
 		g.setFont (boldFont);
-		g.drawString("Concentrateur", xrect+5, yrect+15);
-		g.setFont (normalFont);
+		g.drawString(concentrateur.getId(), xrect+paddingx, yrect +12);
+
+		g.setFont(normalFont);
+
+		//camions en attente
+		//
+		int nbCamions = concentrateur.getCamionsEnAttente().size();
+
+		if(concentrateur.getCamionEnTraitement() != null) {
+			nbCamions++;
+		}
+		g.setColor(new Color(0, 0, 170));
+		g.drawString("attente :  "+nbCamions, xrect+paddingx, yrect +25 );
+
+
+		//Qualité du minerai
+		//
+		double percentMinerai = concentrateur.getPercentIron();
+		double percentSouffre = concentrateur.getPercentSulfur();
+		if(concentrateur.getTotalQuantity()<0.0001) {
+			percentMinerai=0;
+			percentSouffre=0;
+		}
+
+		g.setColor(new Color(150, 0, 0));
+		g.drawString("Fe: "+df.format(percentMinerai)+"%",  xrect+paddingx, yrect +38 );
+		g.setColor(new Color(255, 100, 0));
+		g.drawString("S  : "+df.format(percentSouffre)+"%",  xrect+paddingx, yrect +51 );
+
+		//remet le font d'avant
+		g.setFont(previousFont);
+
 	}
 
 	//peint les chemins reliant le concentrateur  et le stérile aux pelles
@@ -442,7 +477,7 @@ public class JMinePanel extends JPanel{
 	}
 
 	//peint une station
-	private void paintSterile(Station station, Graphics g) {
+	private void paintSterile(Sterile sterile, Graphics g) {
 		g.setColor(Color.BLACK);	
 
 		Font previousFont = g.getFont();
@@ -451,38 +486,52 @@ public class JMinePanel extends JPanel{
 		Font normalFont = previousFont;
 
 
-		Point point = convertPointToWindow(station.getLocation());
+		Point point = convertPointToWindow(sterile.getLocation());
 		//g.fillOval((int) (point.getX()-STATION_WIDTH/2), (int) (point.getY()-STATION_HEIGHT/2), STATION_WIDTH, STATION_HEIGHT);
 		g.drawImage(sterileImage, (int) (point.getX()-STATION_WIDTH/2), (int) (point.getY()-STATION_HEIGHT/2), (int) (point.getX()+STATION_WIDTH/2), (int) (point.getY()+STATION_HEIGHT/2), 0, 0, sterileImage.getWidth(), sterileImage.getHeight(), null);
+
 
 		//rectangle d'information
 		//coordonnees rect
 		g.setColor(new Color(255, 255, 255, 170));
-
-
-		int rectWidth= 70;
-		int rectHeight=20;
-
 		int xrect =(int) point.getX()+STATION_WIDTH/2;
-		if(xrect+rectWidth > this.getWidth()){
-			xrect = this.getWidth()-rectWidth;
+		if(xrect+JMinePanel.INFO_RECT_WIDTH > this.getWidth()){
+			xrect = this.getWidth()-this.INFO_RECT_WIDTH;
 		}
 		if(xrect < 0){
 			xrect = 0;
 		}
-		int yrect = (int) (point.getY()-rectHeight);
-		if(yrect+15 >= this.getHeight()){
-			yrect = this.getHeight()-rectHeight;
+		int yrect = (int) (point.getY()-STATION_HEIGHT);
+		if(yrect+JMinePanel.INFO_RECT_STERILE_HEIGHT >= this.getHeight()){
+			yrect = this.getHeight()-this.INFO_RECT_STERILE_HEIGHT;
 		}
 		if(yrect < 0){
 			yrect = 0;
 		}
-		g.fillRect(xrect, yrect, rectWidth, rectHeight);
 
+		int paddingx = 2;
+
+		g.fillRect(xrect, yrect, this.INFO_RECT_WIDTH, this.INFO_RECT_STERILE_HEIGHT);
+
+		//ID de la pelle
 		g.setColor(Color.black);
 		g.setFont (boldFont);
-		g.drawString("Stérile", xrect+5, yrect+15);
-		g.setFont (normalFont);
+		g.drawString(sterile.getId(), xrect+paddingx, yrect +12);
+
+		g.setFont(normalFont);
+
+		//camions en attente
+		//
+		int nbCamions = sterile.getCamionsEnAttente().size();
+
+		if(sterile.getCamionEnTraitement() != null) {
+			nbCamions++;
+		}
+		g.setColor(new Color(0, 0, 170));
+		g.drawString("attente :  "+nbCamions, xrect+paddingx, yrect +25 );
+
+		//remet le font d'avant
+		g.setFont(previousFont);
 	}
 
 	//peint une pelle
@@ -532,7 +581,7 @@ public class JMinePanel extends JPanel{
 		//
 		int nbCamions = pelle.getCamionsEnAttente().size();
 
-		if(pelle.getCamionEnRemplissage() != null) {
+		if(pelle.getCamionEnTraitement() != null) {
 			nbCamions++;
 		}
 		g.setColor(new Color(0, 0, 170));

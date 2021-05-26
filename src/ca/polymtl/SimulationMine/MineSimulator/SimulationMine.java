@@ -23,6 +23,8 @@ public class SimulationMine {
 	//public static DecisionMaker decisionMaker;
 
 	public static JMineFrame mineFrame;
+
+
  
 	
 	public static void main(String[] args) {
@@ -38,7 +40,7 @@ public class SimulationMine {
 		
 		random = new Random();
 
-		
+		//random.setSeed(1962996941790320022L);
 		
 		
 		MineSimulator mineSimulator = new MineSimulator();

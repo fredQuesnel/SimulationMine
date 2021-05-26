@@ -207,14 +207,14 @@ public class CustomDecisionMaker extends DecisionMaker {
 
 		//indique 1 si la pelle est occupee
 		pelleOccupee = 0;
-		if(pelle.getCamionEnRemplissage() != null) pelleOccupee = 1;
+		if(pelle.getCamionEnTraitement() != null) pelleOccupee = 1;
 
 		//nombre de camions en attente
 		nbCamionsEnAttente = pelle.getCamionsEnAttente().size();
 
 		//nombre de camions a la pelle (attente + remplissage)
 		nbCamionsALaPelle = 0;
-		if(pelle.getCamionEnRemplissage()!= null) {
+		if(pelle.getCamionEnTraitement()!= null) {
 			nbCamionsALaPelle = nbCamionsEnAttente+1;
 		}
 
@@ -241,7 +241,7 @@ public class CustomDecisionMaker extends DecisionMaker {
 		//temps restant avant que la pelle n'aie plus de travail (en considerant seulement les camions en attente)
 		//
 		tempsRestantAvantFinPelle = calculeTempsRestantAvantFinPelle(pelle);
-		Camion camionEnRemplissage = pelle.getCamionEnRemplissage();
+		Camion camionEnRemplissage = pelle.getCamionEnTraitement();
 		if(camionEnRemplissage != null) {
 
 			//temps de remplissage restant = charge restante / vitesse moyenne charge

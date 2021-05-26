@@ -176,14 +176,14 @@ public class DecisionMaker {
 
 		//indique 1 si la pelle est occupee
 		int pelleOccupee = 0;
-		if(pelle.getCamionEnRemplissage() != null) pelleOccupee = 1;
+		if(pelle.getCamionEnTraitement() != null) pelleOccupee = 1;
 
 		//nombre de camions en attente
 		int nbCamionsEnAttente = pelle.getCamionsEnAttente().size();
 
 		//nombre de camions a la pelle (attente + remplissage)
 		int nbCamionsALaPelle = 0;
-		if(pelle.getCamionEnRemplissage()!= null) {
+		if(pelle.getCamionEnTraitement()!= null) {
 			nbCamionsALaPelle = nbCamionsEnAttente+1;
 		}
 
@@ -210,7 +210,7 @@ public class DecisionMaker {
 		//temps restant avant que la pelle n'aie plus de travail (en considerant seulement les camions en attente)
 		//
 		double tempsRestantAvantFinPelle = calculeTempsRestantAvantFinPelle(pelle);
-		Camion camionEnRemplissage = pelle.getCamionEnRemplissage();
+		Camion camionEnRemplissage = pelle.getCamionEnTraitement();
 		if(camionEnRemplissage != null) {
 
 			//temps de remplissage restant = charge restante / vitesse moyenne charge
@@ -402,7 +402,7 @@ return (attenteEspereeCamionSeconds-cibleAttenteCamionSeconds)*Math.abs((attente
 
 	protected double calculeTempsRestantAvantFinPelle(Pelle pelle) {
 		double tempsRestantAvantFinPelle = 0;
-		Camion camionEnRemplissage = pelle.getCamionEnRemplissage();
+		Camion camionEnRemplissage = pelle.getCamionEnTraitement();
 		if(camionEnRemplissage != null && camionEnRemplissage.getChargeRemaining()>0) {
 			double chargeRestante = camionEnRemplissage.getChargeRemaining();
 			//System.out.println("charge actuelle :"+chargeActuelle);
@@ -846,11 +846,11 @@ return (attenteEspereeCamionSeconds-cibleAttenteCamionSeconds)*Math.abs((attente
 			return tempsAvantDebutRemplissage+ tempsRemplissage+tempsRetour;
 
 		}
-		else if(camion.getState() == Camion.ETAT_ATTENTE_CHARGE) {
+		else if(camion.getState() == Camion.ETAT_ATTENTE) {
 
 			Pelle p = (Pelle) camion.getObjective();
 			//temps de remplissage du camion en remplissage
-			Camion camionEnRemplissage = p.getCamionEnRemplissage();
+			Camion camionEnRemplissage = p.getCamionEnTraitement();
 			double tempsAttente = camionEnRemplissage.getChargeRemaining()/p.AVERAGE_CHARGE_SPEED;
 
 			//position dans la file d'attente

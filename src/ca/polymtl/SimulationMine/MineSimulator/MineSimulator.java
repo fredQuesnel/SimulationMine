@@ -217,6 +217,8 @@ public class MineSimulator implements GuiListener {
 	 *retourne un boolean indiquant si un camion s'est retrouvé en état "idle" au cours du tour 
 	 */
 	private boolean step() {
+		
+		
 		//a priori, aucun camion idle
 		boolean wasIdle = false;
 
@@ -239,6 +241,8 @@ public class MineSimulator implements GuiListener {
 		// Cette condition est necessaire car les camions et les pelles peuvent effectuer plus d'une action par tour
 		//
 		while(!endStepCondition()) {
+			
+			System.out.println("\nsous-iteration");
 			//avance les camions qui sont en route
 			//
 			for(int i = 0 ; i < camions.size(); i++) {
@@ -286,9 +290,12 @@ public class MineSimulator implements GuiListener {
 			//active les pelles pour remplir les camions
 			//
 			for(int i = 0 ; i < pelles.size(); i++) {
+				
 				Pelle p = pelles.get(i);
+				
 				//si la pelle a un camion a remplir
-				if(p.getCamionEnRemplissage()!= null) {
+				if(!p.iterFinished && p.getCamionEnTraitement()!= null) {
+					System.out.println("Active la pelle "+p.getId());
 					p.activate();
 					//si une pelle a épuise son temps, fait attendre le camion en remplissage
 					//
@@ -297,6 +304,31 @@ public class MineSimulator implements GuiListener {
 					}
 				}
 			}
+			
+			//active les concentrateurs
+			//
+			for(int i = 0 ; i < mine.getConcentrateurs().size(); i++) {
+				Concentrateur concentrateur = mine.getConcentrateurs().get(i);
+				System.out.println("Active le concentrateur");
+				concentrateur.activate();
+				if(concentrateur.iterFinished()) {
+					System.out.println("Concentrateur terminé");
+					concentrateur.makeAllCamionWaitUntilEndIter();
+				}
+			}
+			
+			//active les stériles
+			//
+			for(int i = 0 ; i < mine.getSteriles().size(); i++) {
+				Sterile sterile = mine.getSteriles().get(i);
+				System.out.println("Active le sterile");
+				sterile.activate();
+				if(sterile.iterFinished()) {
+					System.out.println("Concentrateur terminé");
+					sterile.makeAllCamionWaitUntilEndIter();
+				}
+			}
+			
 		}
 
 		// Une fois que tout ce qui pouvait être fait a été fait,
@@ -304,7 +336,7 @@ public class MineSimulator implements GuiListener {
 		//
 		for(int i = 0 ; i < pelles.size(); i++) {
 			Pelle p = pelles.get(i);
-			if(p.getCamionEnRemplissage()== null) {
+			if(p.getCamionEnTraitement()== null) {
 				p.waitForRemainingTime();
 			}
 		}
@@ -330,6 +362,7 @@ public class MineSimulator implements GuiListener {
 		for(int i = 0 ; i < mine.getCamions().size(); i++) {
 			Camion c = mine.getCamions().get(i);
 			if(!c.iterFinished()) {
+				System.out.println("Camion "+c.getRemainingTimeInTurn()+" "+c.getState());
 				return false;
 			}
 
@@ -341,15 +374,30 @@ public class MineSimulator implements GuiListener {
 	 *set les camions et les pelles pour le debut d'une iteration
 	 */
 	private void setCamionsEtPellesBeginStep(double stepSize) {
+		//camions
+		//
 		for(int i = 0 ; i < mine.getCamions().size(); i++) {
 			mine.getCamions().get(i).setBeginIter(stepSize);
 		}
 
+		//pelles
+		//
 		for(int i = 0 ; i < mine.getPelles().size(); i++) {
 			mine.getPelles().get(i).setBeginStep(stepSize);
 
 		}
 
+		//concentrateurs
+		//
+		for(int i = 0 ; i < mine.getConcentrateurs().size(); i++) {
+			mine.getConcentrateurs().get(i).setBeginStep(stepSize);
+		}
+		
+		//steriles
+		//
+		for(int i = 0 ; i < mine.getSteriles().size(); i++) {
+			mine.getSteriles().get(i).setBeginStep(stepSize);
+		}
 	}
 
 

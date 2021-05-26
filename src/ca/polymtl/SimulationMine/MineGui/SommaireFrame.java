@@ -196,7 +196,7 @@ public class SommaireFrame extends JFrame {
 		//
 		tauxPelles = new ArrayList<Pair<Pelle, Double>>();
 		for(int i = 0 ; i < pelles.size(); i++){
-			double taux = 1.*pelles.get(i).getNbCamionsRemplis()/mineSimulator.getTempsSimulationSeconds()*3600;
+			double taux = 1.*pelles.get(i).getNbCamionsTraites()/mineSimulator.getTempsSimulationSeconds()*3600;
 			Pair<Pelle, Double> pair = new Pair<Pelle, Double>(pelles.get(i), taux);
 			tauxPelles.add(pair);
 		}

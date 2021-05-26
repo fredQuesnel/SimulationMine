@@ -22,12 +22,13 @@ public abstract class Camion {
 	/** État indiquant un camion en route vers sa destination.	 */
 	public static int ETAT_EN_ROUTE = 2;
 	/** État indiquant un camion en attente de chargement.	 */
-	public static int ETAT_ATTENTE_CHARGE = 3;
+	public static int ETAT_ATTENTE = 3;
 	/** État indiquant un camion en chargement.	 */
 	public static int ETAT_EN_CHARGE = 4;
 	/** État indiquant un camion qui viens juste d'arriver à sa destination.	 */
 	public static int ETAT_JUSTE_ARRIVE = 5;
-
+	/** État indiquant un camion en déchargement.	 */
+	public static int ETAT_DECHARGE = 6;
 
 
 
@@ -87,15 +88,17 @@ public abstract class Camion {
 	//
 	private double waitTime;
 	private int numberOfRuns;
-	private HashMap<Station, java.lang.Double> waitTimePerPelle;
-	private HashMap<Station, java.lang.Integer> nbVisitPerPelle;
+	private HashMap<Station, java.lang.Double> waitTimePerStation;
+	private HashMap<Station, java.lang.Integer> nbVisitPerStation;
 
 
 	//infos sur l'iteration en cours
 	//
-	private double iterTotalTime;
+	private double iterStepSize;
 	private double iterCurrentTime;
 	private boolean iterFinished;
+
+	//images du camion
 	private BufferedImage goingEastImage;
 	private BufferedImage goingWestImage;
 
@@ -112,8 +115,8 @@ public abstract class Camion {
 			AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
 			this.goingWestImage = op.filter(this.goingWestImage, null);
 		}
-		
-		
+
+
 		this.mine = mine;
 
 		this.speed = 2;
@@ -273,7 +276,7 @@ public abstract class Camion {
 			//this.setRemainingTimeInTurn(0);
 
 			this.currentTravelTime += timeIncrement;
-			this.iterCurrentTime = this.iterTotalTime;
+			this.iterCurrentTime = this.iterStepSize;
 			this.iterFinished = true;
 		}
 
@@ -282,64 +285,69 @@ public abstract class Camion {
 
 	//charge le camion 
 	//
-	protected void remplis(double chargeTime, double chargeSpeed) {
-		if(this.state != Camion.ETAT_EN_CHARGE) {
-			throw new IllegalStateException();
+	protected void remplis(double quantite, double temps) {
+
+		//valide la demande de decharge
+		//marge d'erreur de 0.0001 pour erreur numérique
+		if(quantite - 0.0001 > this.getChargeMax()-this.charge) {
+			throw new IllegalArgumentException("Quantité chargée trop grande : "+quantite+" > "+(this.getChargeMax()-this.charge));
 		}
-		//System.out.println("remplis : "+chargeTime+" secondes");
-
-
-		if(getRemainingTimeInTurn() < 0.0001){
-			iterFinished = true;
+		if(temps > this.getRemainingTimeInTurn()) {
+			throw new IllegalArgumentException("Temps de décharge trop grand : "+temps+" > "+this.getRemainingTimeInTurn());
+		}
+		if(this.getState()!= Camion.ETAT_EN_CHARGE) {
+			throw new IllegalStateException("Peut seulement décharger en ETAT_CHARGE. État actuel : "+this.getState());
 		}
 
-		if(chargeTime > this.getRemainingTimeInTurn()) {
-			chargeTime = this.getRemainingTimeInTurn();
+
+		this.iterCurrentTime+=temps;
+		this.charge+= quantite;
+
+		if(this.getChargeMax()- this.charge  < 0.00001) {
+			charge = this.getChargeMax();
+		}
+		
+		if(iterStepSize- iterCurrentTime < 0.00001 ) {
+			iterCurrentTime = iterStepSize;
 			this.iterFinished = true;
 		}
 
-		if(charge + chargeTime*chargeSpeed > this.getChargeMax()) {
-			this.charge = this.getChargeMax();
-			this.iterCurrentTime += (this.getChargeMax()- this.charge)/chargeSpeed;
-		}
-		else {
-			this.charge+= chargeTime*chargeSpeed;
-			this.iterCurrentTime+=chargeTime;
-		}
 	}
 
 	//fait attendre un camion qui est soit en file d'attente, soit en charge
 	//
 	protected void attend(double temps) {
 		//on peut attendre en etat "en charge" si la pelle a deja fini son tour quand le camion arrive.
-		if(this.state != Camion.ETAT_ATTENTE_CHARGE && this.state != Camion.ETAT_EN_CHARGE ) {
-			throw new IllegalStateException();
+		if(this.state != Camion.ETAT_ATTENTE && this.state != Camion.ETAT_EN_CHARGE && this.state != Camion.ETAT_DECHARGE  ) {
+			throw new IllegalStateException("Le camion doit etre en attente. Etat actuel : "+this.state);
 		}
-
-
 
 		if(temps > this.getRemainingTimeInTurn()) {
-			temps = this.getRemainingTimeInTurn();
-			this.iterFinished = true;
+			throw new IllegalArgumentException("Le temps d'attente ne doit pas dépasser le temps restant : "+temps+" > "+this.getRemainingTimeInTurn());
 		}
+
 		this.waitTime+= temps;
 		this.iterCurrentTime+= temps;
 
-		double newWaitTime = this.waitTimePerPelle.get(currentStation).doubleValue()+temps;
-		this.waitTimePerPelle.replace(currentStation, newWaitTime);
+		if(this.iterStepSize-iterCurrentTime < 0.00001) {
+			this.iterFinished = true;
+		}
+
+		double newWaitTime = this.waitTimePerStation.get(currentStation).doubleValue()+temps;
+		this.waitTimePerStation.replace(currentStation, newWaitTime);
 	}
 
 	//retourne le temps restant dans l'iteration courante
 	//
 	protected double getRemainingTimeInTurn() {
-		return this.iterTotalTime-this.iterCurrentTime;
+		return this.iterStepSize-this.iterCurrentTime;
 	}
 
 	//met le camion en attente
 	//
 	protected void setAttenteState() {
 
-		this.state = Camion.ETAT_ATTENTE_CHARGE;
+		this.state = Camion.ETAT_ATTENTE;
 
 	}
 
@@ -353,16 +361,31 @@ public abstract class Camion {
 		this.numberOfRuns = 0;
 		this.waitTime = 0;
 
-		waitTimePerPelle = new HashMap<Station, java.lang.Double>();
-		nbVisitPerPelle = new HashMap<Station, Integer>();
+		waitTimePerStation = new HashMap<Station, java.lang.Double>();
+		nbVisitPerStation = new HashMap<Station, Integer>();
 		//set les statistiques d'attente par pelle
 		ArrayList<Pelle> pelles = mine.getPelles();
 		for(int i = 0 ; i < pelles.size(); i++){
 
-			waitTimePerPelle.put(pelles.get(i), 0.);
-			nbVisitPerPelle.put(pelles.get(i), 0);
+			waitTimePerStation.put(pelles.get(i), 0.);
+			nbVisitPerStation.put(pelles.get(i), 0);
 
 		}
+
+		//les concentrateurs
+		for(int i = 0 ; i < mine.getConcentrateurs().size(); i++) {
+			waitTimePerStation.put(mine.getConcentrateurs().get(i), 0.);
+			nbVisitPerStation.put(mine.getConcentrateurs().get(i), 0);
+
+		}
+
+		//les steriles
+		for(int i = 0 ; i < mine.getSteriles().size(); i++) {
+			waitTimePerStation.put(mine.getSteriles().get(i), 0.);
+			nbVisitPerStation.put(mine.getSteriles().get(i), 0);
+
+		}
+
 	}
 
 	/**
@@ -391,9 +414,7 @@ public abstract class Camion {
 	 * @return Si le camion est présentement en charge, retourne le temps courant de chargement.
 	 */
 	public double getCharge() {
-		if(this.state != Camion.ETAT_EN_CHARGE) {
-			throw new IllegalStateException("le camion n'est pas en charge!");
-		}
+
 		return this.charge;
 	}
 
@@ -430,7 +451,7 @@ public abstract class Camion {
 	//
 	protected void setBeginIter(double stepSize) {
 		this.iterCurrentTime = 0;
-		this.iterTotalTime = stepSize;
+		this.iterStepSize = stepSize;
 		this.iterFinished = false;
 	}
 
@@ -475,8 +496,8 @@ public abstract class Camion {
 
 		//incremente le nombre de visites
 		//
-		int newValue = this.nbVisitPerPelle.get(this.currentStation).intValue()+1;
-		this.nbVisitPerPelle.replace(currentStation, newValue);
+		int newValue = this.nbVisitPerStation.get(this.currentStation).intValue()+1;
+		this.nbVisitPerStation.replace(currentStation, newValue);
 
 	}
 
@@ -485,8 +506,8 @@ public abstract class Camion {
 	 * @return La moyenne du temps d'attente du camion à la station donnée
 	 */
 	public double getAverageWaitTimeSecondsForStation(Station station){
-		double waitTime =this.waitTimePerPelle.get(station).doubleValue();
-		int nbPeriodes = this.nbVisitPerPelle.get(station).intValue();
+		double waitTime =this.waitTimePerStation.get(station).doubleValue();
+		int nbPeriodes = this.nbVisitPerStation.get(station).intValue();
 		if(nbPeriodes == 0){
 			return 0;
 		}
@@ -498,7 +519,7 @@ public abstract class Camion {
 	 * @return Le temps total d'attente du camion à la station
 	 */
 	public double getAttenteAtStation(Station station){
-		return this.waitTimePerPelle.get(station).doubleValue();
+		return this.waitTimePerStation.get(station).doubleValue();
 	}
 
 	/**
@@ -506,7 +527,40 @@ public abstract class Camion {
 	 * @return Le nombre de fois où le camion est allé à la station
 	 */
 	public double getNbVisitAtStation(Station station){
-		return this.nbVisitPerPelle.get(station).intValue();
+		return this.nbVisitPerStation.get(station).intValue();
+	}
+
+	public void decharge(double quantiteDecharge, double tempsTraitement) {
+
+		//valide la demande de decharge
+		//marge d'erreur de 0.0001 pour erreur numériques
+		if(quantiteDecharge - 0.0001 > this.charge) {
+			throw new IllegalArgumentException("Quantité déchargée trop grande : "+quantiteDecharge+" > "+this.charge);
+		}
+		if(tempsTraitement > this.getRemainingTimeInTurn()) {
+			throw new IllegalArgumentException("Temps de décharge trop grand : "+tempsTraitement+" > "+this.getRemainingTimeInTurn());
+		}
+		if(this.getState()!= Camion.ETAT_DECHARGE) {
+			throw new IllegalStateException("Peut seulement décharger en ETAT_DECHARGE. État actuel : "+this.getState());
+		}
+
+		this.iterCurrentTime+=tempsTraitement;
+		this.charge-= quantiteDecharge;
+
+		if(charge < 0.00001) {
+			charge = 0;
+		}
+		if(iterStepSize- iterCurrentTime < 0.00001 ) {
+			iterCurrentTime = iterStepSize;
+			this.iterFinished = true;
+		}
+
+
+	}
+
+	//met le camion en etat decharge
+	public void setstateDecharge() {
+		this.state = Camion.ETAT_DECHARGE;
 	}
 
 

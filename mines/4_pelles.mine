@@ -9,3 +9,6 @@ pelle min "pelle3" 5000 7000 20 0.1 5
 pelle ste "pelle4" 4500 400 0 0 3
 concentrateur "concentrateur" 1000 1000
 sterile "sterile" 9000 9000
+
+display "pelle3" "sterile"
+display "pelle1" "concentrateur"
