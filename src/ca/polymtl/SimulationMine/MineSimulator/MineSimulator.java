@@ -12,6 +12,7 @@ import ca.polymtl.SimulationMine.MineGui.SommaireFrame;
 import ca.polymtl.SimulationMine.MineSimulator.Mine.ExampleId;
 import ca.polymtl.SimulationMine.decisionMaker.CustomDecisionMaker;
 import ca.polymtl.SimulationMine.decisionMaker.DecisionMaker;
+import ca.polymtl.SimulationMine.decisionMaker.TravelTimePredictor;
 
 //classe représentant une simulation de mine. Elle gere la simulation en tant que telle et 
 //l'interfacage avec le gui
@@ -43,6 +44,8 @@ public class MineSimulator implements GuiListener {
 	//si true, stop à chaque fois qu'un camion arrive au stérile/au concentrateur	
 	private boolean stopOnAssign;
 
+	private TravelTimePredictor travelTimePredictor;
+
 
 	//constructeur
 	public MineSimulator() {
@@ -54,8 +57,11 @@ public class MineSimulator implements GuiListener {
 
 		//Créé la mine et l'initialise
 		//
-		mine = new Mine();
+		mine = new Mine(this);
 		mine.init(Mine.exampleIds.get(0), 20, 0);
+		
+		//cree le predicteur de temps de parcours
+		this.travelTimePredictor = new TravelTimePredictor(mine);
 
 		//Créé l'engin de décision
 		//
@@ -103,6 +109,20 @@ public class MineSimulator implements GuiListener {
 		this.stepCounter = 0;
 	}
 
+	/**
+	 * 
+	 * @return Objet responsable de la prédiction des temps de parcours.
+	 */
+	public TravelTimePredictor getTravelTimePredictor() {
+
+		return this.travelTimePredictor;
+	}
+	
+	protected void setTravelTimePredictor(TravelTimePredictor predictor) {
+
+		this.travelTimePredictor = predictor;
+	}
+	
 	public int getTempsSimulationSeconds() {
 		return (int) (this.max_steps*Mine.TIME_INCREMENT);
 	}
@@ -260,7 +280,7 @@ public class MineSimulator implements GuiListener {
 				if(camion.getState() == Camion.ETAT_JUSTE_ARRIVE) {
 					//enregistre le temps de parcours du camion à des fins statistiques
 					//
-					mine.getTravelTimePredictor().enregistreHistoriqueTempsParcours(camion);
+					this.travelTimePredictor.enregistreHistoriqueTempsParcours(camion);
 					
 					//avertis les listeners qu'un camion vient d'arriver (Sauf si en warmup!)
 					//
@@ -506,21 +526,21 @@ public class MineSimulator implements GuiListener {
 
 	@Override
 	public void predictFunctionChanged(int newPredictFunctionIndex) {
-		mine.getTravelTimePredictor().setPredictFunction(newPredictFunctionIndex);
+		this.travelTimePredictor.setPredictFunction(newPredictFunctionIndex);
 
 	}
 
 
 	@Override
-	public void rhoValueChanged(double rhoValue) {
-		mine.getTravelTimePredictor().setWeight(rhoValue);
+	public void lambdaValueChanged(double rhoValue) {
+		this.travelTimePredictor.setWeight(rhoValue);
 
 	}
 
 
 	@Override
 	public void numberSampleChanged(int nbSample) {
-		mine.getTravelTimePredictor().setNumberSample(nbSample);
+		this.travelTimePredictor.setNumberSample(nbSample);
 	}
 
 
@@ -597,6 +617,142 @@ public class MineSimulator implements GuiListener {
 
 	}
 
+	
+	/**
+	 * 
+	 * @return Efficacité moyenne des camoins
+	 */
+	public double getAverageCamionEfficiency() {
+		double sumEff = 0;
+		for(int i = 0 ; i < mine.getCamions().size(); i++) {
+			double eff = computeCamionEfficiency(mine.getCamions().get(i));
+			sumEff += eff;
+		}
+		return sumEff/mine.getCamions().size();
+	}
+
+	/**
+	 * 
+	 * @return Efficacité moyenne des pelles
+	 */
+	public double getAveragePelleEfficiency() {
+		double sumEff = 0;
+		for(int i = 0 ; i < mine.getPelles().size(); i++) {
+			double eff = computePelleEfficiency(mine.getPelles().get(i));
+			sumEff += eff;
+		}
+		return sumEff/mine.getPelles().size();
+	}
+
+	/**
+	 * 
+	 * @return L'efficacité du camion en % tu temps passé à faire des activités autre que l'attente.
+	 */
+	public double computeCamionEfficiency(Camion camion) {
+		if(mine.getTime() == 0) {
+			return 0;
+		}
+		double totalTime = mine.getTime();
+		double waitingTime = camion.getWaitTime();
+
+		double eff = (totalTime - waitingTime)/totalTime *100;
+		return eff;
+	}
+
+
+
+	/**
+	 * 
+	 * @return L'efficacité de la pelle en % du temps passé à remplir des camions.
+	 */
+	public double computePelleEfficiency(Pelle pelle) {
+		if(mine.getTime() == 0) {
+			return 0;
+		}
+		double totalTime = mine.getTime();
+		double waitingTime = pelle.getWaitTime();
+
+		double eff = (totalTime - waitingTime)/totalTime *100;
+		return eff;
+	}
+	
+	/**
+	 * 
+	 * @return Efficacité du camion le plus efficace
+	 */
+	public double getMaxCamionEfficiency() {
+		double effMax = 0;
+		for(int i = 0 ; i < mine.getCamions().size(); i++) {
+			double eff = computeCamionEfficiency(mine.getCamions().get(i));
+			if(eff > effMax) {
+				effMax = eff;
+			}
+		}
+		return effMax;
+	}
+
+
+
+	/**
+	 * 
+	 * @return Efficacité de la pelle la plus efficace
+	 */
+	public double getMaxPelleEfficiency() {
+		double effMax = 0;
+		for(int i = 0 ; i < mine.getPelles().size(); i++) {
+			double eff = computePelleEfficiency(mine.getPelles().get(i));
+			if(eff > effMax) {
+				effMax = eff;
+			}
+		}
+		return effMax;
+	}
+
+	
+	/**
+	 * 
+	 * @return Efficacité du camion le moins efficace
+	 */
+	public double getMinCamionEfficiency() {
+		double effMin = 1000;
+		for(int i = 0 ; i < mine.getCamions().size(); i++) {
+			double eff = computeCamionEfficiency(mine.getCamions().get(i));
+			if(eff < effMin) {
+				effMin = eff;
+			}
+		}
+
+		return effMin;
+	}
+
+
+	/**
+	 * 
+	 * @return Efficacité de la pelle la moins efficace.
+	 */
+	public double getMinPelleEfficiency() {
+		double effMin = 1000;
+		for(int i = 0 ; i < mine.getPelles().size(); i++) {
+			double eff = computePelleEfficiency(mine.getPelles().get(i));
+			if(eff < effMin) {
+				effMin = eff;
+			}
+		}
+
+		return effMin;
+	}
+
+	/**
+	 * 
+	 * @return Nombre total de voyages effectués par les camions
+	 */
+	public int getNumberOfRuns() {
+		int nbVoyages = 0;
+		for(int i = 0 ; i < mine.getCamions().size(); i++) {
+			nbVoyages += mine.getCamions().get(i).getNumberOfRuns();
+		}
+		return nbVoyages;
+	}
 	/*
 	 * Interractions avec les listeners
 	 */

@@ -49,66 +49,73 @@ public interface GuiListener extends AWTEventListener {
 	public void minePanelClicked(double fracX, double fracY);
 
 	/** Une nouvelle fonnction de prédiction a été choisie.
-	 * @param newPredictFunctionIndex
+	 * @param newPredictFunctionIndex : Nouvel index de fonction de prédiction.
 	 */
 	public void predictFunctionChanged(int newPredictFunctionIndex);
 
-	/**
-	 * @param rhoValue
+	/** Le champs pour la valeur du paramètre lambda (pour fonction de prédiction) a été changé.
+	 * @param lambdaValue : nouvelle valeur du paramètre lambda
 	 */
-	public void rhoValueChanged(double rhoValue);
+	public void lambdaValueChanged(double lambdaValue);
 
-	/**
-	 * @param currentNValue
+	/** Le champs pour la valeur du paramètre n (dans la fonction de prédiction) a été changé.
+	 * @param currentNValue : nouvelle valeud du paramètre n.
 	 */
 	public void numberSampleChanged(int currentNValue);
 
-	/**
-	 * @param selectedId
-	 * @param numberOfSmallCamions
-	 * @param numberOfLargeCamions
-	 * @param tempsSimulationSeconds
+	/**Une nouvelle simulation est demandée
+	 * 
+	 * @param selectedId : Id de la configuration de la mine.
+	 * @param numberOfSmallCamions : Nombre de petits camions.
+	 * @param numberOfLargeCamions : Nombre de gros camions.
+	 * @param tempsSimulationSeconds : Durée de la simulation (secondes).
 	 */
 	public void newSimulationRequested(ExampleId selectedId, int numberOfSmallCamions, int numberOfLargeCamions, double tempsSimulationSeconds);
 
 	/**
-	 * 
+	 *  On demande la completion automatique de la simulation.
 	 */
 	public void automaticCompletionRequested();
 
-	/**
-	 * @param selected
+	/** Indique qu'on viens de cocher/décocher la case "pause à chaque fin de voyage".
+	 * 
+	 * @param selected : indique si la case est cochée
 	 */
 	public void stopOnAssignStateChanged(boolean selected);
 
 	/**
-	 * @param speed
+	 * On change la vitesse de simulation
+	 * 
+	 * @param speed : Nouvelle vitesse
 	 */
 	public void simulationSpeedChanged(int speed);
 
 	/**
-	 * 
+	 * On vient d'appuyer sur le bouton play.
 	 */
 	public void playButtonPressed();
 
 	/**
-	 * 
+	 * On vient d'appuyer sur le bouton pause.
 	 */
 	public void pauseButtonPressed();
 
 	/**
-	 * 
+	 * On vient d'appuyer sur le bouton reset.
 	 */
 	public void resetSimulationRequested();
 
 	/**
-	 * @param scoreFunction
+	 * La fonction de score est modifiée.
+	 * @param scoreFunction : nouvelle fonction de score.
 	 */
 	public void scoreFunctionChanged(String scoreFunction);
 
 	/**
-	 * @param p
-	 * @param newValue
+	 * Le plan d'une pelle a été modifié.
+	 * 
+	 * @param p : pelle.
+	 * @param newValue : nouvelle valeur. 
 	 */
 	public void planPelleChanged(Pelle p, double newValue);
 		

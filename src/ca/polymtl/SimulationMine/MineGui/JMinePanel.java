@@ -37,6 +37,7 @@ import ca.polymtl.SimulationMine.MineSimulator.Camion;
 import ca.polymtl.SimulationMine.MineSimulator.Concentrateur;
 import ca.polymtl.SimulationMine.MineSimulator.Mine;
 import ca.polymtl.SimulationMine.MineSimulator.MineSimulationListener;
+import ca.polymtl.SimulationMine.MineSimulator.MineSimulator;
 import ca.polymtl.SimulationMine.MineSimulator.Pelle;
 import ca.polymtl.SimulationMine.MineSimulator.SimulationMine;
 import ca.polymtl.SimulationMine.MineSimulator.Station;
@@ -236,7 +237,7 @@ public class JMinePanel extends JPanel{
 	//peint la mine
 	public void paintComponent(Graphics g) {
 
-
+		MineSimulator mineSimulator = parentFrame.getMineSimulator();
 		Mine mine = parentFrame.getMine();
 
 		if(mine != null) {
@@ -278,7 +279,7 @@ public class JMinePanel extends JPanel{
 
 			Font normalFont = g.getFont();
 
-			paintStatsPanel(g, mine);
+			paintStatsPanel(g, mineSimulator);
 
 			g.setFont(normalFont);
 			//peint les pelles
@@ -406,26 +407,27 @@ public class JMinePanel extends JPanel{
 
 	}
 
-	private void paintStatsPanel(Graphics g, Mine mine) {
+	private void paintStatsPanel(Graphics g, MineSimulator mineSimulator) {
 		int width = 430;
 		int height = 180;
 		g.setColor(Color.black);
 
+		Mine mine = mineSimulator.getMine();
 		//format des nombres
 		DecimalFormat df = new DecimalFormat("0.00");
 
-		double minCamionEff = mine.getMinCamionEfficiency();
+		double minCamionEff = mineSimulator.getMinCamionEfficiency();
 		String minCamionEffStr = df.format(minCamionEff);
-		double maxCamionEff = mine.getMaxCamionEfficiency();
+		double maxCamionEff = mineSimulator.getMaxCamionEfficiency();
 		String maxCamionEffStr = df.format(maxCamionEff);
-		double avgCamionEff = mine.getAverageCamionEfficiency();
+		double avgCamionEff = mineSimulator.getAverageCamionEfficiency();
 		String avgCamionEffStr = df.format(avgCamionEff);
 
-		double minPelleEff = mine.getMinPelleEfficiency();
+		double minPelleEff = mineSimulator.getMinPelleEfficiency();
 		String minPelleEffStr = df.format(minPelleEff);
-		double maxPelleEff = mine.getMaxPelleEfficiency();
+		double maxPelleEff = mineSimulator.getMaxPelleEfficiency();
 		String maxPelleEffStr = df.format(maxPelleEff);
-		double avgPelleEff = mine.getAveragePelleEfficiency();
+		double avgPelleEff = mineSimulator.getAveragePelleEfficiency();
 		String avgPelleEffStr = df.format(avgPelleEff);
 
 		double time = mine.getTime()/3600;
@@ -455,7 +457,7 @@ public class JMinePanel extends JPanel{
 		g.drawString("Max. : "+maxPelleEffStr+" %",alignXMinMaxAvg , 80);
 		g.drawString("Moy. : "+avgPelleEffStr+" %",alignXMinMaxAvg , 100);
 
-		g.drawString("Nombre de voyages : "+mine.getNumberOfRuns(), this.getWidth()-width+20, 130);
+		g.drawString("Nombre de voyages : "+mineSimulator.getNumberOfRuns(), this.getWidth()-width+20, 130);
 		System.out.println(timeStr);
 		g.drawString("Temps écoulé : "+timeStr+" h", this.getWidth()-width+20, 160);
 

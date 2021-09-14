@@ -142,25 +142,25 @@ public class Mine {
 
 
 
-	private TravelTimePredictor travelTimePredictor;
-
 	private ExampleId currentExampleId;
 
 	private int numberLargeCamions;
 
 	private int numberSmallCamions;
+
+	private MineSimulator mineSimulator;
 	//------------------------------------------
 	// constructeur qui construit une mine vide
 	//------------------------------------------
-	public Mine() {
+	public Mine(MineSimulator mineSimulator) {
 
-
+		this.mineSimulator = mineSimulator;
 		this.pelles = new ArrayList<Pelle>();
 		this.camions= new ArrayList<Camion>();
 
 		this.meteoFactor = Mine.DEFAULT_METEO_FACTOR;
 
-		this.travelTimePredictor = new TravelTimePredictor(this);
+		
 
 		this.time = 0;
 
@@ -222,40 +222,10 @@ public class Mine {
 		return closest;
 	}
 
-	/**
-	 * 
-	 * @return L'efficacité du camion en % tu temps passé à faire des activités autre que l'attente.
-	 */
-	public double computeCamionEfficiency(Camion camion) {
-		if(this.getTime() == 0) {
-			return 0;
-		}
-		double totalTime = this.getTime();
-		double waitingTime = camion.getWaitTime();
 
-		double eff = (totalTime - waitingTime)/totalTime *100;
-		return eff;
-	}
-
-
-
-	/**
-	 * 
-	 * @return L'efficacité de la pelle en % du temps passé à remplir des camions.
-	 */
-	public double computePelleEfficiency(Pelle pelle) {
-		if(this.getTime() == 0) {
-			return 0;
-		}
-		double totalTime = this.getTime();
-		double waitingTime = pelle.getWaitTime();
-
-		double eff = (totalTime - waitingTime)/totalTime *100;
-		return eff;
-	}
 
 	//efface toutes les informations qui doivent etre effaces lorsqu'on reinitialise la mine
-	private void erasePreviousMine() {
+	private void erasePrevious() {
 		this.time = 0;
 		this.inWarmup = false;
 		this.concentrateurs = new ArrayList<Concentrateur>();
@@ -268,31 +238,6 @@ public class Mine {
 
 	}
 
-	/**
-	 * 
-	 * @return Efficacité moyenne des camoins
-	 */
-	public double getAverageCamionEfficiency() {
-		double sumEff = 0;
-		for(int i = 0 ; i < camions.size(); i++) {
-			double eff = computeCamionEfficiency(camions.get(i));
-			sumEff += eff;
-		}
-		return sumEff/camions.size();
-	}
-
-	/**
-	 * 
-	 * @return Efficacité moyenne des pelles
-	 */
-	public double getAveragePelleEfficiency() {
-		double sumEff = 0;
-		for(int i = 0 ; i < pelles.size(); i++) {
-			double eff = computePelleEfficiency(pelles.get(i));
-			sumEff += eff;
-		}
-		return sumEff/pelles.size();
-	}
 
 
 	/**
@@ -331,37 +276,6 @@ public class Mine {
 		return exemple;
 	}
 
-	/**
-	 * 
-	 * @return Efficacité du camion le plus efficace
-	 */
-	public double getMaxCamionEfficiency() {
-		double effMax = 0;
-		for(int i = 0 ; i < camions.size(); i++) {
-			double eff = computeCamionEfficiency(camions.get(i));
-			if(eff > effMax) {
-				effMax = eff;
-			}
-		}
-		return effMax;
-	}
-
-
-
-	/**
-	 * 
-	 * @return Efficacité de la pelle la plus efficace
-	 */
-	public double getMaxPelleEfficiency() {
-		double effMax = 0;
-		for(int i = 0 ; i < pelles.size(); i++) {
-			double eff = computePelleEfficiency(pelles.get(i));
-			if(eff > effMax) {
-				effMax = eff;
-			}
-		}
-		return effMax;
-	}
 
 
 	/*
@@ -397,38 +311,6 @@ public class Mine {
 	}
 
 
-	/**
-	 * 
-	 * @return Efficacité du camion le moins efficace
-	 */
-	public double getMinCamionEfficiency() {
-		double effMin = 1000;
-		for(int i = 0 ; i < camions.size(); i++) {
-			double eff = computeCamionEfficiency(camions.get(i));
-			if(eff < effMin) {
-				effMin = eff;
-			}
-		}
-
-		return effMin;
-	}
-
-
-	/**
-	 * 
-	 * @return Efficacité de la pelle la moins efficace.
-	 */
-	public double getMinPelleEfficiency() {
-		double effMin = 1000;
-		for(int i = 0 ; i < pelles.size(); i++) {
-			double eff = computePelleEfficiency(pelles.get(i));
-			if(eff < effMin) {
-				effMin = eff;
-			}
-		}
-
-		return effMin;
-	}
 
 	/**
 	 * 
@@ -439,17 +321,7 @@ public class Mine {
 	}
 
 
-	/**
-	 * 
-	 * @return Nombre total de voyages effectués par les camions
-	 */
-	public int getNumberOfRuns() {
-		int nbVoyages = 0;
-		for(int i = 0 ; i < camions.size(); i++) {
-			nbVoyages += camions.get(i).getNumberOfRuns();
-		}
-		return nbVoyages;
-	}
+	
 
 	/**
 	 * 
@@ -476,18 +348,11 @@ public class Mine {
 	}
 
 
-	/**
-	 * 
-	 * @return Objet responsable de la prédiction des temps de parcours.
-	 */
-	public TravelTimePredictor getTravelTimePredictor() {
 
-		return this.travelTimePredictor;
-	}
 
 	//initialise la mine en fonction de l'exemple de mine desiree
 	protected void init(ExampleId exempleId, int nbSmallCamions, int nbLargeCamions) {
-		erasePreviousMine();
+		erasePrevious();
 
 		System.out.println("charge mine "+exempleId.getName());
 		
@@ -650,7 +515,7 @@ public class Mine {
 		this.numberSmallCamions = nbSmallCamions;
 		this.numberLargeCamions = nbLargeCamions;
 		for(int i = 0 ; i < nbSmallCamions; i++) {
-			Camion camion = new Camion(steriles.get(0), this, smallCamionImage) {
+			Camion camion = new Camion(steriles.get(0), this, mineSimulator, smallCamionImage) {
 
 				/** Vitesse moyenne du camion	 */
 				public static final double VITESSE_MOYENNE = 9;
@@ -680,7 +545,7 @@ public class Mine {
 		}
 
 		for(int i = 0 ; i < nbLargeCamions; i++) {
-			Camion camion = new Camion(steriles.get(0), this, largeCamionImage) {
+			Camion camion = new Camion(steriles.get(0), this, mineSimulator, largeCamionImage) {
 
 				/** Vitesse moyenne du camion	 */
 				public static final double VITESSE_MOYENNE = 5;
@@ -779,10 +644,7 @@ public class Mine {
 
 
 
-	protected void setTravelTimePredictor(TravelTimePredictor predictor) {
 
-		this.travelTimePredictor = predictor;
-	}
 
 
 

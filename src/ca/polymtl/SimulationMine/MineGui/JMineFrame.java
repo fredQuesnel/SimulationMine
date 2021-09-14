@@ -1,40 +1,33 @@
 package ca.polymtl.SimulationMine.MineGui;
 import java.awt.AWTEvent;
 import java.awt.Color;
-import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.ArrayList;
-import java.util.List;
-
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.Timer;
-
 import ca.polymtl.SimulationMine.MineSimulator.Camion;
 import ca.polymtl.SimulationMine.MineSimulator.Mine;
 import ca.polymtl.SimulationMine.MineSimulator.Mine.ExampleId;
 import ca.polymtl.SimulationMine.MineSimulator.MineSimulationListener;
 import ca.polymtl.SimulationMine.MineSimulator.MineSimulator;
 import ca.polymtl.SimulationMine.MineSimulator.Pelle;
-import ca.polymtl.SimulationMine.MineSimulator.SimulationMine;
 
 public class JMineFrame extends JFrame implements MineSimulationListener{
 
+	private static final long serialVersionUID = 1L;
 	private JMinePanel minePanel;
 	private JControlPanel controlPanel;
 	private ArrayList<GuiListener> listenerList;
 
 	private Mine mine;
+	private MineSimulator mineSimulator;
 
 
-	public JMineFrame(Mine mine) {
+	public JMineFrame(MineSimulator mineSimulator) {
 		
-		this.mine = mine;
+		this.mineSimulator = mineSimulator;
+		this.mine = mineSimulator.getMine();
 
 		listenerList = new ArrayList<GuiListener>();
 		JPanel mainPanel = new JPanel();
@@ -209,7 +202,7 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 
 	public void notifyListenersRhoChanged(double rhoValue) {
 		for(int i = 0 ; i < listenerList.size(); i++) {
-			listenerList.get(i).rhoValueChanged(rhoValue);
+			listenerList.get(i).lambdaValueChanged(rhoValue);
 			//SimulationMine.mine.setMeteoFactor(meteoFactor);
 		}
 	}
@@ -302,6 +295,14 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 	@Override
 	public void camionJustArrived(Camion camion, double time) {
 		
+	}
+
+
+
+
+	public MineSimulator getMineSimulator() {
+		
+		return this.mineSimulator;
 	}
 
 }

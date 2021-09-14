@@ -5,10 +5,12 @@ import java.util.HashMap;
 import bsh.EvalError;
 import bsh.Interpreter;
 import ca.polymtl.SimulationMine.MineSimulator.Camion;
+import ca.polymtl.SimulationMine.MineSimulator.Concentrateur;
 import ca.polymtl.SimulationMine.MineSimulator.Mine;
 import ca.polymtl.SimulationMine.MineSimulator.Pelle;
 import ca.polymtl.SimulationMine.MineSimulator.SimulationMine;
 import ca.polymtl.SimulationMine.MineSimulator.Station;
+import ca.polymtl.SimulationMine.MineSimulator.Sterile;
 import lpsolve.*; 
 
 public class DecisionMaker {
@@ -827,14 +829,16 @@ return (attenteEspereeCamionSeconds-cibleAttenteCamionSeconds)*Math.abs((attente
 			double distance = p.getLocation().distance(stationRetour.getLocation());
 			double tempsChargeRestant = camion.getChargeRemaining()/p.AVERAGE_CHARGE_SPEED;
 			double tempsDeplacement = distance/camion.getAvgSpeed();
-			return tempsChargeRestant+tempsDeplacement;
+			double tempsDecharge = camion.getChargeMax()/Sterile.AVERAGE_DECHARGE_SPEED;
+			return tempsChargeRestant+tempsDeplacement+tempsDecharge;
 		}
 		//camion en route vers sterile ou concentrateur
 		//
 		else if(camion.getState() == Camion.ETAT_EN_ROUTE && (objectiveIsConcentrator || objectiveIsSterile)) {
 			double distance = camion.getLocation().distance(camion.getObjective().getLocation());
 			double tempsDeplacement = distance/camion.getAvgSpeed();
-			return tempsDeplacement;
+			double tempsDecharge = camion.getChargeMax()/Sterile.AVERAGE_DECHARGE_SPEED;
+			return tempsDeplacement+tempsDecharge;
 		}
 		//camion en route vers pelle
 		//
@@ -843,15 +847,27 @@ return (attenteEspereeCamionSeconds-cibleAttenteCamionSeconds)*Math.abs((attente
 			double tempsAvantDebutRemplissage = calculeTempsEspereAvantRemplissage(camion, (Pelle) camion.getObjective());
 			double tempsRemplissage = 100/p.AVERAGE_CHARGE_SPEED;
 			double tempsRetour = p.getLocation().distance(selectReturnStation(camion, p).getLocation())/camion.getAvgSpeed();
-			return tempsAvantDebutRemplissage+ tempsRemplissage+tempsRetour;
+			double tempsDecharge = camion.getChargeMax()/Sterile.AVERAGE_DECHARGE_SPEED;
+			return tempsAvantDebutRemplissage+ tempsRemplissage+tempsRetour+tempsDecharge;
 
 		}
 		else if(camion.getState() == Camion.ETAT_ATTENTE) {
-
-			Pelle p = (Pelle) camion.getObjective();
+			double stationChargeSpeed = 0;
+			if(objectiveIsConcentrator) {
+				stationChargeSpeed = Concentrateur.AVERAGE_DECHARGE_SPEED;
+			}
+			else if(objectiveIsSterile) {
+				stationChargeSpeed = Sterile.AVERAGE_DECHARGE_SPEED;
+			}
+			else {
+				
+				stationChargeSpeed = Pelle.AVERAGE_CHARGE_SPEED;
+			}
+			
+			Station p = (Station) camion.getObjective();	
 			//temps de remplissage du camion en remplissage
 			Camion camionEnRemplissage = p.getCamionEnTraitement();
-			double tempsAttente = camionEnRemplissage.getChargeRemaining()/p.AVERAGE_CHARGE_SPEED;
+			double tempsAttente = camionEnRemplissage.getChargeRemaining()/stationChargeSpeed;
 
 			//position dans la file d'attente
 			//
@@ -860,13 +876,22 @@ return (attenteEspereeCamionSeconds-cibleAttenteCamionSeconds)*Math.abs((attente
 			while(!fileAttente.get(position).equals(camion)) {
 				position++;
 			}
-			tempsAttente+= position*100/p.AVERAGE_CHARGE_SPEED;
+			tempsAttente+= position*100/stationChargeSpeed;
 
-			double tempsRemplissage = 100/p.AVERAGE_CHARGE_SPEED;
-			double tempsRetour = p.getLocation().distance(selectReturnStation(camion, p).getLocation())/camion.getAvgSpeed();
-			return tempsAttente+ tempsRemplissage+tempsRetour;
+			double tempsRemplissage = 100/stationChargeSpeed;
+			double tempsRetour = 0;
+			if(!objectiveIsSterile && !objectiveIsConcentrator) {
+				tempsRetour = p.getLocation().distance(selectReturnStation(camion, (Pelle)p).getLocation())/camion.getAvgSpeed();
+			}
+			double tempsDecharge = camion.getChargeMax()/Sterile.AVERAGE_DECHARGE_SPEED;
+			return tempsAttente+ tempsRemplissage+tempsRetour+tempsDecharge;
 		}
-		throw new IllegalStateException();
+		else if(camion.getState() == Camion.ETAT_DECHARGE) {
+			double tempsDecharge = camion.getCharge()/Sterile.AVERAGE_DECHARGE_SPEED;
+			return tempsDecharge;
+		
+		}
+		throw new IllegalStateException("Camion en etat "+camion.getState() );
 	}
 
 
@@ -884,7 +909,7 @@ return (attenteEspereeCamionSeconds-cibleAttenteCamionSeconds)*Math.abs((attente
 
 	public static boolean isFunctionStringValid(String function) {
 
-		Camion camion = new Camion(dummyMine.getSteriles().get(0), dummyMine, null) {
+		Camion camion = new Camion(dummyMine.getSteriles().get(0), dummyMine, null, null) {
 
 			@Override
 			public double getAvgSpeed() {

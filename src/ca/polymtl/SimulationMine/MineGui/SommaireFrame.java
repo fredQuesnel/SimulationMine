@@ -143,7 +143,7 @@ public class SommaireFrame extends JFrame {
 
 		//Sommaire de productivité
 		//
-		this.nbVoyage = mine.getNumberOfRuns();
+		this.nbVoyage = mineSimulator.getNumberOfRuns();
 
 		this.quantiteMinerai =0;
 		for(int i = 0 ; i < mine.getConcentrateurs().size(); i++ ) {
@@ -156,13 +156,13 @@ public class SommaireFrame extends JFrame {
 		}
 		
 
-		this.percentEffCamionsMin = mine.getMinCamionEfficiency();
-		this.percentEffCamionsMax = mine.getMaxCamionEfficiency();
-		this.percentEffCamionsAvg = mine.getAverageCamionEfficiency();
+		this.percentEffCamionsMin = mineSimulator.getMinCamionEfficiency();
+		this.percentEffCamionsMax = mineSimulator.getMaxCamionEfficiency();
+		this.percentEffCamionsAvg = mineSimulator.getAverageCamionEfficiency();
 
-		this.percentEffPellesMin = mine.getMinPelleEfficiency();
-		this.percentEffPellesMax = mine.getMaxPelleEfficiency();
-		this.percentEffPellesAvg = mine.getAveragePelleEfficiency();
+		this.percentEffPellesMin = mineSimulator.getMinPelleEfficiency();
+		this.percentEffPellesMax = mineSimulator.getMaxPelleEfficiency();
+		this.percentEffPellesAvg = mineSimulator.getAveragePelleEfficiency();
 
 		//Qualité du mélange
 		//
@@ -187,7 +187,7 @@ public class SommaireFrame extends JFrame {
 		effPelles = new ArrayList<Pair<Pelle, Double>>();
 		
 		for(int i = 0 ; i < pelles.size(); i++){
-			double efficiency = mine.computePelleEfficiency(pelles.get(i));
+			double efficiency = mineSimulator.computePelleEfficiency(pelles.get(i));
 			Pair<Pelle, Double> pair = new Pair<Pelle, Double>(pelles.get(i), efficiency);
 			effPelles.add(pair);
 		}
@@ -214,7 +214,7 @@ public class SommaireFrame extends JFrame {
 		//
 		double sommeEcartCarre = 0;
 		for(int i = 0; i < pelles.size(); i++){
-			double effPelle = mine.computePelleEfficiency(pelles.get(i));
+			double effPelle = mineSimulator.computePelleEfficiency(pelles.get(i));
 			sommeEcartCarre += (effPelle - percentEffPellesAvg )*(effPelle - percentEffPellesAvg );
 		}
 		this.ecartTypeProdPelle = Math.sqrt(sommeEcartCarre/pelles.size());

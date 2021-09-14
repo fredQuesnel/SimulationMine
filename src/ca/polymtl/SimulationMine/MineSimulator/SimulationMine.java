@@ -53,7 +53,7 @@ public class SimulationMine {
 
 		
 
-		mineFrame = new JMineFrame(mineSimulator.getMine());
+		mineFrame = new JMineFrame(mineSimulator);
 
 		mineFrame.setSize(new Dimension(1100, 800));
 		mineFrame.setVisible(true);
@@ -93,11 +93,11 @@ public class SimulationMine {
 				mineSimulator.completerSimulation();
 
 				//calculeStats
-				sommeEffCamions += mineSimulator.getMine().getAverageCamionEfficiency();
-				sommeEffPelleMin += mineSimulator.getMine().getMinPelleEfficiency();
-				sommeEffPelleMax += mineSimulator.getMine().getMaxPelleEfficiency();
-				sommeEffPelleMoy += mineSimulator.getMine().getAveragePelleEfficiency();
-				sommeNbVoyages += mineSimulator.getMine().getNumberOfRuns();
+				sommeEffCamions += mineSimulator.getAverageCamionEfficiency();
+				sommeEffPelleMin += mineSimulator.getMinPelleEfficiency();
+				sommeEffPelleMax += mineSimulator.getMaxPelleEfficiency();
+				sommeEffPelleMoy += mineSimulator.getAveragePelleEfficiency();
+				sommeNbVoyages += mineSimulator.getNumberOfRuns();
 
 				//reset
 				mineSimulator.chargeMine(mineSimulator.getMine().getCurrentExampleId(), mineSimulator.getMine().getCamions().size(), 0, mineSimulator.getTempsSimulationSeconds());

@@ -4,7 +4,7 @@ public class Sterile extends Station {
 	private double totalQuantity;
 	
 	
-	/** Vitesse moyenne de remplissage (en tonnes secondes)*/
+	/** Vitesse moyenne de remplissage (en tonnes/secondes)*/
 	public final static double AVERAGE_DECHARGE_SPEED = 1./2.;
 	/** Écart type sur la vitesse de remplissage*/
 	public final static double ECART_TYPE_DECHARGE_SPEED = 1./30.;

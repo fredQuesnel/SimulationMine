@@ -1,5 +1,4 @@
 package ca.polymtl.SimulationMine.MineGui;
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -20,7 +19,6 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -37,114 +35,1304 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import bsh.EvalError;
 import ca.polymtl.SimulationMine.MineSimulator.Mine;
 import ca.polymtl.SimulationMine.MineSimulator.Mine.ExampleId;
-import ca.polymtl.SimulationMine.MineSimulator.MineSimulator;
 import ca.polymtl.SimulationMine.MineSimulator.SimulationMine;
 import ca.polymtl.SimulationMine.decisionMaker.DecisionMaker;
 import ca.polymtl.SimulationMine.decisionMaker.TravelTimePredictor;
 
+/**
+ * Panneau de controle de la simulation. Permet de charger ou recharger une simulation, controller ses paramètres, ...
+ * @author Fred
+ *
+ */
 public class JControlPanel extends JPanel{
 
-	public static final Color DARK_BLUE = new Color(19, 86, 174);
 
-	//constantes
-	private static int sliderWidth = 400;
+	/**
+	 * classe pour le bouton play/pause
+	 * @author Fred
+	 *
+	 */
+	private class PlayPauseButton extends JButton{
+		
+		private static final long serialVersionUID = 1L;
+		//états possibles
+		/** état "play"*/
+		static final int STATE_PLAY = 1;
+		/** état "pause" */
+		static final int STATE_PAUSE = 2;
 
-	private JMineFrame parentFrame;
+		/**état courant*/
+		private int state;
 
-
-	//champs
-	//
-
-	//parametres de simulation
-	//
-	private JComboBox mineComboBox;
-	private JTextField nbSmallCamionsTextField;
-	private JTextField tempsSimulationTextField;
-
-	//controle de la simulation
-	//
-	private PlayPauseButton playPauseButton;
-
-	//optimisation
-	//
-	private JTextField optStrategyTextField;
-
-	//prediction du temps de parcours
-	//
-	private JComboBox predictComboBox;
-	private JLabel nLabel;
-	private JTextField nTextField;
-	private JLabel lembdaLabel;
-	private JTextField rhoTextField;
-
-	//valeurs des champs
-	protected double selectedTempsSimulation;
-	protected int selectedNumberOfSmallCamions;
-
-	protected int predictN;
-	protected int predictRho;
-
-	//protected String scoreFunctionString;
-
-	private JButton completeButton;
-
-	private int currentNValue;
-
-	private double currentRhoValue;
-
-	private BufferedImage soleilImage;
-
-	private BufferedImage floconImage;
-
-	private BufferedImage camionSmallImage;
-	
-	private BufferedImage camionLargeImage;
-
-	private BufferedImage horlogeImage;
-
-	private JTextField nbLargeCamionsTextField;
-
-	private int selectedNumberOfLargeCamions;
-
-	public JControlPanel(JMineFrame frame ){
-		super();
+		/**
+		 * constructeur. Débute en état "play"
+		 */
+		public PlayPauseButton() {
+			super();
+			this.state = STATE_PAUSE;
+			this.setText("Play");
 
 
-		loadImages();
+		}
+		
+		/**
+		 * 
+		 * @return état courant
+		 */
+		public int getState() {
+			return this.state;
+		}
+		
+		/**
+		 * Change l'état de pause à play ou vice versa
+		 */
+		public void toogle() {
 
-		this.parentFrame = frame;
-
-		this.setBorder(BorderFactory.createMatteBorder(2, 0, 0, 0, Color.black));
-		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-
-
-
-
-
-		JPanel topPanel = new JPanel();
-
-		topPanel.setBackground(new Color(207, 236, 255));
-
-		this.add(topPanel);
-		topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
-
-		topPanel.add(createSimulationSpecsPanel());
-
-		topPanel.add(createRightPanel());
-
-
-
-
-
-
-
-
+			if(state == STATE_PLAY) {
+				this.setText("Play");
+				this.state = STATE_PAUSE;
+			}
+			else {
+				this.setText("Pause");
+				this.state = STATE_PLAY;
+			}
+		}
 
 	}
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	//----------------------------------
+	//constantes
+	//----------------------------------
+	/** largeur des sliders	 */
+	private static int SLIDER_WIDTH_PX = 400;
+	/**couleur bleu foncé */
+	public static final Color DARK_BLUE = new Color(19, 86, 174);
+	private static final Color LIGHT_BLUE = new Color(207, 236, 255);
+
+	private static final Color COLOR_WRONG_INPUT = new Color(255, 146, 146);
+	//Images
+	//
+	/**Image de soleil*/
+	private BufferedImage soleilImage;
+	/**Image de flocon*/
+	private BufferedImage floconImage;
+	/**Image de petit camion*/
+	private BufferedImage camionSmallImage;
+	/**Image de gros camion*/
+	private BufferedImage camionLargeImage;
+
+	//----------------------------------
+	//champs
+	//----------------------------------
+
+	/**Image d'horloge*/
+	private BufferedImage horlogeImage;
+
+	/**frame contenant le GUI*/
+	private JMineFrame parentFrame;
+	//Éléments du panneau "parametres de simulation"
+	//
+	/**liste déroulante permettant de choisir la mine*/
+	private JComboBox<ExampleId> mineComboBox;
+	/**champs pour le nombre de petit camions*/
+	private JTextField nbSmallCamionsTextField;
+	/**champs pour le nombre de gros camions*/
+	private JTextField nbLargeCamionsTextField;
+
+
+	/**champs pour le temps de simulation*/
+	private JTextField tempsSimulationTextField;
+	//controle de la simulation
+	//
+	/**bouton play/pause*/
+	private PlayPauseButton playPauseButton;
+
+	/**bouton pour completer automatiquement la simulation*/
+	private JButton completeButton;
+
+	//optimisation
+	//
+	/**champs contenant la fonction de score*/
+	private JTextField scoreFunctionTextField;
+	//prediction du temps de parcours
+	//
+	/**Liste déroulante pour la formule d'estimation de temps de parcours*/
+	private JComboBox<String> predictComboBox;
+	/**Label pour la paramètre n*/
+	private JLabel nLabel;
+	/**champs pour le paramètre n*/
+	private JTextField nTextField;
+	/**label pour le paramètre lambda*/
+	private JLabel lambdaLabel;
+
+	/**champs pour le paramètre lambda*/
+	private JTextField lambdaTextField;
+	//valeurs des champs
+	//
+	/**Temps de simulation*/
+	protected double selectedTempsSimulation;
+	/**Nombre de petits camions*/
+	protected int selectedNumberOfSmallCamions;
+	/**Nombre de gros camions*/
+	private int selectedNumberOfLargeCamions;
+	/**valeur de n*/
+	private int currentNValue;
+
+	/**valeur de lambda*/
+	private double currentLambdaValue;
+
+	/**
+	 * Constructeur
+	 * @param frame : frame qui est le parent de cet objet.
+	 */
+	public JControlPanel(JMineFrame frame ){
+		super();
+
+		this.parentFrame = frame;
+
+		loadImages();
+
+		this.setBorder(BorderFactory.createMatteBorder(2, 0, 0, 0, Color.black));
+
+		this.setBackground(new Color(207, 236, 255));
+
+
+		this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+
+		//panneau de gauche
+		this.add(createSimulationSpecsPanel());
+
+		this.add(createRightPanel());
+
+	}
+
+	/**
+	 * 
+	 * @return Nombre de gros camions dans le champs
+	 */
+	public int getNumberOfLargeCamions() {
+		return this.selectedNumberOfLargeCamions;
+	}
+
+	/**
+	 * 
+	 * @return Nombre de petits camions dans le champs
+	 */
+	public int getNumberOfSmallCamions() {
+		return this.selectedNumberOfSmallCamions;
+	}
+
+	/**
+	 * 
+	 * @returnle temps de simulation (en secondes) inscrite dans le champs
+	 */
+	public double getTempsSimulationSeconds() {
+
+		//convertis le temps en secondes et le renvoie
+		return this.selectedTempsSimulation*3600;
+	}
+
+	/**
+	 * met en mode pause
+	 */
+	public void setPauseMode() {
+		if(playPauseButton.getState() == PlayPauseButton.STATE_PLAY) {
+			tooglePlayPause();
+		}
+
+	}
+
+	/**met en mode play.
+	 * 
+	 */
+	public void setPlayMode() {
+		if(playPauseButton.getState() == PlayPauseButton.STATE_PAUSE) {
+			tooglePlayPause();
+		}
+	}
+
+	/**
+	 * Créé le bouton "completer Auto"
+	 * @return bouton
+	 */
+	private Component createAutoCompleteButton() {
+		this.completeButton = new JButton("Completer Auto.");
+		
+		//notifie les listeners lorsqu'appuyé
+		completeButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				parentFrame.notifyListenersAutomaticCompletionRequested();
+
+			}
+
+		});
+		//dimensions du bouton
+		//
+		completeButton.setMinimumSize(new Dimension(140, 10));
+		completeButton.setPreferredSize(new Dimension(140, 20));
+		completeButton.setMaximumSize(new Dimension(140, 40));
+		
+		return completeButton;
+	}
+
+	/**
+	 * Créé le checkbox pour faire pause à la fin de chaque voyage
+	 * @return checkbox
+	 */
+	private JCheckBox createCheckBox() {
+
+
+		//ajoute la checkbox
+		//
+		final JCheckBox checkBox = new JCheckBox();
+		checkBox.setOpaque(false);
+		checkBox.setText("pause a chaque fin de voyage");
+		
+		//notifie les listeners lorsque cochée/décochée
+		checkBox.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				parentFrame.notifyListenersStopOnAssignStateChanged(checkBox.isSelected());
+			}
+
+		});
+		
+		return checkBox;
+	}
+
+	/**
+	 * créé le champs pour la valeur de lambda
+	 * @return champs pour la valeur de lambda
+	 */
+	private Component createLambdaTextField() {
+		lambdaTextField = new JTextField();
+		
+		//dimensions
+		lambdaTextField.setMaximumSize(new Dimension(50, 50));
+		lambdaTextField.setMinimumSize(new Dimension(50, 20));
+		lambdaTextField.setPreferredSize(new Dimension(50, 20));
+		
+		//valeur par défaut
+		lambdaTextField.setText(""+TravelTimePredictor.DEFAULT_PREDICT_FUNCTION_WEIGHT);
+		currentLambdaValue = TravelTimePredictor.DEFAULT_PREDICT_FUNCTION_WEIGHT;
+
+		//listener
+		//valide l'input lorsque la valeur change
+		//
+		lambdaTextField.addFocusListener(new FocusListener() {
+
+			@Override
+			public void focusGained(FocusEvent arg0) {
+				//Ne fait rien
+			}
+
+			@Override
+			public void focusLost(FocusEvent arg0) {
+				//valide le texte
+				try {
+					double rhoValue =  Double.valueOf(lambdaTextField.getText());
+					lambdaTextField.setBackground(Color.white);
+
+					if(currentLambdaValue < 0 || currentLambdaValue > 1) {
+						throw new NumberFormatException();
+					}
+					else {
+						currentLambdaValue = rhoValue;
+						parentFrame.notifyListenersRhoChanged(rhoValue);
+					}
+				}
+				catch(NumberFormatException exception) {
+					lambdaTextField.setText("");
+					lambdaTextField.setBackground(COLOR_WRONG_INPUT);
+				}
+			}
+		});
+
+		return lambdaTextField;
+	}
+
+	/**
+	 * Créé le bouton "Charger"
+	 * @return le bouton "Charger"
+	 */
+	private JButton createLoadButton() {
+		
+		JButton loadButton = new JButton();
+		
+		//texte du bouton
+		loadButton.setText("Charger");
+		
+		//dimensions
+		//
+		loadButton.setMinimumSize(new Dimension(100, 10));
+		loadButton.setPreferredSize(new Dimension(100, 20));
+		loadButton.setMaximumSize(new Dimension(100, 40));
+
+
+		//Ajoute le listener pour le dropdown
+		//On valide que l'usager veut commencer une nouvelle simulation
+		//Il faut faire un peu de magie pour que le menu reste coherent avec la simulation dans le cas où l'usager
+		// choisit de rester dans la meme simulation
+		loadButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				//valide les arguments
+				if(validSimulationArguments()) {
+
+					//confirme qu'on arrete la simulation
+					int dialogButton = JOptionPane.YES_NO_OPTION;
+					int result = JOptionPane.showConfirmDialog (null, "Voulez-vous vraiment arrêter cette simulation et en démarrer une nouvelle?","Attention", dialogButton);
+					if(result == JOptionPane.YES_OPTION) {
+						ExampleId selectedId = (ExampleId) mineComboBox.getSelectedItem();
+						System.out.println("selected id : "+selectedId.getName()+" "+selectedId.getFileName());
+
+						parentFrame.notifyListenersNewSimulationRequested(selectedId, getNumberOfSmallCamions(), getNumberOfLargeCamions(), getTempsSimulationSeconds());
+
+
+					}
+				}
+				else {
+					JOptionPane.showMessageDialog(null, "Impossible de démarrer une simulation avec les paramètres spécifiés.");
+
+				}
+
+			}
+		});
+
+		return loadButton;
+	}
+	
+	/**
+	 * Créé le dropdown pour choisir la mine
+	 */
+	private JComboBox<ExampleId> createMineConfigDrowdown() {
+
+		//dropdown
+		final JComboBox<Mine.ExampleId> comboBox = new JComboBox<Mine.ExampleId>();
+
+		//pour écrire le nom de la mine dans la liste
+		//
+		comboBox.setRenderer( new ListCellRenderer<Mine.ExampleId>(){
+			@Override
+			public JLabel getListCellRendererComponent(JList<? extends ExampleId> list, ExampleId value, int index,
+					boolean isSelected, boolean cellHasFocus) {
+
+				return new JLabel(value.getName());
+			}
+
+		});
+		
+		//dimensions
+		comboBox.setMaximumSize(new Dimension(1000, 30));
+
+		//items de la liste
+		//
+		ArrayList<Mine.ExampleId> exampleIds = Mine.exampleIds;
+		for(int i = 0; i < exampleIds.size(); i++){
+			comboBox.addItem(exampleIds.get(i));
+		}
+
+		//item sélectionné
+		comboBox.setSelectedIndex(parentFrame.getMine().getExemple()-1);
+
+		mineComboBox = comboBox;
+		return comboBox;
+	}
+
+	/**
+	 * Créé le champs pour la valeur de n
+	 * @return champs pour valeur de n
+	 */
+	private Component createNTextField() {
+		nTextField = new JTextField();
+		
+		//dimensions
+		//
+		nTextField.setMaximumSize(new Dimension(50, 50));
+		nTextField.setMinimumSize(new Dimension(50, 20));
+		nTextField.setPreferredSize(new Dimension(50, 20));
+		
+		//valeur par défaut
+		//
+		nTextField.setText(""+TravelTimePredictor.DEFAULT_PREDICT_FUNCTION_NB_SAMLE);
+		currentNValue = TravelTimePredictor.DEFAULT_PREDICT_FUNCTION_NB_SAMLE;
+
+		//listener
+		//valide la valeur et notifie les listeners
+		nTextField.addFocusListener(new FocusListener() {
+
+
+			@Override
+			public void focusGained(FocusEvent arg0) {
+				//ne fait rien
+			}
+
+			@Override
+			public void focusLost(FocusEvent arg0) {
+				//valide le texte
+				try {
+					int nValue =  Integer.valueOf(nTextField.getText());
+					nTextField.setBackground(Color.white);
+					if(currentNValue < 1) {
+						throw new NumberFormatException();
+					}
+					else {
+						currentNValue = nValue;
+						parentFrame.notifyListenersNumberSampleChanged(currentNValue);
+
+					}
+				}
+				catch(NumberFormatException exception) {
+					nTextField.setText("");
+					nTextField.setBackground(COLOR_WRONG_INPUT);
+				}
+			}
+		});
+		return nTextField;
+	}
+
+	//Cree le textfield dans lequel l'utilisateur choisis le nombre de camions
+	//
+	private void createNumberCamionsLargeTextField() {
+
+		//Créé le champs
+		this.nbLargeCamionsTextField = new JTextField();
+		
+		//valeur par défaut
+		//
+		this.selectedNumberOfLargeCamions = parentFrame.getMine().getNumberLargeCamions();
+		nbLargeCamionsTextField.setText(""+selectedNumberOfLargeCamions);
+		
+		//Dimensions
+		//
+		nbLargeCamionsTextField.setMaximumSize(new Dimension(50, 50));
+		nbLargeCamionsTextField.setMinimumSize(new Dimension(50, 20));
+		nbLargeCamionsTextField.setPreferredSize(new Dimension(50, 20));
+		
+		//Lorsqu'on entre une nouvelle valeur, valide l'input
+		//
+		nbLargeCamionsTextField.addFocusListener(new FocusListener() {
+
+			@Override
+			public void focusGained(FocusEvent arg0) {
+				//ne fait rien
+			}
+
+			@Override
+			public void focusLost(FocusEvent arg0) {
+				//valide le texte
+				try {
+					int nbCamions =  Integer.valueOf(nbLargeCamionsTextField.getText());
+					nbLargeCamionsTextField.setBackground(Color.white);
+					selectedNumberOfLargeCamions = nbCamions;
+					if(selectedNumberOfLargeCamions < 0) {
+						throw new NumberFormatException();
+					}
+				}
+				catch(NumberFormatException exception) {
+					nbLargeCamionsTextField.setText("");
+					nbLargeCamionsTextField.setBackground(COLOR_WRONG_INPUT);
+				}
+			}
+		});
+	}
+
+	/**
+	 * Créé le champs pour le nombre de petits camions
+	 */
+	private void createNumberCamionsSmallTextField() {
+
+		//cree le champs
+		this.nbSmallCamionsTextField = new JTextField();
+		
+		//valeur par défaut = nombre de petits camions dans la mine
+		//
+		this.selectedNumberOfSmallCamions = parentFrame.getMine().getNumberSmallCamions();
+		nbSmallCamionsTextField.setText(""+this.selectedNumberOfSmallCamions);
+
+		//dimensions du champs
+		nbSmallCamionsTextField.setMaximumSize(new Dimension(50, 50));
+		nbSmallCamionsTextField.setMinimumSize(new Dimension(50, 20));
+		nbSmallCamionsTextField.setPreferredSize(new Dimension(50, 20));
+		
+		//lorsqu'on entre une valeur et qu'on quitte le focus, valide la valeur et colore en rouge si valeur invalide
+		nbSmallCamionsTextField.addFocusListener(new FocusListener() {
+
+			@Override
+			public void focusGained(FocusEvent arg0) {
+				//ne fait rien
+
+			}
+			//valide la valeur lorsque le camps perd le focus
+			@Override
+			public void focusLost(FocusEvent arg0) {
+				//valide le texte
+				try {
+					int nbCamions =  Integer.valueOf(nbSmallCamionsTextField.getText());
+					nbSmallCamionsTextField.setBackground(Color.white);
+					selectedNumberOfSmallCamions = nbCamions;
+					if(selectedNumberOfSmallCamions < 0) {
+						throw new NumberFormatException();
+					}
+				}
+				catch(NumberFormatException exception) {
+					nbSmallCamionsTextField.setText("");
+					nbSmallCamionsTextField.setBackground(COLOR_WRONG_INPUT);
+				}
+
+
+
+			}
+
+		});
+	}
+	
+	/**
+	 * Panneau avec fonction de score. Il comprend : 
+	 * 1) Nom du champs "Fonction de score"
+	 * 2) Champs
+	 * @return panneau avec fonction de score
+	 */
+	private JPanel createOptStrategySection() {
+
+		//panel à retourner
+		JPanel optStrategyPanel = new JPanel();
+		optStrategyPanel.setOpaque(false);
+
+		//layout horizontal
+		optStrategyPanel.setLayout(new BoxLayout(optStrategyPanel, BoxLayout.X_AXIS));
+
+		//-------------------------------
+		//Créé les éléments
+		//-------------------------------
+		
+		//label
+		JLabel scoreLabel = new JLabel("  Fonction de score :  ");
+		
+		//textfield
+		//
+		this.scoreFunctionTextField = new JTextField();
+		//this.scoreFunctionString = parentFrame.getMinePanel().getMine().getScoreFunctionString();
+		scoreFunctionTextField.setText( DecisionMaker.ALEATOIRE_FUNCTION_STRING );
+		
+		//listener
+		// Valide l'input lorsqu'une nouvelle valeur est entrée
+		//
+		scoreFunctionTextField.addFocusListener(new FocusListener() {
+
+			@Override
+			public void focusGained(FocusEvent arg0) {
+				// ne fait rien
+
+			}
+
+			@Override
+			public void focusLost(FocusEvent arg0) {
+
+				//valide l'input
+				String optStrategy = scoreFunctionTextField.getText();
+				if(DecisionMaker.isFunctionStringValid(optStrategy)) {
+					scoreFunctionTextField.setBackground(Color.white);
+
+					parentFrame.notifyListenersScoreFunctionChanged(scoreFunctionTextField.getText());
+				}
+				else{
+					scoreFunctionTextField.setBackground(COLOR_WRONG_INPUT);
+				}
+
+
+
+			}
+
+		});
+		
+		//----------------------------------------
+		// Ajoute les éléments
+		//----------------------------------------
+		//label
+		optStrategyPanel.add(scoreLabel);
+		//champs
+		optStrategyPanel.add(scoreFunctionTextField);
+
+
+
+		return optStrategyPanel;
+	}
+
+	/**
+	 * Créé le bouton play/pause
+	 * @return bouton play/pause
+	 */
+	private JButton createPlayPauseButton() {
+		
+		//bouton
+		this.playPauseButton = new PlayPauseButton();
+		
+		//ajoute le listener
+		//notifie les listeners du bouton
+		playPauseButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				//playPauseButton.toogle();
+
+				if(playPauseButton.getState() == PlayPauseButton.STATE_PAUSE) {
+					scoreFunctionTextField.setEditable(true);
+					parentFrame.notifyListenersPlayButtonPressed();
+				}
+				else {
+					scoreFunctionTextField.setEditable(false);
+					parentFrame.notifyListenersPauseButtonPressed();
+
+				}
+
+
+			}
+
+		});
+
+
+		//dimensions du bouton
+		//
+		playPauseButton.setMinimumSize(new Dimension(100, 10));
+		playPauseButton.setPreferredSize(new Dimension(100, 20));
+		playPauseButton.setMaximumSize(new Dimension(100, 40));
+
+		return playPauseButton;
+	}
+
+	/**
+	 * Créé le dropdown pour les formules de prédiction
+	 */
+	private void createPredictComboBox() {
+
+		//Mine mine = parentFrame.getMine();
+		predictComboBox = new JComboBox<String>();
+		predictComboBox.addItem("Moyenne des observations précédentes");
+		predictComboBox.addItem("Combinaison convexe");
+		predictComboBox.addItem("Erreur précédente");
+
+		predictComboBox.setSelectedIndex(parentFrame.getMineSimulator().getTravelTimePredictor().getfPredictFunction()-1);
+
+		this.setPredictFunctionTextFieldsAccordingToSelectedFunction();
+
+		//change le champs de paramètre visible si on change la formule de prédiction
+		predictComboBox.addItemListener(new ItemListener() {
+
+			@Override
+			public void itemStateChanged(ItemEvent event) {
+				if(event.getStateChange() == ItemEvent.SELECTED) {
+					int newPredictFunctionIndex = predictComboBox.getSelectedIndex()+1;
+					parentFrame.notifyListenersPredictFunctionChanged(newPredictFunctionIndex);
+					setPredictFunctionTextFieldsAccordingToSelectedFunction();
+				}
+			}
+
+		});
+
+	}
+
+	/**
+	 * Panneau en lien avec la prédiction de temps de parcours. Il contient : 
+	 * 1) dropdown pour choisir la formule de prédiction
+	 * 2) champs de texte pour choisir le paramètre de la formule
+	 * 
+	 * @return Panneau "temps de prédiction"
+	 */
+	private JPanel createPredictTimePanel() {
+
+		//Créé le panneau à retourner
+		//
+		JPanel predictTimePanel = new JPanel();
+		predictTimePanel.setOpaque(false);
+		
+
+		//-----------------------------------------
+		//Créé les éléments
+		//-----------------------------------------
+
+		//label "Formule"
+		//
+		JLabel formuleLabel = new JLabel("Formule");
+		
+
+		//label et textField pour n
+		//
+		nLabel = new JLabel("n =");
+
+		//label et textField pour lambda
+		//
+		lambdaLabel = new JLabel("\u03bb = ");
+
+		//champs de texte pour n
+		createNTextField();
+		
+		//champs de teste pour lambda
+		createLambdaTextField();
+		
+		//dropdown pour formule de prédiction
+		createPredictComboBox();
+
+		//--------------------------------------
+		//ajoute les éléments
+		//--------------------------------------
+		predictTimePanel.setLayout(new BoxLayout(predictTimePanel, BoxLayout.X_AXIS));
+		
+		//label "formule"
+		predictTimePanel.add(formuleLabel);
+
+		//dropdown
+		predictTimePanel.add(this.predictComboBox);
+
+		//label "n"
+		predictTimePanel.add(nLabel);
+
+		//champs "n"
+		predictTimePanel.add(this.nTextField);
+
+		//label "lambda"
+		predictTimePanel.add(lambdaLabel);
+
+		//champs "lambda"
+		predictTimePanel.add(this.lambdaTextField);
+
+
+		return predictTimePanel;
+	}
+
+	/**
+	 * Créé le bouton reset
+	 * @return bouton reset
+	 */
+	private JButton createResetButton() {
+
+		JButton resetButton = new JButton();
+
+		resetButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				parentFrame.notifyListenersResetSimulationRequested();
+			}
+		});
+
+		resetButton.setText("reset");
+		
+		//dimensions du bouton
+		//
+		resetButton.setMinimumSize(new Dimension(100, 10));
+		resetButton.setPreferredSize(new Dimension(100, 20));
+		resetButton.setMaximumSize(new Dimension(100, 40));
+
+		return resetButton;
+	}
+
+	/**
+	 * Créé le panneau de droite, contenant les controlleurs de la simulation. 
+	 * Il est organisé en trois sections, verticalement :
+	 * 
+	 *  1) Contrôles de la simulation (play/pause, completer auto, reset, slider de vitesse)
+	 *  2) Prédiction des temps de parcours
+	 *  3) Fonction de score pour optimiser l'assignation des camions aux pelles
+	 * 
+	 * @return JPanel correspondant au panneau de droite.
+	 */
+	private JPanel createRightPanel() {
+
+		JPanel rightPanel = new JPanel();
+		rightPanel.setLayout(new GridBagLayout());
+
+		//controles de la simulation (bouton play/pause, completer auto, rest)
+		//
+		GridBagConstraints gc = new GridBagConstraints();
+		gc.gridx = 0;
+		gc.gridy = 0;
+		gc.anchor = GridBagConstraints.CENTER;
+		gc.weighty = 1;
+		gc.fill = GridBagConstraints.VERTICAL;
+		rightPanel.add(createSimulationControlPanel(), gc);
+
+		//slider de vitesse (+case "pause à haque fin de voyage")
+		//
+		gc.anchor = GridBagConstraints.CENTER;
+		gc.gridx = 1;
+		gc.gridy = 0;
+		gc.weighty = 1;
+		gc.fill = GridBagConstraints.BOTH;
+		JPanel speedComponent = createSpeedComponent();
+		rightPanel.add(speedComponent, gc);
+
+
+		//titre de la section "Prédiction du temps de parcours"
+		//
+		//Création
+		JLabel titreLabel = new JLabel("Prédiction du temps de parcours");
+		titreLabel.setForeground(Color.white);
+		titreLabel.setBackground(DARK_BLUE);
+		titreLabel.setHorizontalAlignment(JLabel.CENTER);
+		titreLabel.setOpaque(true);
+
+		//ajout
+		gc.anchor = GridBagConstraints.CENTER;
+		gc.gridx = 0;
+		gc.gridy = 1;
+		gc.gridwidth = 2;
+		gc.weighty = 0;
+		gc.fill = GridBagConstraints.HORIZONTAL;
+		gc.weightx = 1;
+		rightPanel.add(titreLabel, gc);
+
+
+		//Section "Prédiction du temps de parcours"
+		//
+		gc.anchor = GridBagConstraints.CENTER;
+		gc.gridx = 0;
+		gc.gridy = 2;
+		gc.gridwidth = 1;
+		gc.weighty = 1;
+		gc.fill = GridBagConstraints.VERTICAL;
+		JPanel predictTimePanel = createPredictTimePanel();
+		rightPanel.add(predictTimePanel, gc);
+
+		//slider de météo
+		gc.anchor = GridBagConstraints.CENTER;
+		gc.gridx = 1;
+		gc.gridy = 2;
+		gc.weighty = 1;
+		gc.weighty = 1;
+		gc.fill = GridBagConstraints.BOTH;
+		JPanel temperatureSliderComponent = createTemperatureSliderComponent();
+		rightPanel.add(temperatureSliderComponent, gc);
+
+
+		//titre de la section d'optimisation
+		//
+		//création
+		JLabel titreLabel2 = new JLabel("Optimisation des camions");
+		titreLabel2.setForeground(Color.white);
+		titreLabel2.setBackground(DARK_BLUE);
+		titreLabel2.setHorizontalAlignment(JLabel.CENTER);
+		titreLabel2.setOpaque(true);
+		gc.anchor = GridBagConstraints.CENTER;
+		gc.gridx = 0;
+		gc.gridy = 3;
+		gc.gridwidth = 2;
+		gc.fill = GridBagConstraints.HORIZONTAL;
+		gc.weightx = 1;
+		rightPanel.add(titreLabel2, gc);
+
+		//ajout
+		gc.anchor = GridBagConstraints.WEST;
+		gc.gridx = 0;
+		gc.gridy = 4;
+		gc.gridwidth = 2;
+		gc.weighty = 1;
+		gc.fill = GridBagConstraints.BOTH;
+		rightPanel.add(createOptStrategySection(), gc);
+
+		//background bleu pale
+		rightPanel.setBackground(JControlPanel.LIGHT_BLUE);
+		rightPanel.setOpaque(true);
+		return rightPanel;
+	}
+
+	/**
+	 * Créé le panneau qui contrôle la simulation. Il est composé de : 
+	 * @return Panneau de contrôle
+	 */
+	private JPanel createSimulationControlPanel() {
+		JPanel simulationControlPanel = new JPanel();
+		simulationControlPanel.setOpaque(false);
+
+		//layout horizontal
+		simulationControlPanel.setLayout(new BoxLayout(simulationControlPanel, BoxLayout.X_AXIS));
+
+		//bouton play/pause
+		simulationControlPanel.add(createPlayPauseButton());
+
+		//bouton completer auto
+		simulationControlPanel.add(createAutoCompleteButton());
+
+		//bouton reset
+		simulationControlPanel.add(createResetButton());
+
+		return simulationControlPanel;
+	}
+
+	/**
+	 * Créé le panneau ou l'utilisateur choisit les paramètres de simulation : 
+	 * 1) configuration de mine
+	 * 2) Nombre de camions de chaque type
+	 * 3) durée de simulation
+	 * 
+	 * Le panneau contient également un bouton pour charger la simulation
+	 * 
+	 * @return paneau des paramètres de simulation
+	 */
+	private JPanel createSimulationSpecsPanel() {
+		//panel à retourner
+		JPanel simulationSpecsPanel = new JPanel();
+
+		//couleur du panneau
+		simulationSpecsPanel.setOpaque(true);
+		simulationSpecsPanel.setBackground(DARK_BLUE);
+
+
+
+		//ajoute la bordure
+		simulationSpecsPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 0, 2, Color.BLACK), new EmptyBorder(5, 5, 0, 5) ));
+
+		//----------------------------------------------
+		//Créé les éléments avant de les ajouter
+		//----------------------------------------------
+
+		//choix de configuration
+		JComboBox<ExampleId> mineConfigBox = createMineConfigDrowdown();
+
+		//nombre de petit camions
+		JLabel nbCamionsSmallLabel = new JLabel(new ImageIcon(camionSmallImage));
+		createNumberCamionsSmallTextField();
+
+		//nombre de gros camions
+		JLabel nbCamionsLargeLabel = new JLabel(new ImageIcon(camionLargeImage));
+		createNumberCamionsLargeTextField();
+
+		//temps de simulation
+		createTempsSimulationTextField();
+		JLabel horlogeLabel = new JLabel(new ImageIcon(horlogeImage));
+
+
+		//-----------------------------------------------
+		// Ajoute les éléments
+		//----------------------------------------------
+
+		//gridbaglayout
+		simulationSpecsPanel.setLayout(new GridBagLayout());
+		GridBagConstraints gc = new GridBagConstraints();
+
+		//-----------------------------------------
+		//Première ligne :
+		
+		//dropdown de sélection de mine
+		//
+		gc.fill = GridBagConstraints.HORIZONTAL;
+		gc.weightx = 1;
+		gc.gridx = 0;
+		gc.gridy = 0;
+		gc.gridwidth = 4;
+		gc.anchor = GridBagConstraints.CENTER;
+		simulationSpecsPanel.add(mineConfigBox, gc);
+
+		//-----------------------------------------
+		//Deuxième ligne :
+				
+		// image petits camions
+		//
+		gc.gridx = 0;
+		gc.gridy = 1;
+		gc.gridwidth = 1;
+		gc.anchor = GridBagConstraints.EAST;
+		simulationSpecsPanel.add(nbCamionsSmallLabel, gc);
+
+		// champs petits camions
+		//
+		gc.gridx = 1;
+		gc.gridy = 1;
+		gc.gridwidth = 1;
+		gc.anchor = GridBagConstraints.EAST;
+		simulationSpecsPanel.add(nbSmallCamionsTextField, gc);
+
+		// Image gros camions
+		//
+		gc.gridx = 2;
+		gc.gridy = 1;
+		gc.gridwidth = 1;
+		gc.anchor = GridBagConstraints.EAST;
+		simulationSpecsPanel.add(nbCamionsLargeLabel, gc);
+
+		// Champs gros camions
+		//
+		gc.gridx = 3;
+		gc.gridy = 1;
+		gc.gridwidth = 1;
+		gc.anchor = GridBagConstraints.EAST;
+		simulationSpecsPanel.add(nbLargeCamionsTextField, gc);
+
+
+		//-----------------------------------------
+		//Troisième ligne :
+		
+		// Image temps de simulation
+		//
+		gc.gridx = 0;
+		gc.gridy = 2;
+		gc.gridwidth = 1;
+		gc.anchor = GridBagConstraints.EAST;
+		simulationSpecsPanel.add(horlogeLabel, gc);
+
+		// Champs temps de simulation
+		//
+		gc.gridx = 1;
+		gc.gridy = 2;
+		gc.gridwidth = 1;
+		gc.anchor = GridBagConstraints.EAST;
+		simulationSpecsPanel.add(tempsSimulationTextField, gc);
+
+		//-----------------------------------------
+		//Quatrième ligne :
+				
+		//Bouton charger
+		//
+		gc.gridx = 0;
+		gc.gridy = 3;
+		gc.gridwidth = 4;
+		gc.anchor = GridBagConstraints.CENTER;
+		simulationSpecsPanel.add(createLoadButton(), gc);
+
+		return simulationSpecsPanel;
+	}
+
+	/**
+	 * Ajoute le panneau de vitesse qui comprend : 
+	 *  1) titre du slider
+	 *  2) slider
+	 *  3) case à cocher pour que la simulation pause chaque fois qu'un camion arrive au concentrateur ou au stérile 
+	 * @return JPanel correspondant à la zone de slider de vitesse
+	 */
+	private JPanel createSpeedComponent() {
+		
+		//cree le panel
+		//
+		JPanel speedPanel = new JPanel();
+		speedPanel.setOpaque(false);
+		
+		
+		//-----------------------------------
+		//Créé les éléments
+		//-----------------------------------
+		//titre du slider
+		//
+		JLabel vitesseLabel = new JLabel("Vitesse");
+		vitesseLabel.setHorizontalAlignment(JLabel.CENTER);
+
+		//slider
+		//
+		final JSlider speedSlider = new JSlider();
+		speedSlider.setOpaque(false);
+		speedSlider.setMaximum(51);
+		speedSlider.setValue(26);
+		speedSlider.setMinimum(1);
+		speedSlider.setOrientation(JSlider.HORIZONTAL);
+		speedSlider.setMinimumSize(new Dimension(SLIDER_WIDTH_PX, 20));
+		speedSlider.setMaximumSize(new Dimension(SLIDER_WIDTH_PX, 20));
+		speedSlider.setPreferredSize(new Dimension(SLIDER_WIDTH_PX, 20));
+
+		speedSlider.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				parentFrame.notifyListenersSimulationSpeedChanged(speedSlider.getValue());
+			}
+
+		});
+		
+		// checkbox
+		//
+		JCheckBox checkbox = createCheckBox();
+
+		//-----------------------------------
+		// Ajoute les éléments
+		//-----------------------------------
+		
+		//type de layout
+		speedPanel.setLayout(new GridBagLayout());
+		GridBagConstraints gc = new GridBagConstraints();
+		
+		//Titre du slider
+		//
+		gc.gridx = 0;
+		gc.gridy = 0;
+		gc.anchor = GridBagConstraints.CENTER;
+		gc.fill = GridBagConstraints.HORIZONTAL;
+		gc.weightx = 1;
+		speedPanel.add(vitesseLabel, gc);
+
+
+		//Slider
+		//
+		gc.gridy = 1;
+		gc.weightx = 1;
+		speedPanel.add(speedSlider, gc);
+
+		//checkbox
+		//
+		gc.gridy = 2;
+		speedPanel.add(checkbox, gc);
+
+		return speedPanel;
+
+	}
+
+	/**
+	 * Créé le slider de température. 
+	 * 
+	 * Contient : 
+	 * 1) titre du slider
+	 * 2) Slider, avec images à gauche (flocon) et à droite (soleil).
+	 * 
+	 * 
+	 * @return Slider de température
+	 */
+	private JPanel createTemperatureSliderComponent() {
+
+		//JPanel contenant un label et le slider (et son titre)
+		//
+		JPanel temperatureSliderPanel = new JPanel();
+		temperatureSliderPanel.setOpaque(false);
+
+		//-------------------------
+		//Créé les éléments
+		//-------------------------
+		
+		//Titre du slider
+		//
+		JLabel meteoLabel = new JLabel("Météo");
+		meteoLabel.setHorizontalAlignment(JLabel.CENTER);
+		
+		//slider
+		//
+		final JSlider temperatureSlider = new JSlider();
+		temperatureSlider.setOpaque(false);
+		temperatureSlider.setMaximum(100);
+		temperatureSlider.setMinimum(50);
+		temperatureSlider.setValue(100);
+		temperatureSlider.setMaximumSize(new Dimension(100000, 20));
+		temperatureSlider.setPreferredSize(new Dimension(SLIDER_WIDTH_PX, 20));
+		
+
+		//listener change le facteur de meteo de la mine
+		temperatureSlider.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				parentFrame.notifyListenersMeteoChanged(1.0*temperatureSlider.getValue()/100);
+			}
+
+		});
+		
+		//Image de flocon
+		//
+		JLabel floconLabel = new JLabel(new ImageIcon(floconImage));
+		
+		//Image de soleil
+		//
+		JLabel soleilLabel = new JLabel(new ImageIcon(soleilImage));
+		
+		//------------------------------------
+		//Ajoute les éléments
+		//------------------------------------
+				
+		//gridBagLayout parce qu'on veut centrer!
+		temperatureSliderPanel.setLayout(new GridBagLayout());
+		GridBagConstraints gc = new GridBagConstraints();
+
+		//---------------------------------------
+		// Rangée 1
+		
+		//titre du slider
+		//
+		gc.gridx = 1;
+		gc.gridy = 0;
+		gc.weightx = 1;
+		gc.anchor = GridBagConstraints.CENTER;
+		gc.fill = GridBagConstraints.HORIZONTAL;
+		temperatureSliderPanel.add(meteoLabel, gc);
+
+		//---------------------------------------
+		//Rangée 2
+		
+		//Image de flocon
+		//
+		gc.gridy++;
+		gc.gridx = 0;
+		gc.gridheight = 2;
+		gc.weightx = 0;
+		temperatureSliderPanel.add(floconLabel, gc);
+		
+		gc.gridx=1;
+		gc.gridheight = 2;
+		gc.weightx = 0;
+		temperatureSliderPanel.add(temperatureSlider, gc);
+
+		gc.gridx = 2;
+		gc.gridheight = 2;
+		gc.weightx = 0;
+		temperatureSliderPanel.add(soleilLabel, gc);
+
+		return temperatureSliderPanel;
+	}
+
+
+	/**
+	 * créé le champs texte pour le temps total de simulation
+	 */
+	private void createTempsSimulationTextField() {
+
+
+		this.tempsSimulationTextField = new JTextField();
+		tempsSimulationTextField.setText(""+SimulationMine.DEFAULT_SIMULATION_TIME_SECONDS/3600);
+		this.selectedTempsSimulation = SimulationMine.DEFAULT_SIMULATION_TIME_SECONDS/3600;
+
+		//dimensions
+		//
+		tempsSimulationTextField.setMaximumSize(new Dimension(50, 50));
+		tempsSimulationTextField.setMinimumSize(new Dimension(50, 20));
+		tempsSimulationTextField.setPreferredSize(new Dimension(50, 20));
+
+		//lorsque la valeur change, valide et notifie les listeners
+		//
+		tempsSimulationTextField.addFocusListener(new FocusListener() {
+
+
+			@Override
+			public void focusGained(FocusEvent arg0) {
+				//ne fait rien
+			}
+
+			@Override
+			public void focusLost(FocusEvent arg0) {
+				//valide le texte
+				try {
+					double temps =  Double.valueOf(tempsSimulationTextField.getText());
+					tempsSimulationTextField.setBackground(Color.white);
+					selectedTempsSimulation = temps;
+
+					if(selectedTempsSimulation <= 0) {
+						throw new NumberFormatException();
+					}
+				}
+				catch(NumberFormatException exception) {
+					tempsSimulationTextField.setText("");
+					tempsSimulationTextField.setBackground(COLOR_WRONG_INPUT);
+				}
+			}
+		});
+	}
+
+
+	/**Charge les images
+	 * 
+	 */
 	private void loadImages() {
 
 		//Image de flocon
@@ -200,18 +1388,18 @@ public class JControlPanel extends JPanel{
 		camionSmallImage = new BufferedImage(camionX, camionY, BufferedImage.TYPE_INT_ARGB);
 		g2 = camionSmallImage.createGraphics();
 
-		
+
 		g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 		g2.drawImage(smallCamionImageLarge, 0, 0, camionX, camionY, null);
 		g2.dispose();
-		
-		
+
+
 
 		camionLargeImage = new BufferedImage(camionX, camionY, BufferedImage.TYPE_INT_ARGB);
 		g2 = camionLargeImage.createGraphics();
 
-		
-		
+
+
 		g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 		g2.drawImage(largeCamionImageLarge, 0, 0, camionX, camionY, null);
 		g2.dispose();
@@ -240,515 +1428,32 @@ public class JControlPanel extends JPanel{
 
 	}
 
-	private JPanel createRightPanel() {
 
-		JPanel rightPanel = new JPanel();
-
-
-		//rightPanel.setBackground(Color.red);
-
-		rightPanel.setLayout(new GridBagLayout());
-
-
-		GridBagConstraints gc = new GridBagConstraints();
-		gc.gridx = 0;
-		gc.gridy = 0;
-		gc.anchor = GridBagConstraints.WEST;
-		gc.weighty = 1;
-		gc.fill = GridBagConstraints.VERTICAL;
-		rightPanel.add(createSimulationControlPanel(), gc);
-
-		gc.anchor = GridBagConstraints.CENTER;
-		gc.gridx = 1;
-		gc.gridy = 0;
-		gc.weighty = 1;
-		gc.fill = GridBagConstraints.BOTH;
-		JPanel speedComponent = createSpeedComponent();
-		rightPanel.add(speedComponent, gc);
-
-
-		//titre de la section
-		//
-		JLabel titreLabel = new JLabel("Prédiction du temps de parcours");
-		titreLabel.setForeground(Color.white);
-		titreLabel.setBackground(DARK_BLUE);
-		titreLabel.setHorizontalAlignment(JLabel.CENTER);
-		titreLabel.setOpaque(true);
-		gc.anchor = GridBagConstraints.CENTER;
-		gc.gridx = 0;
-		gc.gridy = 1;
-		gc.gridwidth = 2;
-		gc.weighty = 0;
-		gc.fill = GridBagConstraints.HORIZONTAL;
-		gc.weightx = 1;
-		rightPanel.add(titreLabel, gc);
-
-
-
-		gc.anchor = GridBagConstraints.WEST;
-		gc.gridx = 0;
-		gc.gridy = 2;
-		gc.gridwidth = 1;
-		gc.weighty = 1;
-		gc.fill = GridBagConstraints.VERTICAL;
-		JPanel predictTimePanel = createPredictTimePanel();
-
-		rightPanel.add(predictTimePanel, gc);
-
-		gc.anchor = GridBagConstraints.CENTER;
-		gc.gridx = 1;
-		gc.gridy = 2;
-		gc.weighty = 1;
-		gc.weighty = 1;
-		gc.fill = GridBagConstraints.BOTH;
-		JPanel temperatureSliderComponent = createTemperatureSliderComponent();
-		rightPanel.add(temperatureSliderComponent, gc);
-
-
-		//titre de la section d'optimisation
-		//
-		JLabel titreLabel2 = new JLabel("Optimisation des camions");
-		titreLabel2.setForeground(Color.white);
-		titreLabel2.setBackground(DARK_BLUE);
-		titreLabel2.setHorizontalAlignment(JLabel.CENTER);
-		titreLabel2.setOpaque(true);
-		gc.anchor = GridBagConstraints.CENTER;
-		gc.gridx = 0;
-		gc.gridy = 3;
-		gc.gridwidth = 2;
-		gc.fill = GridBagConstraints.HORIZONTAL;
-		gc.weightx = 1;
-		rightPanel.add(titreLabel2, gc);
-
-		gc.anchor = GridBagConstraints.WEST;
-		gc.gridx = 0;
-		gc.gridy = 4;
-		gc.gridwidth = 2;
-		gc.weighty = 1;
-		gc.fill = GridBagConstraints.BOTH;
-		rightPanel.add(createOptStrategySection(), gc);
-
-
-		rightPanel.setOpaque(false);
-		return rightPanel;
-	}
-
-	private JPanel createTemperatureSliderComponent() {
-		//JPanel contenant un label et le slider
-		//
-		JPanel temperatureSliderPanel = new JPanel();
-		temperatureSliderPanel.setOpaque(false);
-
-
-		//gridBagLayout parce qu'on veut centrer!
-		temperatureSliderPanel.setLayout(new GridBagLayout());
-
-		GridBagConstraints gc = new GridBagConstraints();
-		gc.gridx = 1;
-		gc.gridy = 0;
-		gc.weightx = 1;
-		gc.anchor = GridBagConstraints.CENTER;
-		gc.fill = GridBagConstraints.HORIZONTAL;
-
-		//label du slider
-		//
-		JLabel meteoLabel = new JLabel("Météo");
-		meteoLabel.setHorizontalAlignment(JLabel.CENTER);
-		temperatureSliderPanel.add(meteoLabel, gc);
-
-		gc.gridy++;
-
-
-		//slider
-		//
-		final JSlider temperatureSlider = new JSlider();
-		temperatureSlider.setOpaque(false);
-		temperatureSlider.setMaximum(100);
-		temperatureSlider.setMinimum(50);
-		temperatureSlider.setValue(100);
-		//temperatureSlider.setMinimumSize(new Dimension(30, 20));
-		temperatureSlider.setMaximumSize(new Dimension(100000, 20));
-		temperatureSlider.setPreferredSize(new Dimension(sliderWidth, 20));
-		temperatureSliderPanel.add(temperatureSlider, gc);
-		//listener change le facteur de meteo de la mine
-		temperatureSlider.addChangeListener(new ChangeListener() {
-
-			@Override
-			public void stateChanged(ChangeEvent arg0) {
-				parentFrame.notifyListenersMeteoChanged(1.0*temperatureSlider.getValue()/100);
-			}
-
-		});
-
-		gc.gridx = 0;
-		gc.gridy=0;
-		gc.gridheight = 2;
-		gc.weightx = 0;
-
-
-		JLabel floconLabel = new JLabel(new ImageIcon(floconImage));
-		temperatureSliderPanel.add(floconLabel, gc);
-
-		gc.gridx = 2;
-		gc.gridy=0;
-		gc.gridheight = 2;
-		gc.weightx = 0;
-
-
-		JLabel soleilLabel = new JLabel(new ImageIcon(soleilImage));
-		temperatureSliderPanel.add(soleilLabel, gc);
-
-		return temperatureSliderPanel;
-	}
-
-
-	//ajoute le panneau ou l'utilisateur choisit les specifications de la simulation
-	//
-	private JPanel createSimulationSpecsPanel() {
-		JPanel simulationSpecsPanel = new JPanel();
-
-
-		simulationSpecsPanel.setOpaque(true);
-		simulationSpecsPanel.setBackground(DARK_BLUE);
-
-		simulationSpecsPanel.setLayout(new GridBagLayout());
-
-		GridBagConstraints gc = new GridBagConstraints();
-
-		//ajoute la bordure
-		//
-		simulationSpecsPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 0, 2, Color.BLACK), new EmptyBorder(5, 5, 0, 5) ));
-
-
-
-
-
-
-
-
-		JLabel nbCamionsSmallLabel = new JLabel(new ImageIcon(camionSmallImage));
-		createNumberCamionsSmallTextField();
-
-		JLabel nbCamionsLargeLabel = new JLabel(new ImageIcon(camionLargeImage));
-		createNumberCamionsLargeTextField();
-
-
-
-		createTempsSimulationTextField();
-		JLabel horlogeLabel = new JLabel(new ImageIcon(horlogeImage));
-
-		gc.fill = GridBagConstraints.HORIZONTAL;
-		gc.weightx = 1;
-
-		gc.gridx = 0;
-		gc.gridy = 0;
-		gc.gridwidth = 4;
-		gc.anchor = GridBagConstraints.CENTER;
-		simulationSpecsPanel.add(createDropdownButton(), gc);
-
-		gc.gridx = 0;
-		gc.gridy = 1;
-		gc.gridwidth = 1;
-		gc.anchor = GridBagConstraints.EAST;
-		simulationSpecsPanel.add(nbCamionsSmallLabel, gc);
-
-		gc.gridx = 1;
-		gc.gridy = 1;
-		gc.gridwidth = 1;
-		gc.anchor = GridBagConstraints.EAST;
-		simulationSpecsPanel.add(nbSmallCamionsTextField, gc);
-
-
-		gc.gridx = 2;
-		gc.gridy = 1;
-		gc.gridwidth = 1;
-		gc.anchor = GridBagConstraints.EAST;
-		simulationSpecsPanel.add(nbCamionsLargeLabel, gc);
-
-		gc.gridx = 3;
-		gc.gridy = 1;
-		gc.gridwidth = 1;
-		gc.anchor = GridBagConstraints.EAST;
-		simulationSpecsPanel.add(nbLargeCamionsTextField, gc);
-
-		
-
-		gc.gridx = 0;
-		gc.gridy = 2;
-		gc.gridwidth = 1;
-		gc.anchor = GridBagConstraints.EAST;
-		simulationSpecsPanel.add(horlogeLabel, gc);
-
-		gc.gridx = 1;
-		gc.gridy = 2;
-		gc.gridwidth = 1;
-		gc.anchor = GridBagConstraints.EAST;
-		simulationSpecsPanel.add(tempsSimulationTextField, gc);
-
-
-		gc.gridx = 0;
-		gc.gridy = 3;
-		gc.gridwidth = 4;
-		gc.anchor = GridBagConstraints.CENTER;
-		simulationSpecsPanel.add(createLoadButton(), gc);
-
-		return simulationSpecsPanel;
-	}
-
-	private void createNumberCamionsSmallTextField() {
-	
-		Mine mine = parentFrame.getMine();
-		//nbCamionsLabel.setMaximumSize(new Dimension(100, 40));
-		//nbCamionsLabel.setMinimumSize(new Dimension(100, 40));
-		//nbCamionsLabel.setPreferredSize(new Dimension(100, 40));
-	
-	
-		this.nbSmallCamionsTextField = new JTextField();
-		this.selectedNumberOfSmallCamions = mine.getNumberSmallCamions();
-		nbSmallCamionsTextField.setText(""+this.selectedNumberOfSmallCamions);
-		nbSmallCamionsTextField.setMaximumSize(new Dimension(50, 50));
-		nbSmallCamionsTextField.setMinimumSize(new Dimension(50, 20));
-		nbSmallCamionsTextField.setPreferredSize(new Dimension(50, 20));
-		nbSmallCamionsTextField.addFocusListener(new FocusListener() {
-	
-	
-			@Override
-			public void focusGained(FocusEvent arg0) {
-	
-	
-			}
-	
-			@Override
-			public void focusLost(FocusEvent arg0) {
-				//valide le texte
-				try {
-					int nbCamions =  Integer.valueOf(nbSmallCamionsTextField.getText());
-					nbSmallCamionsTextField.setBackground(Color.white);
-					selectedNumberOfSmallCamions = nbCamions;
-					if(selectedNumberOfSmallCamions < 0) {
-						throw new NumberFormatException();
-					}
-				}
-				catch(NumberFormatException exception) {
-					nbSmallCamionsTextField.setText("");
-					nbSmallCamionsTextField.setBackground(Color.red);
-				}
-	
-	
-	
-			}
-	
-		});
-	}
-
-	//Cree le textfield dans lequel l'utilisateur choisis le nombre de camions
-	//
-	private void createNumberCamionsLargeTextField() {
-
-
-		Mine mine = parentFrame.getMine();
-		//nbCamionsLabel.setMaximumSize(new Dimension(100, 40));
-		//nbCamionsLabel.setMinimumSize(new Dimension(100, 40));
-		//nbCamionsLabel.setPreferredSize(new Dimension(100, 40));
-
-
-		this.nbLargeCamionsTextField = new JTextField();
-		this.selectedNumberOfLargeCamions = mine.getNumberLargeCamions();
-		nbLargeCamionsTextField.setText(""+selectedNumberOfLargeCamions);
-		nbLargeCamionsTextField.setMaximumSize(new Dimension(50, 50));
-		nbLargeCamionsTextField.setMinimumSize(new Dimension(50, 20));
-		nbLargeCamionsTextField.setPreferredSize(new Dimension(50, 20));
-		nbLargeCamionsTextField.addFocusListener(new FocusListener() {
-
-
-			@Override
-			public void focusGained(FocusEvent arg0) {
-
-
-			}
-
-			@Override
-			public void focusLost(FocusEvent arg0) {
-				//valide le texte
-				try {
-					int nbCamions =  Integer.valueOf(nbLargeCamionsTextField.getText());
-					nbLargeCamionsTextField.setBackground(Color.white);
-					selectedNumberOfLargeCamions = nbCamions;
-					if(selectedNumberOfLargeCamions < 0) {
-						throw new NumberFormatException();
-					}
-				}
-				catch(NumberFormatException exception) {
-					//nbLargeCamionsTextField.setText("");
-					nbLargeCamionsTextField.setBackground(Color.red);
-				}
-
-
-
-			}
-
-		});
-
+	/**
+	 * change entre le mode play et le mode pause
+	 * 
+	 * Mode play : Bouton affiche "pause", champ de score ne peut être édité
+	 * Mode pause : Bouton affiche "play, champ de score peut être édité
+	 */
+	private void tooglePlayPause() {
+		this.playPauseButton.toogle();
+
+		if(playPauseButton.getState() == PlayPauseButton.STATE_PAUSE) {
+			scoreFunctionTextField.setEditable(true);
+		}
+		else {
+			scoreFunctionTextField.setEditable(false);
+		}
 
 	}
 
-	private JPanel createSimulationControlPanel() {
-		JPanel simulationControlPanel = new JPanel();
-		simulationControlPanel.setOpaque(false);
-
-		simulationControlPanel.setLayout(new BoxLayout(simulationControlPanel, BoxLayout.X_AXIS));
-
-
-		simulationControlPanel.add(createPlayPauseButton());
-
-		simulationControlPanel.add(createAutoCompleteButton());
-
-		simulationControlPanel.add(createResetButton());
-
-		simulationControlPanel.add(Box.createHorizontalGlue());
-
-		simulationControlPanel.setOpaque(false);
-		return simulationControlPanel;
-	}
-
-	private JPanel createOptStrategySection() {
-
-		//panel de strategie
-		JPanel optStrategyPanel = new JPanel();
-		optStrategyPanel.setOpaque(false);
-
-		optStrategyPanel.setLayout(new BoxLayout(optStrategyPanel, BoxLayout.X_AXIS));
-
-		//label
-		//
-		JLabel scoreLabel = new JLabel("  Fonction de score :  ");
-		optStrategyPanel.add(scoreLabel);
-
-		//textfield
-		//
-		this.optStrategyTextField = new JTextField();
-		//this.scoreFunctionString = parentFrame.getMinePanel().getMine().getScoreFunctionString();
-		optStrategyTextField.setText( DecisionMaker.ALEATOIRE_FUNCTION_STRING );
-		optStrategyPanel.add(optStrategyTextField);
-
-
-		//listener
-		//
-		optStrategyTextField.addFocusListener(new FocusListener() {
-
-			@Override
-			public void focusGained(FocusEvent arg0) {
-				// ne fait rien
-
-			}
-
-			@Override
-			public void focusLost(FocusEvent arg0) {
-
-				//valide le input
-				String optStrategy = optStrategyTextField.getText();
-				if(DecisionMaker.isFunctionStringValid(optStrategy)) {
-					optStrategyTextField.setBackground(Color.white);
-
-					parentFrame.notifyListenersScoreFunctionChanged(optStrategyTextField.getText());
-				}
-				else{
-					optStrategyTextField.setBackground(Color.red);
-				}
-
-
-
-			}
-
-		});
-
-		return optStrategyPanel;
-	}
-
-	private JPanel createPredictTimePanel() {
-
-		JPanel predictTimePanel = new JPanel();
-		predictTimePanel.setOpaque(false);
-		predictTimePanel.setLayout(new BoxLayout(predictTimePanel, BoxLayout.X_AXIS));
-
-		//-----------------------------------------
-		//Ajoute les champs pour la formule
-		//-----------------------------------------
-
-		//label "Formule"
-		//
-		JLabel formuleLabel = new JLabel("Formule");
-		predictTimePanel.add(formuleLabel);
-
-
-		//label et textField pour n
-		//
-		nLabel = new JLabel("n =");
-
-		//label et textField pour lembda
-		//
-		lembdaLabel = new JLabel("\u03bb = ");
-
-		createNTextField();
-		createRhoTextField();
-
-		createPredictComboBox();
-		//combobox pour choisir la formule
-		//
-
-
-		predictTimePanel.add(this.predictComboBox);
-
-
-
-		predictTimePanel.add(nLabel);
-
-
-		predictTimePanel.add(this.nTextField);
-
-
-
-		predictTimePanel.add(lembdaLabel);
-
-
-		predictTimePanel.add(this.rhoTextField);
-
-
-
-		predictTimePanel.add(Box.createHorizontalGlue());
-
-		return predictTimePanel;
-	}
-
-	private Component createPredictComboBox() {
-
-		Mine mine = parentFrame.getMine();
-		predictComboBox = new JComboBox();
-		predictComboBox.addItem("Moyenne des observations précédentes");
-		predictComboBox.addItem("Combinaison convexe");
-		predictComboBox.addItem("Erreur précédente");
-
-		predictComboBox.setSelectedIndex(mine.getTravelTimePredictor().getfPredictFunction()-1);
-
-		this.setPredictFunctionTextFieldsAccordingToSelectedFunction();
-
-		predictComboBox.addItemListener(new ItemListener() {
-
-			@Override
-			public void itemStateChanged(ItemEvent event) {
-				if(event.getStateChange() == ItemEvent.SELECTED) {
-					int newPredictFunctionIndex = predictComboBox.getSelectedIndex()+1;
-					parentFrame.notifyListenersPredictFunctionChanged(newPredictFunctionIndex);
-					setPredictFunctionTextFieldsAccordingToSelectedFunction();
-				}
-			}
-
-		});
-
-		return predictComboBox;
-
-	}
-
+	/**
+	 * Set le champs "paramètre" de la formule de prédiction de temps de parcours, selon la formule choisie.
+	 *  "Moyenne des observations précédentes" : n
+	 *  "Combinaison convexe" : lambda
+	 *  "Erreur précédente" : lambda
+	 * 
+	 */
 	protected void setPredictFunctionTextFieldsAccordingToSelectedFunction() {
 
 		int newPredictFunctionIndex = this.predictComboBox.getSelectedIndex()+1;
@@ -756,489 +1461,35 @@ public class JControlPanel extends JPanel{
 		if(newPredictFunctionIndex == TravelTimePredictor.PREDICT_FUNCTION_AVG_PREV) {
 			nLabel.setVisible(true);
 			nTextField.setVisible(true);
-			lembdaLabel.setVisible(false);
-			rhoTextField.setVisible(false);
+			lambdaLabel.setVisible(false);
+			lambdaTextField.setVisible(false);
 		}
 		else if(newPredictFunctionIndex == TravelTimePredictor.PREDICT_FUNCTION_WEIGTED) {
 			nLabel.setVisible(false);
 			nTextField.setVisible(false);
-			lembdaLabel.setVisible(true);
-			rhoTextField.setVisible(true);
+			lambdaLabel.setVisible(true);
+			lambdaTextField.setVisible(true);
 		}
 		else if(newPredictFunctionIndex == TravelTimePredictor.PREDICT_FUNCTION_WEIGTED_ERROR) {
 			nLabel.setVisible(false);
 			nTextField.setVisible(false);
-			lembdaLabel.setVisible(true);
-			rhoTextField.setVisible(true);
+			lambdaLabel.setVisible(true);
+			lambdaTextField.setVisible(true);
 		}
 
 	}
 
-	private Component createRhoTextField() {
-		rhoTextField = new JTextField();
-		rhoTextField.setMaximumSize(new Dimension(50, 50));
-		rhoTextField.setMinimumSize(new Dimension(50, 20));
-		rhoTextField.setPreferredSize(new Dimension(50, 20));
-		rhoTextField.setText(""+TravelTimePredictor.DEFAULT_PREDICT_FUNCTION_WEIGHT);
-		currentRhoValue = TravelTimePredictor.DEFAULT_PREDICT_FUNCTION_WEIGHT;
-
-		//listener
-		rhoTextField.addFocusListener(new FocusListener() {
-
-
-			@Override
-			public void focusGained(FocusEvent arg0) {
-
-
-			}
-
-			@Override
-			public void focusLost(FocusEvent arg0) {
-				//valide le texte
-				try {
-					double rhoValue =  Double.valueOf(rhoTextField.getText());
-					rhoTextField.setBackground(Color.white);
-
-					if(currentRhoValue < 0 || currentRhoValue > 1) {
-						throw new NumberFormatException();
-					}
-					else {
-						currentRhoValue = rhoValue;
-						parentFrame.notifyListenersRhoChanged(rhoValue);
-
-					}
-
-				}
-				catch(NumberFormatException exception) {
-					rhoTextField.setText("");
-					rhoTextField.setBackground(Color.red);
-				}
-
-
-
-			}
-
-		});
-
-		return rhoTextField;
-	}
-
-	private Component createNTextField() {
-		nTextField = new JTextField();
-		nTextField.setMaximumSize(new Dimension(50, 50));
-		nTextField.setMinimumSize(new Dimension(50, 20));
-		nTextField.setPreferredSize(new Dimension(50, 20));
-		nTextField.setText(""+TravelTimePredictor.DEFAULT_PREDICT_FUNCTION_NB_SAMLE);
-		currentNValue = TravelTimePredictor.DEFAULT_PREDICT_FUNCTION_NB_SAMLE;
-
-		nTextField.addFocusListener(new FocusListener() {
-
-
-			@Override
-			public void focusGained(FocusEvent arg0) {
-
-
-			}
-
-			@Override
-			public void focusLost(FocusEvent arg0) {
-				//valide le texte
-				try {
-					int nValue =  Integer.valueOf(nTextField.getText());
-					nTextField.setBackground(Color.white);
-					if(currentNValue < 1) {
-						throw new NumberFormatException();
-					}
-					else {
-						currentNValue = nValue;
-						parentFrame.notifyListenersNumberSampleChanged(currentNValue);
-
-					}
-				}
-				catch(NumberFormatException exception) {
-					nTextField.setText("");
-					nTextField.setBackground(Color.red);
-				}
-
-
-
-			}
-
-		});
-		return nTextField;
-	}
-
-	private JButton createLoadButton() {
-		JButton loadButton = new JButton();
-		loadButton.setText("Charger");
-		loadButton.setMinimumSize(new Dimension(100, 10));
-		loadButton.setPreferredSize(new Dimension(100, 20));
-		loadButton.setMaximumSize(new Dimension(100, 40));
-
-
-		//Ajoute le listener pour le dropdown
-		//On valide que l'usager veut commencer une nouvelle simulation
-		//Il faut faire un peu de magie pour que le menu reste coherent avec la simulation dans le cas où l'usager
-		// choisit de rester dans la meme simulation
-		loadButton.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				//valide les arguments
-				if(validSimulationArguments()) {
-				
-					//confirme qu'on arrete la simulation
-					int dialogButton = JOptionPane.YES_NO_OPTION;
-					int result = JOptionPane.showConfirmDialog (null, "Voulez-vous vraiment arrêter cette simulation et en démarrer une nouvelle?","Attention", dialogButton);
-					if(result == JOptionPane.YES_OPTION) {
-						ExampleId selectedId = (ExampleId) mineComboBox.getSelectedItem();
-						System.out.println("selected id : "+selectedId.getName()+" "+selectedId.getFileName());
-						
-						parentFrame.notifyListenersNewSimulationRequested(selectedId, getNumberOfSmallCamions(), getNumberOfLargeCamions(), getTempsSimulationSeconds());
-	
-	
-					}
-				}
-				else {
-					JOptionPane.showMessageDialog(null, "Impossible de démarrer une simulation avec les paramètres spécifiés.");
-					
-				}
-
-			}
-		});
-
-		return loadButton;
-	}
+	/**
+	 * Vérifie que les arguments de la simulation sont valides
+	 * 
+	 * @return true si les arguments sont valides, false sinon
+	 */
 
 	protected boolean validSimulationArguments() {
 		if(selectedNumberOfLargeCamions >= 0 && selectedNumberOfSmallCamions >= 0  && selectedTempsSimulation > 0) {
 			return true;
 		}
 		return false;
-	}
-
-	private Component createAutoCompleteButton() {
-		this.completeButton = new JButton("Completer Auto.");
-		completeButton.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				parentFrame.notifyListenersAutomaticCompletionRequested();
-
-			}
-
-		});
-		return completeButton;
-	}
-
-	private JCheckBox createCheckBox() {
-
-
-		//ajoute la checkbox
-		//
-		final JCheckBox checkBox = new JCheckBox();
-		checkBox.setOpaque(false);
-		checkBox.setText("pause a chaque fin de voyage");
-		checkBox.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				parentFrame.notifyListenersStopOnAssignStateChanged(checkBox.isSelected());
-			}
-
-		});
-		return checkBox;
-	}
-
-	//panel contenant un champs texte indiquant le temps total de simulation
-	private void createTempsSimulationTextField() {
-
-
-		this.tempsSimulationTextField = new JTextField();
-		tempsSimulationTextField.setText(""+SimulationMine.DEFAULT_SIMULATION_TIME_SECONDS/3600);
-		this.selectedTempsSimulation = SimulationMine.DEFAULT_SIMULATION_TIME_SECONDS/3600;
-
-		tempsSimulationTextField.setMaximumSize(new Dimension(50, 50));
-		tempsSimulationTextField.setMinimumSize(new Dimension(50, 20));
-		tempsSimulationTextField.setPreferredSize(new Dimension(50, 20));
-
-
-		tempsSimulationTextField.addFocusListener(new FocusListener() {
-
-
-			@Override
-			public void focusGained(FocusEvent arg0) {
-
-			}
-
-			@Override
-			public void focusLost(FocusEvent arg0) {
-				//valide le texte
-				try {
-					double temps =  Double.valueOf(tempsSimulationTextField.getText());
-					tempsSimulationTextField.setBackground(Color.white);
-					selectedTempsSimulation = temps;
-
-					if(selectedTempsSimulation <= 0) {
-						throw new NumberFormatException();
-					}
-				}
-				catch(NumberFormatException exception) {
-					tempsSimulationTextField.setText("");
-					tempsSimulationTextField.setBackground(Color.red);
-				}
-
-
-			}
-
-		});
-
-	}
-
-	//Ajoute le panneau de vitesse qui comprend : 
-	// - un slider de vitesse
-
-	private JPanel createSpeedComponent() {
-		JPanel speedPanel = new JPanel();
-		speedPanel.setOpaque(false);
-		speedPanel.setLayout(new GridBagLayout());
-
-		GridBagConstraints gc = new GridBagConstraints();
-		gc.gridx = 0;
-		gc.gridy = 0;
-		gc.anchor = GridBagConstraints.CENTER;
-		gc.fill = GridBagConstraints.HORIZONTAL;
-		gc.weightx = 1;
-
-		JLabel vitesseLabel = new JLabel("Vitesse");
-		vitesseLabel.setHorizontalAlignment(JLabel.CENTER);
-
-		speedPanel.add(vitesseLabel, gc);
-
-
-		//ajoute le slider
-		//
-		final JSlider speedSlider = new JSlider();
-		speedSlider.setOpaque(false);
-		speedSlider.setMaximum(51);
-		speedSlider.setValue(26);
-		speedSlider.setMinimum(1);
-		speedSlider.setOrientation(JSlider.HORIZONTAL);
-		speedSlider.setMinimumSize(new Dimension(sliderWidth, 20));
-		speedSlider.setMaximumSize(new Dimension(sliderWidth, 20));
-		speedSlider.setPreferredSize(new Dimension(sliderWidth, 20));
-
-		speedSlider.addChangeListener(new ChangeListener() {
-
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				parentFrame.notifyListenersSimulationSpeedChanged(speedSlider.getValue());
-			}
-
-		});
-
-		gc.gridy = 1;
-		gc.weightx = 1;
-
-		speedPanel.add(speedSlider, gc);
-
-		gc.gridy = 2;
-
-		speedPanel.add(createCheckBox(), gc);
-
-		return speedPanel;
-
-	}
-
-	//ajoute le bouton reset
-	private JButton createResetButton() {
-
-		Mine mine = parentFrame.getMine();
-		JButton resetButton = new JButton();
-		final int exemple = mine.getExemple();
-		final int nbCamions = mine.getCamions().size();
-
-		resetButton.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				parentFrame.notifyListenersResetSimulationRequested();
-			}
-		});
-
-		resetButton.setText("reset");
-		//grandeur du bouton
-		//
-		resetButton.setMinimumSize(new Dimension(100, 10));
-		resetButton.setPreferredSize(new Dimension(100, 20));
-		resetButton.setMaximumSize(new Dimension(100, 40));
-
-		return resetButton;
-	}
-
-	//ajoute le bouton play/pause
-	//
-	private JButton createPlayPauseButton() {
-		//bouton
-		this.playPauseButton = new PlayPauseButton();
-		//ajoute le listener
-		playPauseButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				//playPauseButton.toogle();
-
-				if(playPauseButton.getState() == PlayPauseButton.STATE_PAUSE) {
-					optStrategyTextField.setEditable(true);
-					parentFrame.notifyListenersPlayButtonPressed();
-				}
-				else {
-					optStrategyTextField.setEditable(false);
-					parentFrame.notifyListenersPauseButtonPressed();
-
-				}
-
-
-			}
-
-		});
-
-
-		//grandeur du bouton
-		//
-		playPauseButton.setMinimumSize(new Dimension(100, 10));
-		playPauseButton.setPreferredSize(new Dimension(100, 20));
-		playPauseButton.setMaximumSize(new Dimension(100, 40));
-
-		return playPauseButton;
-	}
-
-	//Ajoute le dropdown pour choisir la mine
-	//
-	private JComboBox createDropdownButton() {
-
-		Mine mine = parentFrame.getMine();
-
-		final JComboBox<Mine.ExampleId> comboBox = new JComboBox<Mine.ExampleId>();
-
-		comboBox.setRenderer( new ListCellRenderer<Mine.ExampleId>(){
-
-
-			@Override
-			public JLabel getListCellRendererComponent(JList<? extends ExampleId> list, ExampleId value, int index,
-					boolean isSelected, boolean cellHasFocus) {
-
-
-				if (isSelected) {
-					setBackground(list.getSelectionBackground());
-					setForeground(list.getSelectionForeground());
-				} else {
-					setBackground(list.getBackground());
-					setForeground(list.getForeground());
-				}
-
-				// TODO Auto-generated method stub
-				return new JLabel(value.getName());
-			}
-
-		});
-		comboBox.setMaximumSize(new Dimension(1000, 30));
-
-		ArrayList<Mine.ExampleId> exampleIds = Mine.exampleIds;
-		for(int i = 0; i < exampleIds.size(); i++){
-			//Ajoute les 2  options possibles
-
-			comboBox.addItem(exampleIds.get(i));
-		}
-
-		comboBox.setSelectedIndex(mine.getExemple()-1);
-
-
-		mineComboBox = comboBox;
-		return comboBox;
-
-
-	}
-
-	public int getNumberOfSmallCamions() {
-		return this.selectedNumberOfSmallCamions;
-	}
-
-	public int getNumberOfLargeCamions() {
-		return this.selectedNumberOfLargeCamions;
-	}
-
-
-	//classe pour le bouton play/pause
-	private class PlayPauseButton extends JButton{
-		static final int STATE_PLAY = 1;
-		static final int STATE_PAUSE = 2;
-
-		private int state;
-
-		public PlayPauseButton() {
-			super();
-			this.state = STATE_PAUSE;
-			this.setText("Play");
-
-
-		}
-		public int getState() {
-			return this.state;
-		}
-		public void toogle() {
-
-			if(state == STATE_PLAY) {
-				this.setText("Play");
-				this.state = STATE_PAUSE;
-			}
-			else {
-				this.setText("Pause");
-				this.state = STATE_PLAY;
-			}
-		}
-
-	}
-
-
-
-	public double getTempsSimulationSeconds() {
-
-		//convertis le temps en secondes et le renvoie
-		return this.selectedTempsSimulation*3600;
-	}
-
-	public JTextField getOptStrategyTextField() {
-		return optStrategyTextField;
-	}
-
-	//change entre le mode play et le mode pause
-	// Mode play : Bouton affiche "pause", champ de score ne peut être édité
-	// Mode pause : Bouton affiche "play, champ de score peut être édité
-	public void tooglePlayPause() {
-		this.playPauseButton.toogle();
-
-		if(playPauseButton.getState() == PlayPauseButton.STATE_PAUSE) {
-			optStrategyTextField.setEditable(true);
-		}
-		else {
-			optStrategyTextField.setEditable(false);
-		}
-
-	}
-
-	//met en mode play.
-	public void setPlayMode() {
-		if(playPauseButton.getState() == PlayPauseButton.STATE_PAUSE) {
-			tooglePlayPause();
-		}
-	}
-
-	//met en mode pause
-	public void setPauseMode() {
-		if(playPauseButton.getState() == PlayPauseButton.STATE_PLAY) {
-			tooglePlayPause();
-		}
-
 	}
 
 
