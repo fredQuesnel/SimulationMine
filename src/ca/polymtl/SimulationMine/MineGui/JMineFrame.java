@@ -62,30 +62,6 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 
 
 
-	public Mine getMine() {
-		return mine;
-	}
-
-
-
-
-	public void setMine(Mine mine) {
-		this.mine = mine;
-	}
-
-
-
-
-	public JMinePanel getMinePanel() {
-		return this.minePanel;
-	}
-
-	public JControlPanel getControlPanel() {
-		return this.controlPanel;
-	}
-
-
-
 	//Ajoute un observer au GUI
 	public void addObserver(GuiListener mineSimulator) {
 		listenerList.add(mineSimulator);
@@ -94,19 +70,31 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 
 
 
-	public void notifyListenersMeteoChanged(double meteoFactor) {
-		for(int i = 0 ; i < listenerList.size(); i++) {
-			listenerList.get(i).meteoSliderChanged(meteoFactor);
-			//SimulationMine.mine.setMeteoFactor(meteoFactor);
-		}
+	@Override
+	public void automaticCompleteFinished() {
+		this.minePanel.automaticCompleteFinished();
 		
 	}
 
-	public void notifyListenersMinePanelClicked(double fracX, double fracY){
-		for(int i = 0 ; i < listenerList.size(); i++) {
-			System.out.println("dans le frame : clicked");
-			listenerList.get(i).minePanelClicked(fracX, fracY);
-		}
+
+
+
+	@Override
+	public void automaticCompleteStarted() {
+		this.minePanel.automaticCompleteStarted();
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void automaticCompleteUpdated(double fractionComplete) {
+		this.minePanel.automaticCompleteUpdated(fractionComplete);
+	}
+
+
+
+	@Override
+	public void camionJustArrived(Camion camion, double time) {
 		
 	}
 
@@ -119,14 +107,30 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 		
 	}
 
+	public JControlPanel getControlPanel() {
+		return this.controlPanel;
+	}
 
 
 
-	@Override
-	public void mineResetted(MineSimulator mineSimulator) {
-		this.mine = mineSimulator.getMine();
-		this.minePanel.mineResetted();
+
+	public Mine getMine() {
+		return mine;
+	}
+
+
+
+
+	public JMinePanel getMinePanel() {
+		return this.minePanel;
+	}
+
+
+
+
+	public MineSimulator getMineSimulator() {
 		
+		return this.mineSimulator;
 	}
 
 
@@ -137,18 +141,11 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 		this.getControlPanel().setPauseMode();
 	}
 
-
-
-
 	@Override
-	public void minUnpaused(Mine mine) {
-		this.getControlPanel().setPlayMode();
-	}
-
-	public void notifyListenersPlanPelleChanged(Pelle p, double newValue){
-		for(int i = 0 ; i < listenerList.size(); i++) {
-			listenerList.get(i).planPelleChanged(p, newValue);
-		}
+	public void mineResetted(MineSimulator mineSimulator) {
+		this.mine = mineSimulator.getMine();
+		this.minePanel.mineResetted();
+		
 	}
 
 
@@ -164,45 +161,48 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 
 
 	@Override
-	public void automaticCompleteStarted() {
-		this.minePanel.automaticCompleteStarted();
-		// TODO Auto-generated method stub
-		
+	public void minUnpaused(Mine mine) {
+		this.getControlPanel().setPlayMode();
 	}
 
 
 
 
-	@Override
-	public void automaticCompleteUpdated(double fractionComplete) {
-		this.minePanel.automaticCompleteUpdated(fractionComplete);
-	}
-
-
-
-
-	@Override
-	public void automaticCompleteFinished() {
-		this.minePanel.automaticCompleteFinished();
-		
-	}
-
-
-
-
-	public void notifyListenersPredictFunctionChanged(int newPredictFunctionIndex) {
+	public void notifyListenersAutomaticCompletionRequested() {
 		for(int i = 0 ; i < listenerList.size(); i++) {
-			listenerList.get(i).predictFunctionChanged(newPredictFunctionIndex);
-			//SimulationMine.mine.setMeteoFactor(meteoFactor);
+			listenerList.get(i).automaticCompletionRequested();
 		}
 	}
 
 
 
 
-	public void notifyListenersRhoChanged(double rhoValue) {
+	public void notifyListenersMeteoChanged(double meteoFactor) {
 		for(int i = 0 ; i < listenerList.size(); i++) {
-			listenerList.get(i).lambdaValueChanged(rhoValue);
+			listenerList.get(i).meteoSliderChanged(meteoFactor);
+			//SimulationMine.mine.setMeteoFactor(meteoFactor);
+		}
+		
+	}
+
+
+
+
+	public void notifyListenersMinePanelClicked(double fracX, double fracY){
+		for(int i = 0 ; i < listenerList.size(); i++) {
+			System.out.println("dans le frame : clicked");
+			listenerList.get(i).minePanelClicked(fracX, fracY);
+		}
+		
+	}
+
+
+
+
+	public void notifyListenersNewSimulationRequested(ExampleId selectedId, int numberOfSmallCamions,
+			int numberOfLargeCamions, double tempsSimulationSeconds) {
+		for(int i = 0 ; i < listenerList.size(); i++) {
+			listenerList.get(i).newSimulationRequested(selectedId, numberOfSmallCamions, numberOfLargeCamions, tempsSimulationSeconds);
 			//SimulationMine.mine.setMeteoFactor(meteoFactor);
 		}
 	}
@@ -220,42 +220,22 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 
 
 
-	public void notifyListenersNewSimulationRequested(ExampleId selectedId, int numberOfSmallCamions,
-			int numberOfLargeCamions, double tempsSimulationSeconds) {
+	public void notifyListenersPauseButtonPressed() {
 		for(int i = 0 ; i < listenerList.size(); i++) {
-			listenerList.get(i).newSimulationRequested(selectedId, numberOfSmallCamions, numberOfLargeCamions, tempsSimulationSeconds);
-			//SimulationMine.mine.setMeteoFactor(meteoFactor);
+			listenerList.get(i).pauseButtonPressed();
 		}
 	}
 
 
 
 
-	public void notifyListenersAutomaticCompletionRequested() {
+	public void notifyListenersPlanPelleChanged(Pelle p, double newValue){
 		for(int i = 0 ; i < listenerList.size(); i++) {
-			listenerList.get(i).automaticCompletionRequested();
+			listenerList.get(i).planPelleChanged(p, newValue);
 		}
 	}
 
 
-
-
-	public void notifyListenersStopOnAssignStateChanged(boolean selected) {
-		for(int i = 0 ; i < listenerList.size(); i++) {
-			listenerList.get(i).stopOnAssignStateChanged(selected);
-		}
-	}
-
-
-
-
-	public void notifyListenersSimulationSpeedChanged(int speed) {
-		for(int i = 0 ; i < listenerList.size(); i++) {
-			listenerList.get(i).simulationSpeedChanged(speed);
-		}
-	}
-
- 
 
 
 	public void notifyListenersPlayButtonPressed() {
@@ -267,13 +247,14 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 
 
 
-	public void notifyListenersPauseButtonPressed() {
+	public void notifyListenersPredictFunctionChanged(int newPredictFunctionIndex) {
 		for(int i = 0 ; i < listenerList.size(); i++) {
-			listenerList.get(i).pauseButtonPressed();
+			listenerList.get(i).predictFunctionChanged(newPredictFunctionIndex);
+			//SimulationMine.mine.setMeteoFactor(meteoFactor);
 		}
 	}
 
-
+ 
 
 
 	public void notifyListenersResetSimulationRequested() {
@@ -283,7 +264,17 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 	}
 
 
-	
+
+
+	public void notifyListenersRhoChanged(double rhoValue) {
+		for(int i = 0 ; i < listenerList.size(); i++) {
+			listenerList.get(i).lambdaValueChanged(rhoValue);
+			//SimulationMine.mine.setMeteoFactor(meteoFactor);
+		}
+	}
+
+
+
 
 	public void notifyListenersScoreFunctionChanged(String scoreFunction) {
 		for(int i = 0 ; i < listenerList.size(); i++) {
@@ -292,17 +283,26 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 		
 	}
 
-	@Override
-	public void camionJustArrived(Camion camion, double time) {
-		
+
+	
+
+	public void notifyListenersSimulationSpeedChanged(int speed) {
+		for(int i = 0 ; i < listenerList.size(); i++) {
+			listenerList.get(i).simulationSpeedChanged(speed);
+		}
+	}
+
+	public void notifyListenersStopOnAssignStateChanged(boolean selected) {
+		for(int i = 0 ; i < listenerList.size(); i++) {
+			listenerList.get(i).stopOnAssignStateChanged(selected);
+		}
 	}
 
 
 
 
-	public MineSimulator getMineSimulator() {
-		
-		return this.mineSimulator;
+	public void setMine(Mine mine) {
+		this.mine = mine;
 	}
 
 }

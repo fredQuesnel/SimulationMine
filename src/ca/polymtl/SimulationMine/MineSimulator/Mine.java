@@ -28,14 +28,14 @@ public class Mine {
 			this.name = name;
 			this.fileName = fileName;
 		}
+		public String getFileName() {
+			return this.fileName;
+		}
 		public int getId() {
 			return id;
 		}
 		public String getName() {
 			return name;
-		}
-		public String getFileName() {
-			return this.fileName;
 		}
 	}
 	//----------------------------
@@ -65,9 +65,6 @@ public class Mine {
 	//numeros d'exemples
 	public static ArrayList<ExampleId> exampleIds = createExampleIds();
 
-
-	public static final int EXEMPLE1 = 1;
-	public static final int EXEMPLE2 = 2;
 
 
 	//========================================
@@ -107,8 +104,6 @@ public class Mine {
 		}
 
 
-		//exampleIds.add(new ExampleId(Mine.EXEMPLE1, "4 pelles", "none"));
-		//exampleIds.add(new ExampleId(Mine.EXEMPLE2, "10 pelles", "none2"));
 		return exampleIds;
 	}
 
@@ -172,30 +167,6 @@ public class Mine {
 
 
 
-	protected void addTime(double time) {
-		this.time+=time;
-	}
-
-
-
-	private double calculeTempsAttenteMoyenPelle() {
-		double totalAttentePelles = 0;
-		int totalRemplissagePelles = 0;
-		for(int i = 0 ; i < pelles.size(); i++) {
-			totalAttentePelles += pelles.get(i).getWaitTime();
-			totalRemplissagePelles += pelles.get(i).getNbCamionsTraites();
-		}
-
-		double tempsAttenteMoyen = totalAttentePelles/totalRemplissagePelles;
-
-		if(totalRemplissagePelles == 0) {
-			tempsAttenteMoyen = 0;
-		}
-		return tempsAttenteMoyen;
-	}
-
-
-
 	//retourne la pelle la plus pres des coordonnees relatives fournies
 	/**
 	 * 
@@ -224,22 +195,6 @@ public class Mine {
 
 
 
-	//efface toutes les informations qui doivent etre effaces lorsqu'on reinitialise la mine
-	private void erasePrevious() {
-		this.time = 0;
-		this.inWarmup = false;
-		this.concentrateurs = new ArrayList<Concentrateur>();
-		this.steriles = new ArrayList<Sterile>();
-		this.pelles = new ArrayList<Pelle>();
-		this.camions = new ArrayList<Camion>();
-		this.numberLargeCamions = 0;
-		this.numberSmallCamions = 0;
-		this.dataSeriesHandles = null;
-
-	}
-
-
-
 	/**
 	 * 
 	 * @return ArrayList des camions
@@ -259,6 +214,13 @@ public class Mine {
 	}
 
 
+
+	public ExampleId getCurrentExampleId() {
+		return this.currentExampleId;
+	}
+
+
+
 	/**
 	 * 
 	 * @return Les noms des séries de données qui sont suivies.
@@ -268,12 +230,31 @@ public class Mine {
 	}
 
 
+
 	/**
 	 * 
 	 * @return Numéro de la mine active
 	 */
 	public int getExemple() {
 		return exemple;
+	}
+
+
+	/**
+	 * 
+	 * @return Facteur météo (entre 50 et 100)
+	 */
+	public double getMeteoFactor() {
+		return meteoFactor;
+	}
+
+
+	/**
+	 * 
+	 * @return Nom de la mine
+	 */
+	public String getName() {
+		return name;
 	}
 
 
@@ -302,22 +283,14 @@ public class Mine {
 
 
 
-	/**
-	 * 
-	 * @return Facteur météo (entre 50 et 100)
-	 */
-	public double getMeteoFactor() {
-		return meteoFactor;
+	public int getNumberLargeCamions() {
+		return this.numberLargeCamions;
 	}
 
 
 
-	/**
-	 * 
-	 * @return Nom de la mine
-	 */
-	public String getName() {
-		return name;
+	public int getNumberSmallCamions() {
+		return this.numberSmallCamions;
 	}
 
 
@@ -349,7 +322,58 @@ public class Mine {
 
 
 
+	/**
+	 * 
+	 * @return true si la mine est présenement en warmup (avant le début d'une simulation), false sinon.
+	 */
+	public boolean isInWarmup() {
+		return this.inWarmup;
+	}
 
+	private double calculeTempsAttenteMoyenPelle() {
+		double totalAttentePelles = 0;
+		int totalRemplissagePelles = 0;
+		for(int i = 0 ; i < pelles.size(); i++) {
+			totalAttentePelles += pelles.get(i).getWaitTime();
+			totalRemplissagePelles += pelles.get(i).getNbCamionsTraites();
+		}
+
+		double tempsAttenteMoyen = totalAttentePelles/totalRemplissagePelles;
+
+		if(totalRemplissagePelles == 0) {
+			tempsAttenteMoyen = 0;
+		}
+		return tempsAttenteMoyen;
+	}
+
+
+
+	//efface toutes les informations qui doivent etre effaces lorsqu'on reinitialise la mine
+	private void erasePrevious() {
+		this.time = 0;
+		this.inWarmup = false;
+		this.concentrateurs = new ArrayList<Concentrateur>();
+		this.steriles = new ArrayList<Sterile>();
+		this.pelles = new ArrayList<Pelle>();
+		this.camions = new ArrayList<Camion>();
+		this.numberLargeCamions = 0;
+		this.numberSmallCamions = 0;
+		this.dataSeriesHandles = null;
+
+	}
+
+
+
+	protected void addTime(double time) {
+		this.time+=time;
+	}
+
+
+
+	//initialise la mine en fonction de l'exemple de mine desiree avec le nombre de camions par defaut
+	protected void init(ExampleId exempleId) {
+		init(exempleId, -1, -1);
+	}
 	//initialise la mine en fonction de l'exemple de mine desiree
 	protected void init(ExampleId exempleId, int nbSmallCamions, int nbLargeCamions) {
 		erasePrevious();
@@ -487,6 +511,16 @@ public class Mine {
 
 			}
 			
+			
+			if(nbSmallCamions == -1) {
+				nbSmallCamions = defaultSmallCamion;
+			}
+			
+			if(nbLargeCamions == -1) {
+				nbLargeCamions = defaultLargeCamion;
+			}
+			
+			
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
@@ -523,6 +557,8 @@ public class Mine {
 				private static final double ECART_TYPE_VITESSE = 0.6;//ancien 0.5
 				/** Charge maximum du camion.	 */
 				public static final double CHARGE_MAX = 60.;
+				
+				private static final double PREDICT_TIME_ADJUST_FACTOR = 1.; 
 
 				@Override
 				public double getAvgSpeed() {
@@ -530,14 +566,19 @@ public class Mine {
 				}
 
 				@Override
-				public double getStdSpeed() {
-					return ECART_TYPE_VITESSE;
-				}
-
-				@Override
 				public double getChargeMax() {
 					// TODO Auto-generated method stub
 					return CHARGE_MAX;
+				}
+
+				@Override
+				public double getPredictTimeAdjustFactor() {
+					return PREDICT_TIME_ADJUST_FACTOR;
+				}
+
+				@Override
+				public double getStdSpeed() {
+					return ECART_TYPE_VITESSE;
 				}
 
 			};
@@ -554,14 +595,10 @@ public class Mine {
 				/** Charge maximum du camion.	 */
 				public static final double CHARGE_MAX = 100.;
 
+				private static final double PREDICT_TIME_ADJUST_FACTOR = 9./5;
 				@Override
 				public double getAvgSpeed() {
 					return VITESSE_MOYENNE;
-				}
-
-				@Override
-				public double getStdSpeed() {
-					return ECART_TYPE_VITESSE;
 				}
 
 				@Override
@@ -569,6 +606,17 @@ public class Mine {
 					// TODO Auto-generated method stub
 					return CHARGE_MAX;
 				}
+
+				@Override
+				public double getPredictTimeAdjustFactor() {
+					return PREDICT_TIME_ADJUST_FACTOR;
+				}
+				
+				@Override
+				public double getStdSpeed() {
+					return ECART_TYPE_VITESSE;
+				}
+
 
 			};
 			camions.add(camion);
@@ -586,17 +634,6 @@ public class Mine {
 		*/
 
 	}
-
-
-
-	/**
-	 * 
-	 * @return true si la mine est présenement en warmup (avant le début d'une simulation), false sinon.
-	 */
-	public boolean isInWarmup() {
-		return this.inWarmup;
-	}
-
 
 
 	//reset toutes les stats de la mine et de ses objets
@@ -629,48 +666,34 @@ public class Mine {
 
 
 
+
+
+
+
+
+
+
 	protected void resetTime() {
 		this.time = 0;
 
 	}
+
+
+
+
+
+
 	protected void setInWarmup(boolean inWarmup) {
 		this.inWarmup = inWarmup;
 	}
 
 
+
+
+
+
 	protected void setMeteoFactor(double meteoFactor) {
 		this.meteoFactor = meteoFactor;
-	}
-
-
-
-
-
-
-
-
-
-
-	public ExampleId getCurrentExampleId() {
-		return this.currentExampleId;
-	}
-
-
-
-
-
-
-	public int getNumberLargeCamions() {
-		return this.numberLargeCamions;
-	}
-
-
-
-
-
-
-	public int getNumberSmallCamions() {
-		return this.numberSmallCamions;
 	}
 
 

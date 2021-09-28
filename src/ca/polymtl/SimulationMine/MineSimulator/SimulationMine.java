@@ -40,7 +40,7 @@ public class SimulationMine {
 		
 		random = new Random();
 
-		//random.setSeed(1962996941790320022L);
+		random.setSeed(1962996941790320022L);
 		
 		
 		MineSimulator mineSimulator = new MineSimulator();

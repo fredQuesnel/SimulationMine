@@ -44,52 +44,6 @@ public class TravelTimeChart extends JFrame implements MineSimulationListener{
 
 	}
 
-	private void setChart(ArrayList<String> dataSeriesHandles, double tempsSimulationSeconds) {
-		
-		//cree les series de donnees
-		//
-		seriesMap = new HashMap<String, XYSeries>();
-		for(int i = 0 ; i < dataSeriesHandles.size(); i++) {
-			System.out.println(dataSeriesHandles.get(i));
-			
-			seriesMap.put(dataSeriesHandles.get(i), new XYSeries(dataSeriesHandles.get(i)));
-		}
-
-
-		initUI(tempsSimulationSeconds);
-		
-	}
-
-	private void initUI(double tempsSimulationSeconds) {
-
-		dataset = createDataset();
-
-		JFreeChart chart = createChart(dataset, tempsSimulationSeconds);
-		this.chartPanel = new ChartPanel(chart);
-
-		chartPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-		chartPanel.setBackground(Color.white);
-		add(chartPanel);
-
-		pack();
-		setTitle("Temps de parcours observés et prédits");
-		setLocationRelativeTo(null);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	}
-
-	private XYSeriesCollection createDataset() {    
-
-		XYSeriesCollection dataset = new XYSeriesCollection();
-
-		Iterator<Entry<String, XYSeries>> it = seriesMap.entrySet().iterator();
-		while(it.hasNext()) {
-			dataset.addSeries(it.next().getValue());
-		}
-
-
-		return dataset;
-	}
-
 	public void addDataPoint(String serieKey, double x, double y) {
 
 		//System.out.println("ajoute point "+x+" "+y);
@@ -98,6 +52,58 @@ public class TravelTimeChart extends JFrame implements MineSimulationListener{
 			XYSeries serie = seriesMap.get(serieKey);
 			serie.add(x/3600, y/60);
 		}
+	}
+
+	@Override
+	public void automaticCompleteFinished() {
+	}
+
+	@Override
+	public void automaticCompleteStarted() {
+	}
+
+	@Override
+	public void automaticCompleteUpdated(double fractionComplete) {
+	}
+
+	@Override
+	public void camionJustArrived(Camion camion, double time) {
+		if(camion.getState() != Camion.ETAT_JUSTE_ARRIVE) {
+			throw new IllegalStateException("le camion doit etre dans l'état Camion.STATE_JUST_ARRIVED");
+		}
+
+		//clé d'origine/destination
+		String ODKey = TravelTimePredictor.getMapKeyForODPair(camion.getOrigine(), camion.getObjective());
+
+		if(camion.getPredictedTravelTime() >0) {			
+			addDataPoint("pred:"+ODKey, time, camion.getPredictedTravelTime()/camion.getPredictTimeAdjustFactor());
+		}
+
+		addDataPoint("reel:"+ODKey, time, camion.getCurrentTravelTime()/camion.getPredictTimeAdjustFactor());
+		
+	}
+
+	@Override
+	public void eventDispatched(AWTEvent arg0) {
+	} 
+
+	@Override
+	public void minePaused(Mine mine) {
+	}
+
+	@Override
+	public void mineResetted(MineSimulator mineSimulator) {
+		this.remove(chartPanel);
+		setChart(mineSimulator.getMine().getDataSeriesHandles(), mineSimulator.getTempsSimulationSeconds());
+		
+	}
+
+	@Override
+	public void mineUpdated(Mine mine) {
+	}
+
+	@Override
+	public void minUnpaused(Mine mine) {
 	}
 
 	private JFreeChart createChart(final XYDataset dataset, double tempsSimulationSeconds) {
@@ -158,55 +164,49 @@ public class TravelTimeChart extends JFrame implements MineSimulationListener{
 		return chart;
 	}
 
-	@Override
-	public void eventDispatched(AWTEvent arg0) {
-	} 
+	private XYSeriesCollection createDataset() {    
 
-	@Override
-	public void mineResetted(MineSimulator mineSimulator) {
-		this.remove(chartPanel);
-		setChart(mineSimulator.getMine().getDataSeriesHandles(), mineSimulator.getTempsSimulationSeconds());
+		XYSeriesCollection dataset = new XYSeriesCollection();
+
+		Iterator<Entry<String, XYSeries>> it = seriesMap.entrySet().iterator();
+		while(it.hasNext()) {
+			dataset.addSeries(it.next().getValue());
+		}
+
+
+		return dataset;
+	}
+
+	private void initUI(double tempsSimulationSeconds) {
+
+		dataset = createDataset();
+
+		JFreeChart chart = createChart(dataset, tempsSimulationSeconds);
+		this.chartPanel = new ChartPanel(chart);
+
+		chartPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+		chartPanel.setBackground(Color.white);
+		add(chartPanel);
+
+		pack();
+		setTitle("Temps de parcours observés et prédits");
+		setLocationRelativeTo(null);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	}
+
+	private void setChart(ArrayList<String> dataSeriesHandles, double tempsSimulationSeconds) {
 		
-	}
-
-	@Override
-	public void minePaused(Mine mine) {
-	}
-
-	@Override
-	public void minUnpaused(Mine mine) {
-	}
-
-	@Override
-	public void mineUpdated(Mine mine) {
-	}
-
-	@Override
-	public void automaticCompleteStarted() {
-	}
-
-	@Override
-	public void automaticCompleteUpdated(double fractionComplete) {
-	}
-
-	@Override
-	public void automaticCompleteFinished() {
-	}
-
-	@Override
-	public void camionJustArrived(Camion camion, double time) {
-		if(camion.getState() != Camion.ETAT_JUSTE_ARRIVE) {
-			throw new IllegalStateException("le camion doit etre dans l'état Camion.STATE_JUST_ARRIVED");
+		//cree les series de donnees
+		//
+		seriesMap = new HashMap<String, XYSeries>();
+		for(int i = 0 ; i < dataSeriesHandles.size(); i++) {
+			System.out.println(dataSeriesHandles.get(i));
+			
+			seriesMap.put(dataSeriesHandles.get(i), new XYSeries(dataSeriesHandles.get(i)));
 		}
 
-		//clé d'origine/destination
-		String ODKey = TravelTimePredictor.getMapKeyForODPair(camion.getOrigine(), camion.getObjective());
 
-		if(camion.getPredictedTravelTime() >0) {			
-			addDataPoint("pred:"+ODKey, time, camion.getPredictedTravelTime());
-		}
-
-		addDataPoint("reel:"+ODKey, time, camion.getCurrentTravelTime());
+		initUI(tempsSimulationSeconds);
 		
 	}
 

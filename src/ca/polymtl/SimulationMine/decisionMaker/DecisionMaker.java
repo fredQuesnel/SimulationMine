@@ -26,16 +26,74 @@ public class DecisionMaker {
 	public static final String ALEATOIRE_FUNCTION_STRING = "aleatoire";
 	private static Mine dummyMine;
 
-	//fonction de score pour la simulation
-	private String scoreFunctionString;
+	//mine
+	protected static Mine mine;
 
 	//efficacite cible
 	//private double cibleTempsAttentePelle;
 
-	//mine
-	protected static Mine mine; 
+	public static boolean isFunctionStringValid(String function) {
+
+		Camion camion = new Camion(dummyMine.getSteriles().get(0), dummyMine, null, null) {
+
+			@Override
+			public double getAvgSpeed() {
+				return 0;
+			}
+
+			@Override
+			public double getChargeMax() {
+				return 0;
+			}
+
+			@Override
+			public double getPredictTimeAdjustFactor() {
+				// TODO Auto-generated method stub
+				return 0;
+			}
+
+			@Override
+			public double getStdSpeed() {
+				return 0;
+			}
+
+		};
+		Pelle pelle = new Pelle(0, 0, "test", 3);
+
+		if(function.equals(DecisionMaker.OPTIMIZE_FUNCTION_STRING)) return true;
+
+		try {
+
+			DecisionMaker dm = new DecisionMaker(dummyMine);
+			dm.computeDecisionScore(camion, pelle, function);
+		} catch (EvalError e) {
+			return false;
+		}
+		return true;
+	} 
+
+	//Choisis la station de retours pour un camion qui viens de se faire remplir à la pelle
+	public static Station selectReturnStation(Camion camion, Pelle pelle) {
+		Station returnStation = null;
+		//si remplis de sterile, choisis parmis les steriles
+		if(pelle.getRockType().getPercentIron() == 0 && pelle.getRockType().getPercentSulfur() ==0) {
+			returnStation = mine.getSteriles().get(0);
+		}
+		else {
+			returnStation = mine.getConcentrateurs().get(0);
+		}
+		//sinon, choisis parmis les concentrateurs
+
+
+		return returnStation;
+	}
+
+	//fonction de score pour la simulation
+	private String scoreFunctionString;
+
 
 	private LpSolve solver;
+
 
 	public DecisionMaker(Mine mine) {
 		this.mine = mine;
@@ -47,23 +105,36 @@ public class DecisionMaker {
 	}
 
 
+
 	//constructeur privé : utilisé seulement pour evaluer la validité de certaines règles
 	private DecisionMaker() {
 		//cibleTempsAttentePelle=0;
 	}
 
 
+
+
+	public String getScoreFunctionString() {
+
+		return this.scoreFunctionString;
+	}
+
+
 	//donne un nouvel objectif a un camion sans but
 	//
-	public void giveObjectiveToCamion(Camion camion) {
+	public Station giveObjectiveToCamion(Camion camion) {
 
+		if(!camion.getCurrentStation().isDecharge) {
+			return selectReturnStation(camion, (Pelle) camion.getCurrentStation());
+		}
 		ArrayList<Pelle> pelles = mine.getPelles();
 
 		//System.out.println("objectif : "+this.scoreFunctionString);
 
 		if(this.scoreFunctionString.equals(OPTIMIZE_FUNCTION_STRING)) {
 			Pelle optimalPelle = giveOptimalObjectiveToCamion(camion);
-			camion.setObjective(optimalPelle);
+			return optimalPelle;
+			//camion.setObjective(optimalPelle);
 		}
 		else {
 			//on peut donner un objectif seulement si le camion est à une station
@@ -99,460 +170,234 @@ public class DecisionMaker {
 				}
 			}
 
+			return pelleMinScore;
 			//set la pelle avec le score MAX
 			//camion.setObjective(pelleMaxScore);
 
 			//set la pelle avec le score MIN
-			camion.setObjective(pelleMinScore);
+			//camion.setObjective(pelleMinScore);
 		}
 
 
 	}
 
 
+	public Pelle giveOptimalObjectiveToCamion(Camion camionToAssign) {
 
-	//fonction qui calcule le score associe a l'assignation d'un camion a une pelle
-	//
-	protected double computeDecisionScore(Camion camion, Pelle pelle, String scoreFunctionString) throws EvalError {
+		ArrayList<Pelle> optimizablePelles = mine.getPelles();
+		ArrayList<Camion> optimizableCamions = findOptimizableCamions(optimizablePelles, camionToAssign);
 
-		boolean objectiveIsConcentrator = false;
-		boolean objectiveIsSterile = false;
-		
-		for(int i = 0 ; i < mine.getConcentrateurs().size(); i++) {
-			if(camion.getObjective() == mine.getConcentrateurs().get(i)) {
-				objectiveIsConcentrator = true;
-				break;
-			}
-		}
-		for(int i = 0 ; i < mine.getSteriles().size(); i++) {
-			if(camion.getObjective() == mine.getSteriles().get(i)) {
-				objectiveIsSterile= true;
-				break;
-			}
-		}
-		
-		
-		//erreur si le camion n'est pas soit : 
-		//idle 
-		//en route vers sterile ou concentrateur
-		//vient d'arriver au sterile ou concentrateur
-		if(camion.getState() != Camion.ETAT_INACTIF &&
-				!(camion.getState() == Camion.ETAT_EN_ROUTE && (objectiveIsConcentrator|| objectiveIsSterile)) &&
-				!(camion.getState() == Camion.ETAT_JUSTE_ARRIVE && (objectiveIsConcentrator|| objectiveIsSterile))) {
-			//throw new IllegalArgumentException("le camion est dans un mauvais état");
-		}
+		HashMap<Camion, Pelle> optimalAssign = resoutProblemeAssignation(optimizableCamions, optimizablePelles);
 
+		if(!optimalAssign.containsKey(camionToAssign)) {
+			//System.out.println("Erreur d'assignation");
 
-
-
-		ArrayList<Camion> camions = mine.getCamions();
-
-
-
-		//calcule plein de métriques qui pourront etre utilisees par les etudiants
-		//
-
-
-		//--------------------------------------------------
-
-		//nombre aléatoire
-		double random = SimulationMine.random.nextDouble();
-
-		//si la fonction aleatoire est choisie, retourne tout de suite pour accelerer
-		if(scoreFunctionString.equals("aleatoire")){
-			return random;
-		}
-		
-		//de meme, si on choisit "optimal_assign", retourne immediatement la value pour accelerer
-		double optimalAssignCost = calculeOptimalAssignCost(camion, pelle);
-		
-		if(scoreFunctionString.equals("optimal_assign")){
-			return optimalAssignCost;
-		}
-		
-		//score max
-		double max = Double.MAX_VALUE;
-
-		double vitesse_moyenne_camion = camion.getAvgSpeed();
-		double temps_moyen_remplissage = camion.getChargeMax()/Pelle.AVERAGE_CHARGE_SPEED;
-
-		//indique 1 si la pelle est occupee
-		int pelleOccupee = 0;
-		if(pelle.getCamionEnTraitement() != null) pelleOccupee = 1;
-
-		//nombre de camions en attente
-		int nbCamionsEnAttente = pelle.getCamionsEnAttente().size();
-
-		//nombre de camions a la pelle (attente + remplissage)
-		int nbCamionsALaPelle = 0;
-		if(pelle.getCamionEnTraitement()!= null) {
-			nbCamionsALaPelle = nbCamionsEnAttente+1;
-		}
-
-		//distance entre le camion et la pelle (m)
-		//si le camion est en route pour un autre objectif, compte la distance entre camion et objectif + distance entre objectif et pelle
-
-		double distanceEntreCamionEtPelle = calculeDistanceEntreCamionEtPelle(camion, pelle);
-
-
-
-
-		//temps espere vers la pelle (s)
-		double tempsDeParcoursEspere = calculeTempsParcoursMoyen(distanceEntreCamionEtPelle, camion.getAvgSpeed());
-
-
-		//nombre de camions presentement en route pour la pelle
-		int nbCamionsEnRoutePourLaPelle = 0;
-		for(int i = 0 ; i < camions.size(); i++) {
-			if(camions.get(i).getState() == Camion.ETAT_EN_ROUTE && camions.get(i).getObjective() == pelle) {
-				nbCamionsEnRoutePourLaPelle++;
-			}
-		}
-
-		//temps restant avant que la pelle n'aie plus de travail (en considerant seulement les camions en attente)
-		//
-		double tempsRestantAvantFinPelle = calculeTempsRestantAvantFinPelle(pelle);
-		Camion camionEnRemplissage = pelle.getCamionEnTraitement();
-		if(camionEnRemplissage != null) {
-
-			//temps de remplissage restant = charge restante / vitesse moyenne charge
-			double esperanceTempsRemplissageRestant = camionEnRemplissage.getChargeRemaining()/Pelle.AVERAGE_CHARGE_SPEED;
-
-			tempsRestantAvantFinPelle = esperanceTempsRemplissageRestant + pelle.getCamionsEnAttente().size()*camion.getChargeMax()/Pelle.AVERAGE_CHARGE_SPEED;
-		}
-
-
-		//temps espere avant le debut du remplissage
-		//
-		double tempsEspereAvantDebutRemplissage = calculeTempsEspereAvantRemplissage(camion, pelle);
-
-		//temps espere d'attente de la pelle
-		//
-
-
-		//attente esperee du camion
-		//
-		double attenteEspereeCamion = tempsEspereAvantDebutRemplissage - tempsDeParcoursEspere;
-		if(attenteEspereeCamion < 0) {
-			attenteEspereeCamion = 0;
-		}
-
-		//attente esperee de la pelle (compte seulement le temps ou la pelle attend pour le camion courant, pas pour ceux deja en route!)
-		//peut etre négatif, signifiant que le camion ira en attente.
-		//
-		double attenteEspereePelle = tempsDeParcoursEspere - tempsEspereAvantDebutRemplissage;
-
-		double penaliteQuadAttentePelle = calculePenaliteQuadAttentePelle(attenteEspereePelle, pelle.cibleAttentePelleSeconds());
-
-		
-		
-		double penaliteQuadAttenteCamion = calculePenaliteQuadAttenteCamion(attenteEspereeCamion, pelle.cibleAttenteCamionSeconds());
-
-
-		Interpreter interpreter = new Interpreter();  // Construct an interpreter
-		// Eval a statement and get the result
-
-
-
-
-		interpreter.set("x1", vitesse_moyenne_camion);
-		interpreter.set("x2", pelleOccupee);
-		interpreter.set("x3", random);
-		interpreter.set("aleatoire", random);
-		interpreter.set("x4", max);
-		interpreter.set("t1", temps_moyen_remplissage);
-		interpreter.set("t2", tempsDeParcoursEspere);
-		interpreter.set("t3", tempsRestantAvantFinPelle);
-		interpreter.set("t4", tempsEspereAvantDebutRemplissage);
-		interpreter.set("t5", attenteEspereeCamion);
-		interpreter.set("t6", attenteEspereePelle);
-		interpreter.set("d1", distanceEntreCamionEtPelle);
-		interpreter.set("n1", nbCamionsEnAttente);
-		interpreter.set("n2", nbCamionsALaPelle);
-		interpreter.set("n3", nbCamionsEnRoutePourLaPelle);
-
-		interpreter.set("ecart_cible_quadratique", penaliteQuadAttentePelle);
-
-		interpreter.set("optimal_assign", optimalAssignCost);
-
-		interpreter.eval("double score = "+ scoreFunctionString); 
-
-		double score = (double) interpreter.get("score");
-		if(score == Double.POSITIVE_INFINITY) {
-			score = Double.MAX_VALUE;
-		}
-		if(score == Double.NEGATIVE_INFINITY) {
-			score = -Double.MAX_VALUE;
-		}
-
-		return score;
-
-	}
-
-
-
-
-	protected double calculePenaliteQuadAttenteCamion(double attenteEspereeCamionSeconds, double cibleAttenteCamionSeconds) {
-return (attenteEspereeCamionSeconds-cibleAttenteCamionSeconds)*Math.abs((attenteEspereeCamionSeconds-cibleAttenteCamionSeconds));
-	}
-
-
-	protected double calculeOptimalAssignCost(Camion camion, Pelle pelle) {
-
-		
-		//distance entre le camion et la pelle (m)
-		//si le camion est en route pour un autre objectif, compte la distance entre camion et objectif + distance entre objectif et pelle
-
-		double distanceEntreCamionEtPelle = calculeDistanceEntreCamionEtPelle(camion, pelle);
-
-		//temps espere vers la pelle (s)
-		double tempsDeParcoursEspere = calculeTempsParcoursMoyen(distanceEntreCamionEtPelle, camion.getAvgSpeed());
-
-
-		//temps espere avant le debut du remplissage
-		//
-		double tempsEspereAvantDebutRemplissage = calculeTempsEspereAvantRemplissage(camion, pelle);
-
-		//temps espere d'attente de la pelle
-		//
-
-		//temps espere avant que la pelle termine sa file d'attente actuelle
-		double tempsRestantAvantFinPelle = calculeTempsRestantAvantFinPelle(pelle);
-		
-		//attente esperee du camion
-		//
-		double attenteEspereeCamion = tempsEspereAvantDebutRemplissage - tempsDeParcoursEspere;
-		if(attenteEspereeCamion < 0) {
-			attenteEspereeCamion = 0;
-		}
-		
-		
-
-		//attente esperee de la pelle (compte seulement le temps ou la pelle attend pour le camion courant, pas pour ceux deja en route!)
-		//peut etre négatif, signifiant que le camion ira en attente.
-		//
-		//double attenteEspereePelle = tempsDeParcoursEspere - tempsEspereAvantDebutRemplissage;
-		double attenteEspereePelle = tempsDeParcoursEspere - tempsRestantAvantFinPelle +pelle.getCurrentWaitingPeriod();
-		if(attenteEspereePelle > pelle.cibleAttentePelleSeconds()){
-			attenteEspereePelle = pelle.cibleAttentePelleSeconds();
-		}
-		//si négatif, remet a zero
-		//if(attenteEspereePelle < 0){
-			//attenteEspereePelle = 0; 
-		//}		
-
-		//System.out.println("attente esperee pelle "+attenteEspereePelle+" vs cible attente pelle "+pelle.cibleAttentePelleSeconds());
-		//System.out.println("attente esperee camion "+attenteEspereeCamion);
-		//convertis en secondes pour éviter instabilités
-		//
-		double penaliteQuadAttentePelle = calculePenaliteQuadAttentePelle(attenteEspereePelle/3600., pelle.cibleAttentePelleSeconds()/3600.);
-
-		double penaliteQuadAttenteCamion = calculePenaliteQuadAttenteCamion(attenteEspereeCamion/3600.,0);// pelle.cibleAttenteCamionSeconds()/3600.);
-
-		//System.out.println("penalite attente pelle "+penaliteQuadAttentePelle);
-		//System.out.println("penalite attente camion "+penaliteQuadAttenteCamion);
-		
-		//System.out.println("total "+(penaliteQuadAttentePelle+penaliteQuadAttenteCamion));
-		
-		//System.out.println("");
-		
-		
-		//System.out.println("attente esperee pelle "+attenteEspereePelle);
-		//System.out.println("cible attente camion "+pelle.cibleAttenteCamionSeconds());
-		//System.out.println("attente esperee camion "+attenteEspereeCamion);
-		//System.out.println("score camion "+penaliteQuadAttenteCamion);
-		//System.out.println("score pelle "+penaliteQuadAttentePelle);
-
-		return penaliteQuadAttentePelle+penaliteQuadAttenteCamion;
-	}
-
-
-	protected double calculePenaliteQuadAttentePelle(double attenteEspereePelle, double cibleTempsAttentePelle) {
-
-		//System.out.println("test "+cibleTempsAttentePelle);
-		//en minute pour eviter instabilites
-		double ecartCible = (attenteEspereePelle-cibleTempsAttentePelle);
-
-
-		//System.out.println("attenteEspereePelle "+attenteEspereePelle);
-		/*if(ecartCible > 0) {
-			return ecartCible*ecartCible;
 		}
 		else {
-			return 0.5*ecartCible*ecartCible;
-		}*/
-
-		return -ecartCible*Math.abs(ecartCible);
-		//return ecartCible*ecartCible;
-		//return attenteEspereePelle*attenteEspereePelle;
+			//System.out.println("je retourne la pelle "+optimalAssign.get(camionToAssign).getId());
+			return optimalAssign.get(camionToAssign);
+		}
+		throw new IllegalStateException();
 	}
 
 
-	//distance entre le camion et la pelle (m)
-	//si le camion est en route pour un autre objectif, compte la distance entre camion et objectif + distance entre objectif et pelle
-	protected double calculeDistanceEntreCamionEtPelle(Camion camion, Pelle pelle) {
-		double distanceEntreCamionEtPelle = camion.getLocation().distance(pelle.getLocation());
-		//si le camion est deja en route vers une autre destination (sterile ou concentrateur) prend la distance jusqu'a la destination, 
-		//plus la distance entre la destination et la pelle
-		if(camion.getObjective() != null && camion.getObjective() != pelle ) {
-			distanceEntreCamionEtPelle =  camion.getLocation().distance(camion.getObjective().getLocation())+ camion.getObjective().getLocation().distance(pelle.getLocation());
+	public void setScoreFunctionString(String text) {
+		this.scoreFunctionString = text;
 
-		}
-		return distanceEntreCamionEtPelle;
 	}
 
 
-	protected double calculeTempsRestantAvantFinPelle(Pelle pelle) {
-		double tempsRestantAvantFinPelle = 0;
-		Camion camionEnRemplissage = pelle.getCamionEnTraitement();
-		if(camionEnRemplissage != null && camionEnRemplissage.getChargeRemaining()>0) {
-			double chargeRestante = camionEnRemplissage.getChargeRemaining();
-			//System.out.println("charge actuelle :"+chargeActuelle);
-			//System.out.println("charge restante :"+chargeRestante);
-			//temps de remplissage restant = temps de charge moyen * fraction de charge restante
-			double esperanceTempsRemplissageRestant = chargeRestante/Pelle.AVERAGE_CHARGE_SPEED;
-			tempsRestantAvantFinPelle = esperanceTempsRemplissageRestant + pelle.getCamionsEnAttente().size()*camionEnRemplissage.getChargeMax()/Pelle.AVERAGE_CHARGE_SPEED;
+	private double calculeTempsAvantDispo(Camion camion) {
+		
+		
+		
+		if(camion.getState() == Camion.ETAT_JUSTE_ARRIVE) {
+			throw new IllegalArgumentException("impossible d'évaluer le temps avant dispo pour un camion qui vient juste d'arriver");
 		}
-		return tempsRestantAvantFinPelle;
+		else if(camion.getState() == Camion.ETAT_EN_TRAITEMENT && !camion.getCurrentStation().isDecharge) {
+			throw new IllegalArgumentException("impossible d'évaluer le temps avant dispo pour un camion en train de se faire traiter à une pelle");
+		}
+		else if(camion.getState() == Camion.ETAT_ATTENTE&& !camion.getCurrentStation().isDecharge) {
+			throw new IllegalArgumentException("impossible d'évaluer le temps avant dispo pour un camion en attente à une pelle");
+		}
+		else if(camion.getState()== Camion.ETAT_EN_ROUTE && !camion.getObjective().isDecharge) {
+			throw new IllegalArgumentException("impossible d'évaluer le temps avant dispo pour un camion en route vers une pelle");
+		}
+	
+	
+		
+		//si le camion est inactif, il est disponible MAINTENANT
+		//
+		else if(camion.getState()== Camion.ETAT_INACTIF) {
+			return 0;
+		}
+		//si le camion est en route pour se faire décharger
+		else if(camion.getState() == Camion.ETAT_EN_ROUTE && camion.getObjective().isDecharge) {
+			Station objective = camion.getObjective();
+			//temps avant d'arriver
+			double distance = camion.getLocation().distance(objective.getLocation());
+			double tempsDeplacement = distance/(camion.getSpeed()*mine.getMeteoFactor());
+	
+	
+			//temps avant que la station ne commence à traiter le camion
+			double tempsTraitementCurrent = 0;
+			if(camion.getObjective().getCamionEnTraitement()!= null) {
+				tempsTraitementCurrent = objective.getCamionEnTraitement().getCharge()/objective.averageTraitementSpeed();
+			}
+			double qteATraiter = 0;
+			//ajoute les camion en route vers la pelle et plus pres
+			for(int i = 0 ; i < mine.getCamions().size(); i++) {
+				Camion c = mine.getCamions().get(i);
+				if(c.getState() == Camion.ETAT_EN_ROUTE && 
+						c.getObjective().equals(objective) && 
+						c.getLocation().distance(objective.getLocation())/c.getAvgSpeed() < distance/camion.getAvgSpeed()) {
+					qteATraiter+=c.getCharge();
+				}
+				else if(c.getState() == Camion.ETAT_ATTENTE && c.getCurrentStation().equals(objective) ) {
+					qteATraiter+=c.getCharge();
+				}
+			}
+			double tempsFileAttente = tempsTraitementCurrent+qteATraiter/objective.averageTraitementSpeed();
+	
+			//temps avant que le camion ne commence a etre traite = max{tempsDeplacement, tempsFileAttente}
+			double tempsTotal = tempsFileAttente;
+			if(tempsDeplacement>tempsFileAttente) {
+				tempsTotal = tempsDeplacement;
+			}
+	
+			//on ajoute le temps de traitement
+			tempsTotal += camion.getCharge()/objective.averageTraitementSpeed();
+			return tempsTotal;
+		}
+		//si le camion est en déchargement
+		else if(camion.getState() == Camion.ETAT_EN_TRAITEMENT && camion.getCurrentStation().isDecharge) {
+			return camion.getCharge()/camion.getObjective().averageTraitementSpeed();
+	
+		}
+		//si le camion est en attente à la station de déchargement
+		else if(camion.getState() == Camion.ETAT_ATTENTE && camion.getCurrentStation().isDecharge) {
+			//calcule le temps de decharge du camion courant, plus celui des camions en attente AVANT, plus le temps de décharge du camion.
+			Station objective = camion.getCurrentStation();
+			if(objective.getCamionEnTraitement() == null) {
+				throw new IllegalStateException("Impossible d'avoir un camion en attente mais pas de camion en traitement!");
+			}
+	
+			double temps = objective.getCamionEnTraitement().getCharge()/objective.averageTraitementSpeed();
+			double qteATraiter = 0;
+			for(int i = 0 ; i < objective.getCamionsEnAttente().size(); i ++) {
+				if(objective.getCamionsEnAttente().get(i).equals(camion)) {
+					qteATraiter += objective.getCamionsEnAttente().get(i).getCharge();
+					break;
+				}
+				else {
+					qteATraiter += objective.getCamionsEnAttente().get(i).getCharge();
+				}
+			}
+			temps += qteATraiter += objective.averageTraitementSpeed();
+			return temps;
+		}
+		//etat du camion non valide pour une raison quelconque
+		else {
+			throw new IllegalStateException("état du camion non valide pour une raison inconnue.");
+		}
 	}
 
 
-	protected double calculeTempsEspereAvantRemplissage(Camion camion, Pelle pelle) {
-		boolean debug = false;
+	private ArrayList<Camion> findOptimizableCamions(ArrayList<Pelle> optimizablePelles, Camion camionToAssign) {
+		ArrayList<Camion> optimisableCamions = new ArrayList<Camion>();
 
-
-
-		double distanceCamion = calculeDistanceEntreCamionEtPelle(camion, pelle);
-
-
-		double tempsParcoursRestantCamionOpt = calculeTempsParcoursMoyen(distanceCamion, camion.getAvgSpeed());
-		if(debug) {
-			System.out.println("\ndebut calculeTempsEspereAvantRemplissage");
-		}
+		optimisableCamions.add(camionToAssign);
 
 		@SuppressWarnings("unchecked")
+		//liste des potentiels camions
 		ArrayList<Camion> camionsClone = (ArrayList<Camion>) mine.getCamions().clone();
 
-		//ordonne les camions selon le temps pour arriver a la pelle (croisssant)
-		ArrayList<Camion> orderedCamionsEnRoute = new ArrayList<Camion>();
+		//enleve le camion a assignere de la liste des candidats, puisqu'il doit absolument
+		//etre optimise (on le rajoute a la fin)
+		camionsClone.remove(camionToAssign);
 
 
-		//trouve le camion qui arrivera le prochain a la pelle
+		@SuppressWarnings("unchecked")
+		ArrayList<Camion> camionsCandidates = (ArrayList<Camion>) camionsClone.clone();
 
-		Camion camionPlusPres= null;
-
-		do {
-			camionPlusPres = null;
-			double minTempsParcours = Double.MAX_VALUE;
-			for(int i = 0 ; i < camionsClone.size(); i++) {
-
-				Camion camionIter = camionsClone.get(i);
-				if(camionIter.getState() == Camion.ETAT_EN_ROUTE && camionIter.getObjective() == pelle) {
-					double distance = camionIter.getLocation().distance(pelle.getLocation());
-					double tempsParcoursRestant = calculeTempsParcoursMoyen(distance, camionIter.getAvgSpeed());
-					//2e condition : on ne considere pas les camions qui arrivent apres le camion a optimiser
-					//
-					if(tempsParcoursRestant < minTempsParcours && tempsParcoursRestant < tempsParcoursRestantCamionOpt) {
-						camionPlusPres = camionIter;
-						minTempsParcours = tempsParcoursRestant;
+		//si n pelles, trouve les n-1 camions qui seront disponibles le plus rapidement.
+		for(int i = 0 ; i < optimizablePelles.size()-1; i++) {
+			Camion bestCamion = null;
+			double bestTemps = Double.MAX_VALUE;
+			for(int j = 0 ; j < camionsClone.size(); j++) {
+				//si le camion se qualifie
+				//
+				Camion c = camionsClone.get(j);
+				if((c.getState() == Camion.ETAT_EN_ROUTE && c.getObjective().isDecharge) ||
+						(c.getState() == Camion.ETAT_ATTENTE && c.getCurrentStation().isDecharge)||
+						(c.getState() == Camion.ETAT_EN_TRAITEMENT) && c.getCurrentStation().isDecharge) {
+					double temps = calculeTempsAvantDispo(camionsClone.get(j));
+					if(temps < bestTemps) {
+						bestCamion = camionsClone.get(j);
+						bestTemps = temps;
 					}
 				}
-
 			}
-			if(camionPlusPres!= null) {
-				if(debug) {System.out.println("ajoute un camion a "+minTempsParcours+"secondes de la pelle");}
-				orderedCamionsEnRoute.add(camionPlusPres);
-				camionsClone.remove(camionPlusPres);
-			}
-
-		}while(camionPlusPres != null);
-
-		//distance entre le camion et la pelle (m)
-		double distanceEntreCamionEtPelle = camion.getLocation().distance(pelle.getLocation());
-
-		//temps espere vers la pelle (m/s)
-		double tempsDeParcoursEspere = calculeTempsParcoursMoyen(distanceEntreCamionEtPelle, camion.getAvgSpeed());
-
-		//temps espere avant que la pelle termine sa file d'attente actuelle
-		double tempsRestantAvantFinPelle = calculeTempsRestantAvantFinPelle(pelle);
-
-
-		if(debug) {
-			System.out.println("temps d'attente a la pelle : "+ tempsRestantAvantFinPelle+" secondes" );
-		}
-
-		//nombre de camions en route vers la pelle
-		int nbCamionsEnRoute = orderedCamionsEnRoute.size();
-
-
-
-		orderedCamionsEnRoute.add(camion);
-
-
-		for(int i = 0; i < orderedCamionsEnRoute.size(); i++) {
-
-			Camion camionIter = orderedCamionsEnRoute.get(i);
-			double distance = camionIter.getLocation().distance(pelle.getLocation());
-			double tempsParcoursRestant = calculeTempsParcoursMoyen(distance, camionIter.getAvgSpeed());
-			if(debug) {
-				System.out.println("Camion a "+tempsParcoursRestant+" secondes de la pelle");
-			}
-		}
-
-		//si aucun camion en route, le temps avant le debut du chargement = max{tempsRestantAvantFinPelle, tempsDeParcoursEspere
-		if(nbCamionsEnRoute == 0) {
-			if(tempsDeParcoursEspere > tempsRestantAvantFinPelle) {
-				if(debug) {
-					System.out.println("Retourne temps de parcours espere"+ tempsDeParcoursEspere);
-				}
-				return tempsDeParcoursEspere;
+			if(bestCamion == null) {
+				break;
 			}
 			else {
-				if(debug) {
-					System.out.println("Retourne tempsRestantAvantFinPelle"+ tempsRestantAvantFinPelle);
-				}
-				return tempsRestantAvantFinPelle;
+				camionsClone.remove(bestCamion);
+				optimisableCamions.add(bestCamion);
+			}
+		}
+		return(optimisableCamions);
+		/*
+		//les seuls candidats sont ceux qui :
+		// - sont en déplacement vers le concentrateur ou le stérile
+		// - ceux qui sont juste arrives au concentrateur ou au sterile
+		// - ceux qui sont IDLE au concentrateur ou au sterile
+		for(int i = 0 ; i < camionsClone.size(); i++) {
+			Camion camion = camionsClone.get(i);
+
+
+			if(camion.getState() != Camion.ETAT_JUSTE_ARRIVE &&
+					camion.getState() != Camion.ETAT_EN_ROUTE &&  
+					camion.getState() != Camion.ETAT_INACTIF) {
+				camionsCandidates.remove(camion);
+			}
+			else if(!camion.getObjective().equals(mine.getSterile()) &&
+					!camion.getObjective().equals(mine.getConcentrateur())) {
+				camionsCandidates.remove(camion);
 			}
 
 		}
-		else {
-			//Ok, ici c'est complique... On veut calculer le temps avant que le camion puisse commencer a se faire remplir. 
-			//Cela est égal à : max{ temps de fin de remplissage du camion précédent , temps pour se rendre  }
-			// et pour obtenir " temps de fin de remplissage du camion précédent", il faut obtenir le temps de début du camion précédent par la meme
-			// formule
+
+		//enleve le camion le plus loin camion jusqu'a ce qu'on ait le bon nombre de candidat
+		//
+		while(camionsCandidates.size() > optimizablePelles.size()-1) {
+			double maxDist = 0;
+			Camion plusLoin = camionsCandidates.get(0);
+
+			//trouve le camion le plus loin. A la sortie de la boucle, plusLoin est soit le camion le plus loin,
+			//soit le premier camion de la liste si aucun candidat n'est en deplacement
 			//
-			Camion premierCamion = orderedCamionsEnRoute.get(0);
-			double distance = premierCamion.getLocation().distance(pelle.getLocation());
-			double tempsParcoursRestant = calculeTempsParcoursMoyen(distance, premierCamion.getAvgSpeed());
-			double tempsDebutChargementCamionI = tempsParcoursRestant;
-			if(tempsParcoursRestant < tempsRestantAvantFinPelle) {
-				tempsDebutChargementCamionI = tempsRestantAvantFinPelle;
-			}
-			for(int i = 1; i < orderedCamionsEnRoute.size(); i++) {
-
-				Camion camionIter = orderedCamionsEnRoute.get(i);
-				distance = camionIter.getLocation().distance(pelle.getLocation());
-				tempsParcoursRestant = calculeTempsParcoursMoyen(distance, camionIter.getAvgSpeed());
-
-				tempsDebutChargementCamionI = tempsDebutChargementCamionI + camionIter.getChargeMax()/Pelle.AVERAGE_CHARGE_SPEED;
-				if(tempsDebutChargementCamionI < tempsParcoursRestant ) {
-					tempsDebutChargementCamionI = tempsParcoursRestant;
+			for(int i = 0 ; i < camionsCandidates.size(); i++) {
+				Camion c = camionsCandidates.get(i);
+				if(c.getState() == Camion.ETAT_EN_ROUTE) {
+					double distanceRestante = c.getObjective().getLocation().distance(c.getLocation());
+					if(distanceRestante > maxDist) {
+						maxDist = distanceRestante;
+						plusLoin = c;
+					}
 				}
 			}
-			if(debug) {
-				System.out.println("debut calculeTempsEspereAvantRemplissage");
-				System.out.println("retourne"+ tempsDebutChargementCamionI);
-			}
-
-			return tempsDebutChargementCamionI;
+			camionsCandidates.remove(plusLoin);
 
 		}
+
+
+		camionsCandidates.add(camionToAssign);
+		return camionsCandidates;
+		 */
 	}
 
 
-	protected double calculeTempsParcoursMoyen(double distance, double speed) {	
-		return distance/(speed*mine.getMeteoFactor());			
-	}
 
 
 	//cree et resout un probleme d'affectation de camions a des pelles
@@ -577,7 +422,6 @@ return (attenteEspereeCamionSeconds-cibleAttenteCamionSeconds)*Math.abs((attente
 
 
 		try {
-			// Cree un probleme avec 8 contraintes, 
 			solver = LpSolve.makeLp(2*pelles.size(), camions.size()*pelles.size());
 			if(!debug) {
 
@@ -694,114 +538,305 @@ return (attenteEspereeCamionSeconds-cibleAttenteCamionSeconds)*Math.abs((attente
 	}
 
 
+	//distance entre le camion et la pelle (m)
+	//si le camion est en route pour un autre objectif, compte la distance entre camion et objectif + distance entre objectif et pelle
+	protected double calculeDistanceEntreCamionEtStation(Camion camion, Station station) {
+		double distanceEntreCamionEtPelle = camion.getLocation().distance(station.getLocation());
+		//si le camion est deja en route vers une autre destination (sterile ou concentrateur) prend la distance jusqu'a la destination, 
+		//plus la distance entre la destination et la pelle
+		if(camion.getObjective() != null && !camion.getObjective().equals(station) ) {
+			distanceEntreCamionEtPelle =  camion.getLocation().distance(camion.getObjective().getLocation())+ camion.getObjective().getLocation().distance(station.getLocation());
 
-	public Pelle giveOptimalObjectiveToCamion(Camion camionToAssign) {
+		}
+		return distanceEntreCamionEtPelle;
+	}
 
-		ArrayList<Pelle> optimizablePelles = mine.getPelles();
-		ArrayList<Camion> optimizableCamions = findOptimizableCamions(optimizablePelles, camionToAssign);
 
-		HashMap<Camion, Pelle> optimalAssign = resoutProblemeAssignation(optimizableCamions, optimizablePelles);
 
-		if(!optimalAssign.containsKey(camionToAssign)) {
-			//System.out.println("Erreur d'assignation");
+	protected double calculeOptimalAssignCost(Camion camion, Pelle pelle) {
+		// - si le camion est en route vers un concentrateur ou un stérile, 
+		//ou si le camion est déjà à un concentrateur ou un stérile, on calcule le temps avant qu'il arrive à la pelle
+		// - sinon, retourne 0 (dans le problème d'assignation, le score sera 0 pour toutes les pelles, donc c'est comme si on ne prenait pas en compte le camion).
+
+		
+		if( (camion.getState() == Camion.ETAT_EN_ROUTE && camion.getObjective().isDecharge == true) || //si le camion va se faire décharger
+				(camion.getState() == Camion.ETAT_EN_TRAITEMENT && camion.getCurrentStation().isDecharge == true) || //si le camion est en traitement
+				(camion.getState()== Camion.ETAT_ATTENTE && camion.getCurrentStation().isDecharge == true) //si le camion est en attente de se faire décharger
+				) {
+			
+			Station s = null;
+			if(camion.getState() == Camion.ETAT_EN_ROUTE) {
+				s = camion.getObjective();
+			}
+			else {
+				s = camion.getCurrentStation();
+			}
+			double tempsAvantDispo = calculeTempsAvantDispo(camion);
+			
+			double distanceEntreStationEtPelle = s.getLocation().distance(pelle.getLocation());
+			double tempsAvantArriveeAPelle = tempsAvantDispo + distanceEntreStationEtPelle/(camion.getAvgSpeed()*mine.getMeteoFactor());
+			
+			//temps avant que pelle soit disponible
+			//
+			double qteAvantDisponible = 0;
+			if(pelle.getCamionEnTraitement() != null) {
+				qteAvantDisponible += pelle.getCamionEnTraitement().getChargeMax()-pelle.getCamionEnTraitement().getCharge();
+			}
+			
+			//file d'attente
+			for(int i = 0 ; i< pelle.getCamionsEnAttente().size(); i++) {
+				qteAvantDisponible += pelle.getCamionsEnAttente().get(i).getChargeMax();
+			}
+			
+			//camions se dirigeant vers la pelle qui sont plus proche
+			//
+			for(int i = 0 ; i < mine.getCamions().size(); i++) {
+				Camion c = mine.getCamions().get(i);
+				if(c.getState() == Camion.ETAT_EN_ROUTE && c.getObjective().equals(pelle) && c.getLocation().distance(pelle.getLocation()) < distanceEntreStationEtPelle) {
+					qteAvantDisponible += c.getChargeMax();
+				}
+			}
+			
+			double tempsAvantPelleDispo = qteAvantDisponible/pelle.averageTraitementSpeed();
+			
+			//attente esperee du camion
+			//
+			double attenteEspereeCamion = tempsAvantPelleDispo - tempsAvantArriveeAPelle;
+			if(attenteEspereeCamion < 0) {
+				attenteEspereeCamion = 0;
+			}
+			
+			double attenteEspereePelle = tempsAvantArriveeAPelle - tempsAvantPelleDispo;
+			if(pelle.getState() == Station.STATION_STATE_IDLE) {
+				attenteEspereePelle += pelle.getCurrentWaitingPeriod();
+			}
+			if(attenteEspereePelle < 0) {
+				attenteEspereePelle = 0;
+			}
+			
+			
+			
+			double penaliteQuadAttentePelle = calculePenaliteQuadAttentePelle(attenteEspereePelle/3600., pelle.cibleAttentePelleSeconds()/3600.);
+
+			double penaliteQuadAttenteCamion = calculePenaliteQuadAttenteCamion(attenteEspereeCamion/3600.,0);// pelle.cibleAttenteCamionSeconds()/3600.);
+			
+			System.out.println(pelle.getId());
+			if(pelle.getId().compareTo("pelle3")== 0 || true) {
+				
+				System.out.println("attente esperee pelle  : "+attenteEspereePelle);
+				System.out.println("attente esperee camion : "+attenteEspereeCamion);
+				System.out.println("penalite pelle         : "+penaliteQuadAttentePelle);
+				System.out.println("penalite camion        : "+penaliteQuadAttenteCamion);
+				
+			}
+			System.out.println("score                  : "+penaliteQuadAttentePelle+penaliteQuadAttenteCamion);
+			return penaliteQuadAttentePelle+penaliteQuadAttenteCamion;
+		}
+		else {
+			return 0;
+		}
+
+	}
+
+	protected double calculePenaliteQuadAttenteCamion(double attenteEspereeCamionSeconds, double cibleAttenteCamionSeconds) {
+		return (attenteEspereeCamionSeconds-cibleAttenteCamionSeconds)*((attenteEspereeCamionSeconds-cibleAttenteCamionSeconds));
+	}
+
+
+	protected double calculePenaliteQuadAttentePelle(double attenteEspereePelle, double cibleTempsAttentePelle) {
+
+		//System.out.println("test "+cibleTempsAttentePelle);
+		//en minute pour eviter instabilites
+		double ecartCible = (attenteEspereePelle-cibleTempsAttentePelle);
+
+
+		//System.out.println("attenteEspereePelle "+attenteEspereePelle);
+		/*if(ecartCible > 0) {
+			return ecartCible*ecartCible;
+		}
+		else {
+			return 0.5*ecartCible*ecartCible;
+		}*/
+
+		return ecartCible*(ecartCible);
+		//return ecartCible*ecartCible;
+		//return attenteEspereePelle*attenteEspereePelle;
+	}
+
+
+	//-----------------------------------------------------------------
+	// Calcule le tmeps espere avant que le camion commence à se faire traiter à la pelle
+	// En considérant qu'il s'y rend dès que possible
+	//-----------------------------------------------------------------
+	protected double calculeTempsEspereAvantTraitement(Camion camion, Station station) {
+		boolean debug = false;
+
+		//considere que le camion est libre
+		//si on veut que cette méthode fonctionne pour un camion dans un état quelconque, 
+		//il faut tenir en compte le temps pour aller se faire remplir, puis vider. Considérant qu'il peut
+		//y avoir plusieurs stations de vidage possible, on commence à devoir faire des choix, 
+		//estimer des quantités (par exemple le nombre de camions aux stations de remplissage/vidage, etc). 
+		//Bref, ça deviendrait vite compliqué.
+		//
+		if( camion.getState()!= Camion.ETAT_INACTIF) {
+			throw new IllegalStateException("Le camion doit etre inactif");
+		}
+		
+		
+		
+		double distanceCamion = calculeDistanceEntreCamionEtStation(camion, station);
+
+
+		double tempsParcoursRestantCamionOpt = distanceCamion/(camion.getAvgSpeed()*mine.getMeteoFactor());
+		if(debug) {
+			System.out.println("\ndebut calculeTempsEspereAvantRemplissage");
+		}
+
+		@SuppressWarnings("unchecked")
+		ArrayList<Camion> camionsClone = (ArrayList<Camion>) mine.getCamions().clone();
+
+		//ordonne les camions selon le temps pour arriver a la pelle (croisssant)
+		ArrayList<Camion> orderedCamionsEnRoute = new ArrayList<Camion>();
+
+
+		//trouve le camion qui arrivera le prochain a la pelle
+
+		Camion camionPlusPres= null;
+
+		do {
+			camionPlusPres = null;
+			double minTempsParcours = Double.MAX_VALUE;
+			for(int i = 0 ; i < camionsClone.size(); i++) {
+
+				Camion camionIter = camionsClone.get(i);
+				if(camionIter.getState() == Camion.ETAT_EN_ROUTE && camionIter.getObjective() == station) {
+					double distance = camionIter.getLocation().distance(station.getLocation());
+					double tempsParcoursRestant = distance/( camionIter.getAvgSpeed()*mine.getMeteoFactor());
+					//2e condition : on ne considere pas les camions qui arrivent apres le camion a optimiser
+					//
+					if(tempsParcoursRestant < minTempsParcours && tempsParcoursRestant < tempsParcoursRestantCamionOpt) {
+						camionPlusPres = camionIter;
+						minTempsParcours = tempsParcoursRestant;
+					}
+				}
+
+			}
+			if(camionPlusPres!= null) {
+				if(debug) {System.out.println("ajoute un camion a "+minTempsParcours+"secondes de la pelle");}
+				orderedCamionsEnRoute.add(camionPlusPres);
+				camionsClone.remove(camionPlusPres);
+			}
+
+		}while(camionPlusPres != null);
+
+		//distance entre le camion et la pelle (m)
+		double distanceEntreCamionEtPelle = camion.getLocation().distance(station.getLocation());
+
+		//temps espere vers la pelle (m/s)
+		double tempsDeParcoursEspere = distanceEntreCamionEtPelle/(camion.getAvgSpeed()*mine.getMeteoFactor());
+
+		//temps espere avant que la pelle termine sa file d'attente actuelle
+		double tempsRestantAvantFinPelle = calculeTempsRestantAvantFinPelle(station);
+
+
+		if(debug) {
+			System.out.println("temps d'attente a la pelle : "+ tempsRestantAvantFinPelle+" secondes" );
+		}
+
+		//nombre de camions en route vers la pelle
+		int nbCamionsEnRoute = orderedCamionsEnRoute.size();
+
+
+
+		orderedCamionsEnRoute.add(camion);
+
+
+		for(int i = 0; i < orderedCamionsEnRoute.size(); i++) {
+
+			Camion camionIter = orderedCamionsEnRoute.get(i);
+			double distance = camionIter.getLocation().distance(station.getLocation());
+			double tempsParcoursRestant = distance/( camionIter.getAvgSpeed()*mine.getMeteoFactor());
+			if(debug) {
+				System.out.println("Camion a "+tempsParcoursRestant+" secondes de la pelle");
+			}
+		}
+
+		//si aucun camion en route, le temps avant le debut du chargement = max{tempsRestantAvantFinPelle, tempsDeParcoursEspere}
+		if(nbCamionsEnRoute == 0) {
+			if(tempsDeParcoursEspere > tempsRestantAvantFinPelle) {
+				if(debug) {
+					System.out.println("Retourne temps de parcours espere"+ tempsDeParcoursEspere);
+				}
+				return tempsDeParcoursEspere;
+			}
+			else {
+				if(debug) {
+					System.out.println("Retourne tempsRestantAvantFinPelle"+ tempsRestantAvantFinPelle);
+				}
+				return tempsRestantAvantFinPelle;
+			}
 
 		}
 		else {
-			//System.out.println("je retourne la pelle "+optimalAssign.get(camionToAssign).getId());
-			return optimalAssign.get(camionToAssign);
-		}
-		throw new IllegalStateException();
-	}
-
-	private ArrayList<Camion> findOptimizableCamions(ArrayList<Pelle> optimizablePelles, Camion camionToAssign) {
-		ArrayList<Camion> optimisableCamions = new ArrayList<Camion>();
-
-		optimisableCamions.add(camionToAssign);
-
-		@SuppressWarnings("unchecked")
-		//liste des potentiels camions
-		ArrayList<Camion> camionsClone = (ArrayList<Camion>) mine.getCamions().clone();
-
-		//enleve le camion a assignere de la liste des candidats, puisqu'il doit absolument
-		//etre optimise (on le rajoute a la fin)
-		camionsClone.remove(camionToAssign);
-
-
-		@SuppressWarnings("unchecked")
-		ArrayList<Camion> camionsCandidates = (ArrayList<Camion>) camionsClone.clone();
-
-		//si n pelles, trouve les n-1 camions qui seront disponibles le plus rapidement.
-		for(int i = 0 ; i < optimizablePelles.size()-1; i++) {
-			Camion bestCamion = null;
-			double bestTemps = Double.MAX_VALUE;
-			for(int j = 0 ; j < camionsClone.size(); j++) {
-				double temps = calculeTempsAvantDispo(camionsClone.get(j));
-				if(temps < bestTemps) {
-					bestCamion = camionsClone.get(j);
-					bestTemps = temps;
-				}
-			}
-			camionsClone.remove(bestCamion);
-			optimisableCamions.add(bestCamion);
-
-		}
-		return(optimisableCamions);
-		/*
-		//les seuls candidats sont ceux qui :
-		// - sont en déplacement vers le concentrateur ou le stérile
-		// - ceux qui sont juste arrives au concentrateur ou au sterile
-		// - ceux qui sont IDLE au concentrateur ou au sterile
-		for(int i = 0 ; i < camionsClone.size(); i++) {
-			Camion camion = camionsClone.get(i);
-
-
-			if(camion.getState() != Camion.ETAT_JUSTE_ARRIVE &&
-					camion.getState() != Camion.ETAT_EN_ROUTE &&  
-					camion.getState() != Camion.ETAT_INACTIF) {
-				camionsCandidates.remove(camion);
-			}
-			else if(!camion.getObjective().equals(mine.getSterile()) &&
-					!camion.getObjective().equals(mine.getConcentrateur())) {
-				camionsCandidates.remove(camion);
-			}
-
-		}
-
-		//enleve le camion le plus loin camion jusqu'a ce qu'on ait le bon nombre de candidat
-		//
-		while(camionsCandidates.size() > optimizablePelles.size()-1) {
-			double maxDist = 0;
-			Camion plusLoin = camionsCandidates.get(0);
-
-			//trouve le camion le plus loin. A la sortie de la boucle, plusLoin est soit le camion le plus loin,
-			//soit le premier camion de la liste si aucun candidat n'est en deplacement
+			//Ok, ici c'est complique... On veut calculer le temps avant que le camion puisse commencer a se faire remplir. 
+			//Cela est égal à : max{ temps de fin de remplissage du camion précédent , temps pour se rendre  }
+			// et pour obtenir " temps de fin de remplissage du camion précédent", il faut obtenir le temps de début du camion précédent par la meme
+			// formule
 			//
-			for(int i = 0 ; i < camionsCandidates.size(); i++) {
-				Camion c = camionsCandidates.get(i);
-				if(c.getState() == Camion.ETAT_EN_ROUTE) {
-					double distanceRestante = c.getObjective().getLocation().distance(c.getLocation());
-					if(distanceRestante > maxDist) {
-						maxDist = distanceRestante;
-						plusLoin = c;
-					}
+			Camion premierCamion = orderedCamionsEnRoute.get(0);
+			double distance = premierCamion.getLocation().distance(station.getLocation());
+			double tempsParcoursRestant = distance/( premierCamion.getAvgSpeed()*mine.getMeteoFactor());
+			double tempsDebutChargementCamionI = tempsParcoursRestant;
+			if(tempsParcoursRestant < tempsRestantAvantFinPelle) {
+				tempsDebutChargementCamionI = tempsRestantAvantFinPelle;
+			}
+			for(int i = 1; i < orderedCamionsEnRoute.size(); i++) {
+
+				Camion camionIter = orderedCamionsEnRoute.get(i);
+				distance = camionIter.getLocation().distance(station.getLocation());
+				tempsParcoursRestant = distance/( camionIter.getAvgSpeed()*mine.getMeteoFactor());
+
+				tempsDebutChargementCamionI = tempsDebutChargementCamionI + camionIter.getChargeMax()/Pelle.AVERAGE_CHARGE_SPEED;
+				if(tempsDebutChargementCamionI < tempsParcoursRestant ) {
+					tempsDebutChargementCamionI = tempsParcoursRestant;
 				}
 			}
-			camionsCandidates.remove(plusLoin);
+			if(debug) {
+				System.out.println("debut calculeTempsEspereAvantRemplissage");
+				System.out.println("retourne"+ tempsDebutChargementCamionI);
+			}
+
+			return tempsDebutChargementCamionI;
 
 		}
-
-
-		camionsCandidates.add(camionToAssign);
-		return camionsCandidates;
-		 */
 	}
 
 
-	private double calculeTempsAvantDispo(Camion camion) {
-		
+	//-----------------------------------------------------------------------
+	// Calcule le temps restant avant que la pelle ne finisse de traiter
+	//	sa file d'attente actuelle (ne tiens pas compte des camions en route)
+	//-----------------------------------------------------------------------
+	protected double calculeTempsRestantAvantFinPelle(Station station) {
+		double tempsRestantAvantFinPelle = 0;
+		Camion camionEnRemplissage = station.getCamionEnTraitement();
+		if(camionEnRemplissage != null && camionEnRemplissage.getCharge() < camionEnRemplissage.getChargeMax()) {
+			double chargeRestante = camionEnRemplissage.getChargeMax() - camionEnRemplissage.getCharge();
+			for(int i = 0 ; i < station.getCamionsEnAttente().size(); i++) {
+				chargeRestante += station.getCamionsEnAttente().get(i).getChargeMax();
+			}
+			tempsRestantAvantFinPelle = chargeRestante/Pelle.AVERAGE_CHARGE_SPEED;
+		}
+		return tempsRestantAvantFinPelle;
+	}
+
+
+	//fonction qui calcule le score associe a l'assignation d'un camion a une pelle
+	//
+	protected double computeDecisionScore(Camion camion, Pelle pelle, String scoreFunctionString) throws EvalError {
+
 		boolean objectiveIsConcentrator = false;
 		boolean objectiveIsSterile = false;
-		
+
 		for(int i = 0 ; i < mine.getConcentrateurs().size(); i++) {
 			if(camion.getObjective() == mine.getConcentrateurs().get(i)) {
 				objectiveIsConcentrator = true;
@@ -814,148 +849,164 @@ return (attenteEspereeCamionSeconds-cibleAttenteCamionSeconds)*Math.abs((attente
 				break;
 			}
 		}
-		
-		//si le camion est inactif
+
+
+		//erreur si le camion n'est pas soit : 
+		//idle 
+		//en route vers sterile ou concentrateur
+		//vient d'arriver au sterile ou concentrateur
+		if(camion.getState() != Camion.ETAT_INACTIF &&
+				!(camion.getState() == Camion.ETAT_EN_ROUTE && (objectiveIsConcentrator|| objectiveIsSterile)) &&
+				!(camion.getState() == Camion.ETAT_JUSTE_ARRIVE && (objectiveIsConcentrator|| objectiveIsSterile))) {
+			//throw new IllegalArgumentException("le camion est dans un mauvais état");
+		}
+
+
+
+
+		ArrayList<Camion> camions = mine.getCamions();
+
+
+
+		//calcule plein de métriques qui pourront etre utilisees par les etudiants
 		//
-		if(camion.getState()== Camion.ETAT_INACTIF || camion.getState()== Camion.ETAT_JUSTE_ARRIVE) {
-			return 0;
+
+
+		//--------------------------------------------------
+
+		//nombre aléatoire
+		double random = SimulationMine.random.nextDouble();
+
+		//si la fonction aleatoire est choisie, retourne tout de suite pour accelerer
+		if(scoreFunctionString.equals("aleatoire")){
+			return random;
 		}
 
-		//camion en charge
+		//de meme, si on choisit "optimal_assign", retourne immediatement la value pour accelerer
+		double optimalAssignCost = calculeOptimalAssignCost(camion, pelle);
+
+		if(scoreFunctionString.equals(DecisionMaker.OPTIMAL_SCORE_FUNCTION_STRING)){
+			return optimalAssignCost;
+		}
+
+		//score max
+		double max = Double.MAX_VALUE;
+
+		double vitesse_moyenne_camion = camion.getAvgSpeed();
+		double temps_moyen_remplissage = camion.getChargeMax()/Pelle.AVERAGE_CHARGE_SPEED;
+
+		//indique 1 si la pelle est occupee
+		int pelleOccupee = 0;
+		if(pelle.getCamionEnTraitement() != null) pelleOccupee = 1;
+
+		//nombre de camions en attente
+		int nbCamionsEnAttente = pelle.getCamionsEnAttente().size();
+
+		//nombre de camions a la pelle (attente + remplissage)
+		int nbCamionsALaPelle = 0;
+		if(pelle.getCamionEnTraitement()!= null) {
+			nbCamionsALaPelle = nbCamionsEnAttente+1;
+		}
+
+		//distance entre le camion et la pelle (m)
+		//si le camion est en route pour un autre objectif, compte la distance entre camion et objectif + distance entre objectif et pelle
+
+		double distanceEntreCamionEtPelle = calculeDistanceEntreCamionEtStation(camion, pelle);
+
+
+
+
+		//temps espere vers la pelle (s)
+		double tempsDeParcoursEspere = distanceEntreCamionEtPelle/( camion.getAvgSpeed()*mine.getMeteoFactor());
+
+
+		//nombre de camions presentement en route pour la pelle
+		int nbCamionsEnRoutePourLaPelle = 0;
+		for(int i = 0 ; i < camions.size(); i++) {
+			if(camions.get(i).getState() == Camion.ETAT_EN_ROUTE && camions.get(i).getObjective() == pelle) {
+				nbCamionsEnRoutePourLaPelle++;
+			}
+		}
+
+		//temps restant avant que la pelle n'aie plus de travail (en considerant seulement les camions en attente)
 		//
-		else if(camion.getState() == Camion.ETAT_EN_CHARGE) {
-			Pelle p = (Pelle) camion.getCurrentStation();
-			Station stationRetour = selectReturnStation(camion, p);
-			double distance = p.getLocation().distance(stationRetour.getLocation());
-			double tempsChargeRestant = camion.getChargeRemaining()/p.AVERAGE_CHARGE_SPEED;
-			double tempsDeplacement = distance/camion.getAvgSpeed();
-			double tempsDecharge = camion.getChargeMax()/Sterile.AVERAGE_DECHARGE_SPEED;
-			return tempsChargeRestant+tempsDeplacement+tempsDecharge;
+		double tempsRestantAvantFinPelle = calculeTempsRestantAvantFinPelle(pelle);
+		Camion camionEnRemplissage = pelle.getCamionEnTraitement();
+		if(camionEnRemplissage != null) {
+
+			//temps de remplissage restant = charge restante / vitesse moyenne charge
+			double chargeRemaining = camionEnRemplissage.getChargeMax()-camionEnRemplissage.getCharge(); 
+			double esperanceTempsRemplissageRestant = chargeRemaining/Pelle.AVERAGE_CHARGE_SPEED;
+
+			tempsRestantAvantFinPelle = esperanceTempsRemplissageRestant + pelle.getCamionsEnAttente().size()*camion.getChargeMax()/Pelle.AVERAGE_CHARGE_SPEED;
 		}
-		//camion en route vers sterile ou concentrateur
+
+
+		//temps espere avant le debut du remplissage
 		//
-		else if(camion.getState() == Camion.ETAT_EN_ROUTE && (objectiveIsConcentrator || objectiveIsSterile)) {
-			double distance = camion.getLocation().distance(camion.getObjective().getLocation());
-			double tempsDeplacement = distance/camion.getAvgSpeed();
-			double tempsDecharge = camion.getChargeMax()/Sterile.AVERAGE_DECHARGE_SPEED;
-			return tempsDeplacement+tempsDecharge;
-		}
-		//camion en route vers pelle
+		double tempsEspereAvantDebutRemplissage = calculeTempsEspereAvantTraitement(camion, pelle);
+
+		//temps espere d'attente de la pelle
 		//
-		else if(camion.getState() == Camion.ETAT_EN_ROUTE && !objectiveIsConcentrator && !objectiveIsSterile ) {
-			Pelle p = (Pelle) camion.getObjective();
-			double tempsAvantDebutRemplissage = calculeTempsEspereAvantRemplissage(camion, (Pelle) camion.getObjective());
-			double tempsRemplissage = 100/p.AVERAGE_CHARGE_SPEED;
-			double tempsRetour = p.getLocation().distance(selectReturnStation(camion, p).getLocation())/camion.getAvgSpeed();
-			double tempsDecharge = camion.getChargeMax()/Sterile.AVERAGE_DECHARGE_SPEED;
-			return tempsAvantDebutRemplissage+ tempsRemplissage+tempsRetour+tempsDecharge;
 
+
+		//attente esperee du camion
+		//
+		double attenteEspereeCamion = tempsEspereAvantDebutRemplissage - tempsDeParcoursEspere;
+		if(attenteEspereeCamion < 0) {
+			attenteEspereeCamion = 0;
 		}
-		else if(camion.getState() == Camion.ETAT_ATTENTE) {
-			double stationChargeSpeed = 0;
-			if(objectiveIsConcentrator) {
-				stationChargeSpeed = Concentrateur.AVERAGE_DECHARGE_SPEED;
-			}
-			else if(objectiveIsSterile) {
-				stationChargeSpeed = Sterile.AVERAGE_DECHARGE_SPEED;
-			}
-			else {
-				
-				stationChargeSpeed = Pelle.AVERAGE_CHARGE_SPEED;
-			}
-			
-			Station p = (Station) camion.getObjective();	
-			//temps de remplissage du camion en remplissage
-			Camion camionEnRemplissage = p.getCamionEnTraitement();
-			double tempsAttente = camionEnRemplissage.getChargeRemaining()/stationChargeSpeed;
 
-			//position dans la file d'attente
-			//
-			ArrayList<Camion> fileAttente = p.getCamionsEnAttente();
-			int position = 0;
-			while(!fileAttente.get(position).equals(camion)) {
-				position++;
-			}
-			tempsAttente+= position*100/stationChargeSpeed;
+		//attente esperee de la pelle (compte seulement le temps ou la pelle attend pour le camion courant, pas pour ceux deja en route!)
+		//peut etre négatif, signifiant que le camion ira en attente.
+		//
+		double attenteEspereePelle = tempsDeParcoursEspere - tempsEspereAvantDebutRemplissage;
 
-			double tempsRemplissage = 100/stationChargeSpeed;
-			double tempsRetour = 0;
-			if(!objectiveIsSterile && !objectiveIsConcentrator) {
-				tempsRetour = p.getLocation().distance(selectReturnStation(camion, (Pelle)p).getLocation())/camion.getAvgSpeed();
-			}
-			double tempsDecharge = camion.getChargeMax()/Sterile.AVERAGE_DECHARGE_SPEED;
-			return tempsAttente+ tempsRemplissage+tempsRetour+tempsDecharge;
+		double penaliteQuadAttentePelle = calculePenaliteQuadAttentePelle(attenteEspereePelle, pelle.cibleAttentePelleSeconds());
+
+
+
+		double penaliteQuadAttenteCamion = calculePenaliteQuadAttenteCamion(attenteEspereeCamion, pelle.cibleAttenteCamionSeconds());
+
+
+		Interpreter interpreter = new Interpreter();  // Construct an interpreter
+		// Eval a statement and get the result
+
+
+
+
+		interpreter.set("x1", vitesse_moyenne_camion);
+		interpreter.set("x2", pelleOccupee);
+		interpreter.set("x3", random);
+		interpreter.set("aleatoire", random);
+		interpreter.set("x4", max);
+		interpreter.set("t1", temps_moyen_remplissage);
+		interpreter.set("t2", tempsDeParcoursEspere);
+		interpreter.set("t3", tempsRestantAvantFinPelle);
+		interpreter.set("t4", tempsEspereAvantDebutRemplissage);
+		interpreter.set("t5", attenteEspereeCamion);
+		interpreter.set("t6", attenteEspereePelle);
+		interpreter.set("d1", distanceEntreCamionEtPelle);
+		interpreter.set("n1", nbCamionsEnAttente);
+		interpreter.set("n2", nbCamionsALaPelle);
+		interpreter.set("n3", nbCamionsEnRoutePourLaPelle);
+
+		interpreter.set("ecart_cible_quadratique", penaliteQuadAttentePelle);
+
+		interpreter.set("optimal_assign", optimalAssignCost);
+
+		interpreter.eval("double score = "+ scoreFunctionString); 
+
+		double score = (double) interpreter.get("score");
+		if(score == Double.POSITIVE_INFINITY) {
+			score = Double.MAX_VALUE;
 		}
-		else if(camion.getState() == Camion.ETAT_DECHARGE) {
-			double tempsDecharge = camion.getCharge()/Sterile.AVERAGE_DECHARGE_SPEED;
-			return tempsDecharge;
-		
+		if(score == Double.NEGATIVE_INFINITY) {
+			score = -Double.MAX_VALUE;
 		}
-		throw new IllegalStateException("Camion en etat "+camion.getState() );
-	}
 
+		return score;
 
-	public String getScoreFunctionString() {
-
-		return this.scoreFunctionString;
-	}
-
-
-	public void setScoreFunctionString(String text) {
-		this.scoreFunctionString = text;
-
-	}
-
-
-	public static boolean isFunctionStringValid(String function) {
-
-		Camion camion = new Camion(dummyMine.getSteriles().get(0), dummyMine, null, null) {
-
-			@Override
-			public double getAvgSpeed() {
-				return 0;
-			}
-
-			@Override
-			public double getStdSpeed() {
-				return 0;
-			}
-
-			@Override
-			public double getChargeMax() {
-				return 0;
-			}
-			
-		};
-		Pelle pelle = new Pelle(0, 0, "test", 3);
-
-		if(function.equals(DecisionMaker.OPTIMIZE_FUNCTION_STRING)) return true;
-
-		try {
-
-			DecisionMaker dm = new DecisionMaker(dummyMine);
-			dm.computeDecisionScore(camion, pelle, function);
-		} catch (EvalError e) {
-			return false;
-		}
-		return true;
-	}
-
-
-	//Choisis la station de retours pour un camion qui viens de se faire remplir à la pelle
-	public static Station selectReturnStation(Camion camion, Pelle pelle) {
-		Station returnStation = null;
-		//si remplis de sterile, choisis parmis les steriles
-		if(pelle.getRockType().getPercentIron() == 0 && pelle.getRockType().getPercentSulfur() ==0) {
-			returnStation = mine.getSteriles().get(0);
-		}
-		else {
-			returnStation = mine.getConcentrateurs().get(0);
-		}
-		//sinon, choisis parmis les concentrateurs
-		
-		
-		return returnStation;
 	}
 
 }

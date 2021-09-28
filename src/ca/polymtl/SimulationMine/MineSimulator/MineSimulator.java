@@ -29,7 +29,7 @@ public class MineSimulator implements GuiListener {
 	private ArrayList<MineSimulationListener> listeners;
 
 	private SommaireFrame sommaireFrame;
-	
+
 	/*
 	 * État de la simulation
 	 */
@@ -46,6 +46,8 @@ public class MineSimulator implements GuiListener {
 
 	private TravelTimePredictor travelTimePredictor;
 
+	private boolean justAssigned;
+
 
 	//constructeur
 	public MineSimulator() {
@@ -58,8 +60,8 @@ public class MineSimulator implements GuiListener {
 		//Créé la mine et l'initialise
 		//
 		mine = new Mine(this);
-		mine.init(Mine.exampleIds.get(0), 20, 0);
-		
+		mine.init(Mine.exampleIds.get(0));
+
 		//cree le predicteur de temps de parcours
 		this.travelTimePredictor = new TravelTimePredictor(mine);
 
@@ -97,51 +99,36 @@ public class MineSimulator implements GuiListener {
 		listeners.add(listener);
 	}
 
-	public Mine getMine() {
-		return this.mine;
-	}
+	@Override
+	public void automaticCompletionRequested() {
+		completerSimulation();
 
-	public Timer getTimer() {
-		return timer;
-	}
-
-	public void initStepCounter() {
-		this.stepCounter = 0;
-	}
-
-	/**
-	 * 
-	 * @return Objet responsable de la prédiction des temps de parcours.
-	 */
-	public TravelTimePredictor getTravelTimePredictor() {
-
-		return this.travelTimePredictor;
-	}
-	
-	protected void setTravelTimePredictor(TravelTimePredictor predictor) {
-
-		this.travelTimePredictor = predictor;
-	}
-	
-	public int getTempsSimulationSeconds() {
-		return (int) (this.max_steps*Mine.TIME_INCREMENT);
 	}
 
 	/*
 	 * reset la mine selon un exemple donne
 	 */
 	public void chargeMine(ExampleId exempleId, int nbSmallCamions, int nbLargeCamions, double temps) {
-	
+
 		setPauseMode();
-	
+
 		//reinitialise la nouvelle mine
 		//
 		mine.init(exempleId, nbSmallCamions, nbLargeCamions);
 		warmup();
-	
+
 		notifyListenersMineReset();
 		this.stepCounter = 0;
 		this.max_steps = (int) (temps/Mine.TIME_INCREMENT);
+	}
+
+	@Override
+	public void chargeMineConfirmed(GuiEvent evt) {
+
+	}
+
+	@Override
+	public void chargerButtonClicked(GuiEvent evt) {
 	}
 
 	/*
@@ -158,7 +145,7 @@ public class MineSimulator implements GuiListener {
 		int counterStart = stepCounter;
 		int stepsLeft = max_steps-counterStart;
 		int onePercent = (stepsLeft)/100;
-		
+
 		//effectue les pas
 		//
 		while(stepCounter < max_steps) {
@@ -176,10 +163,297 @@ public class MineSimulator implements GuiListener {
 		createSommaireFrame();
 	}
 
+	/**
+	 * 
+	 * @return L'efficacité du camion en % tu temps passé à faire des activités autre que l'attente.
+	 */
+	public double computeCamionEfficiency(Camion camion) {
+		if(mine.getTime() == 0) {
+			return 0;
+		}
+		double totalTime = mine.getTime();
+		double waitingTime = camion.getWaitTime();
+
+		double eff = (totalTime - waitingTime)/totalTime *100;
+		return eff;
+	}
+
+	/**
+	 * 
+	 * @return L'efficacité de la pelle en % du temps passé à remplir des camions.
+	 */
+	public double computePelleEfficiency(Pelle pelle) {
+		if(mine.getTime() == 0) {
+			return 0;
+		}
+		double totalTime = mine.getTime();
+		double waitingTime = pelle.getWaitTime();
+
+		double eff = (totalTime - waitingTime)/totalTime *100;
+		return eff;
+	}
+
+	@Override
+	public void eventDispatched(AWTEvent arg0) {
+	}
+
+	/**
+	 * 
+	 * @return Efficacité moyenne des camoins
+	 */
+	public double getAverageCamionEfficiency() {
+		double sumEff = 0;
+		for(int i = 0 ; i < mine.getCamions().size(); i++) {
+			double eff = computeCamionEfficiency(mine.getCamions().get(i));
+			sumEff += eff;
+		}
+		return sumEff/mine.getCamions().size();
+	}
+
+	/**
+	 * 
+	 * @return Efficacité moyenne des pelles
+	 */
+	public double getAveragePelleEfficiency() {
+		double sumEff = 0;
+		for(int i = 0 ; i < mine.getPelles().size(); i++) {
+			double eff = computePelleEfficiency(mine.getPelles().get(i));
+			sumEff += eff;
+		}
+		return sumEff/mine.getPelles().size();
+	}
+
+	/**
+	 * 
+	 * @return Efficacité du camion le plus efficace
+	 */
+	public double getMaxCamionEfficiency() {
+		double effMax = 0;
+		for(int i = 0 ; i < mine.getCamions().size(); i++) {
+			double eff = computeCamionEfficiency(mine.getCamions().get(i));
+			if(eff > effMax) {
+				effMax = eff;
+			}
+		}
+		return effMax;
+	}
+
+	/**
+	 * 
+	 * @return Efficacité de la pelle la plus efficace
+	 */
+	public double getMaxPelleEfficiency() {
+		double effMax = 0;
+		for(int i = 0 ; i < mine.getPelles().size(); i++) {
+			double eff = computePelleEfficiency(mine.getPelles().get(i));
+			if(eff > effMax) {
+				effMax = eff;
+			}
+		}
+		return effMax;
+	}
+
+
+	/**
+	 * 
+	 * @return Efficacité du camion le moins efficace
+	 */
+	public double getMinCamionEfficiency() {
+		double effMin = 1000;
+		for(int i = 0 ; i < mine.getCamions().size(); i++) {
+			double eff = computeCamionEfficiency(mine.getCamions().get(i));
+			if(eff < effMin) {
+				effMin = eff;
+			}
+		}
+
+		return effMin;
+	}
+
+	public Mine getMine() {
+		return this.mine;
+	}
+
+
+	/**
+	 * 
+	 * @return Efficacité de la pelle la moins efficace.
+	 */
+	public double getMinPelleEfficiency() {
+		double effMin = 1000;
+		for(int i = 0 ; i < mine.getPelles().size(); i++) {
+			double eff = computePelleEfficiency(mine.getPelles().get(i));
+			if(eff < effMin) {
+				effMin = eff;
+			}
+		}
+
+		return effMin;
+	}
+
+	/**
+	 * 
+	 * @return Nombre total de voyages effectués par les camions
+	 */
+	public int getNumberOfRuns() {
+		int nbVoyages = 0;
+		for(int i = 0 ; i < mine.getCamions().size(); i++) {
+			nbVoyages += mine.getCamions().get(i).getNumberOfRuns();
+		}
+		return nbVoyages;
+	}
+
+	public int getTempsSimulationSeconds() {
+		return (int) (this.max_steps*Mine.TIME_INCREMENT);
+	}
+
+	public Timer getTimer() {
+		return timer;
+	}
+
+
+	/**
+	 * 
+	 * @return Objet responsable de la prédiction des temps de parcours.
+	 */
+	public TravelTimePredictor getTravelTimePredictor() {
+
+		return this.travelTimePredictor;
+	}
+
+	public void initStepCounter() {
+		this.stepCounter = 0;
+	}
+
+
+
+	@Override
+	public void lambdaValueChanged(double rhoValue) {
+		this.travelTimePredictor.setWeight(rhoValue);
+
+	}
+
+
+	@Override
+	public void meteoSliderChanged(double meteoFactor) {
+		System.out.println("meteoFactor"+meteoFactor);
+		mine.setMeteoFactor(meteoFactor);
+	}
+
+	/*
+	 * Implémentation des méthode de l'interface GuiListener
+	 */
+
+	@Override
+	//si le panel de mine est cliqué, toogle le timer
+	public void minePanelClicked(double fracX, double fracY) {
+
+		if(getTimer().isRunning()) {
+			System.out.println("set mode pause");
+			setPauseMode();
+		}
+		else {
+			System.out.println("set mode play");
+			setPlayMode();
+
+		}
+
+	}
+
+	@Override
+	public void newSimulationRequested(ExampleId exempleId, int numberOfSmallCamions, int numberOfLargeCamions, double tempsSimulationSeconds) {
+
+		if(this.sommaireFrame!= null) {
+			sommaireFrame.dispose();
+		}
+		sommaireFrame = null;
+		System.out.println("charge mine "+exempleId.getName()+" "+exempleId.getFileName());
+		this.chargeMine(exempleId, numberOfSmallCamions, numberOfLargeCamions, tempsSimulationSeconds);
+
+	}
+
+	@Override
+	public void numberSampleChanged(int nbSample) {
+		this.travelTimePredictor.setNumberSample(nbSample);
+	}
+
+	@Override
+	public void pauseButtonPressed() {
+		this.setPauseMode();
+
+	}
+
+	@Override
+	public void planPelleChanged(Pelle p, double newValue) {
+
+		p.setPlan(newValue);
+
+	}
+
+	@Override
+	public void playButtonPressed() {
+		this.setPlayMode();
+
+	}
+
+	@Override
+	public void predictFunctionChanged(int newPredictFunctionIndex) {
+		this.travelTimePredictor.setPredictFunction(newPredictFunctionIndex);
+
+	}
+
+
+	@Override
+	public void predictTimeChanged(GuiEvent evt) {
+
+	}
+
+
+	@Override
+	public void resetSimulationRequested() {
+
+		if(this.sommaireFrame!= null) {
+			sommaireFrame.dispose();
+		}
+		sommaireFrame = null;
+
+		setPauseMode();
+
+		mine.resetTime();
+		warmup();
+
+		notifyListenersMineReset();
+		this.stepCounter = 0;
+
+	}
+
+
+	@Override
+	public void scoreFunctionChanged(String scoreFunction) {
+		decisionMaker.setScoreFunctionString(scoreFunction);
+
+	}
+
+
+	@Override
+	public void simulationSpeedChanged(int speed) {
+		this.setNbIterPerStep(speed);
+
+	}
+
+
+	@Override
+	public void stopOnAssignStateChanged(boolean selected) {
+		this.stopOnAssign = selected;
+
+	}
+
+
 	private void createSommaireFrame() {
 		this.sommaireFrame = new SommaireFrame(this);
-		
+
 	}
+
 
 	/*
 	 * Cree le timer de la simulation
@@ -232,148 +506,6 @@ public class MineSimulator implements GuiListener {
 		});
 	}
 
-	/*
-	 *avance la simulation de 1 increment
-	 *retourne un boolean indiquant si un camion s'est retrouvé en état "idle" au cours du tour 
-	 */
-	private boolean step() {
-		
-		
-		//a priori, aucun camion idle
-		boolean wasIdle = false;
-
-		//longueur de temps du step (plus long si on est en phase de warmup
-		//
-		double stepSize = Mine.TIME_INCREMENT;
-		if(mine.isInWarmup()) {
-			stepSize = Mine.TIME_INCREMENT_WARMUP;
-		}
-
-		//prepare les camions et les pelles pour leur debut de step
-		//
-		setCamionsEtPellesBeginStep(stepSize);
-		//liste des pelles et des camions de la mine
-		//
-		ArrayList<Pelle> pelles = mine.getPelles();
-		ArrayList<Camion> camions = mine.getCamions();
-
-		// Tant que pas fin du step, avance les camions et les pelles
-		// Cette condition est necessaire car les camions et les pelles peuvent effectuer plus d'une action par tour
-		//
-		while(!endStepCondition()) {
-			
-			System.out.println("\nsous-iteration");
-			//avance les camions qui sont en route
-			//
-			for(int i = 0 ; i < camions.size(); i++) {
-				Camion camion = camions.get(i);
-				if(camion.getState() == Camion.ETAT_EN_ROUTE) {
-					camion.advance();
-				}
-			}
-
-			// Traite les camions qui viennent d'arriver à destination 
-			//(incluant ce qu'ils font du temps restant dans le tour)
-			//
-			for(int i = 0 ; i < camions.size(); i++) {
-				Camion camion = camions.get(i);
-				if(camion.getState() == Camion.ETAT_JUSTE_ARRIVE) {
-					//enregistre le temps de parcours du camion à des fins statistiques
-					//
-					this.travelTimePredictor.enregistreHistoriqueTempsParcours(camion);
-					
-					//avertis les listeners qu'un camion vient d'arriver (Sauf si en warmup!)
-					//
-					if(!mine.isInWarmup()) {
-						this.notifyListenersCamionJustArrived(camion, mine.getTime());
-					}
-					
-					//la station du camion determine ce qui doit etre fait du camion
-					Station station = camion.getObjective();
-					station.setCamionOnArrival(camion);
-				}
-			}
-
-
-			// Traite les camions sans taches 
-			// Demande à l'engin de decision de leur donner une tache
-			//
-			for(int i = 0 ; i < camions.size(); i++) {
-				Camion camion = camions.get(i);
-				if(camion.getState() == Camion.ETAT_INACTIF) {
-					//indique qu'un camion a ete inactif durant le tour
-					wasIdle = true;
-					decisionMaker.giveObjectiveToCamion(camion);
-				}
-			}
-
-			//active les pelles pour remplir les camions
-			//
-			for(int i = 0 ; i < pelles.size(); i++) {
-				
-				Pelle p = pelles.get(i);
-				
-				//si la pelle a un camion a remplir
-				if(!p.iterFinished && p.getCamionEnTraitement()!= null) {
-					System.out.println("Active la pelle "+p.getId());
-					p.activate();
-					//si une pelle a épuise son temps, fait attendre le camion en remplissage
-					//
-					if(p.iterFinished()) {
-						p.makeAllCamionWaitUntilEndIter();
-					}
-				}
-			}
-			
-			//active les concentrateurs
-			//
-			for(int i = 0 ; i < mine.getConcentrateurs().size(); i++) {
-				Concentrateur concentrateur = mine.getConcentrateurs().get(i);
-				System.out.println("Active le concentrateur");
-				concentrateur.activate();
-				if(concentrateur.iterFinished()) {
-					System.out.println("Concentrateur terminé");
-					concentrateur.makeAllCamionWaitUntilEndIter();
-				}
-			}
-			
-			//active les stériles
-			//
-			for(int i = 0 ; i < mine.getSteriles().size(); i++) {
-				Sterile sterile = mine.getSteriles().get(i);
-				System.out.println("Active le sterile");
-				sterile.activate();
-				if(sterile.iterFinished()) {
-					System.out.println("Concentrateur terminé");
-					sterile.makeAllCamionWaitUntilEndIter();
-				}
-			}
-			
-		}
-
-		// Une fois que tout ce qui pouvait être fait a été fait,
-		// fait attendre les pelles pour le reste du tour
-		//
-		for(int i = 0 ; i < pelles.size(); i++) {
-			Pelle p = pelles.get(i);
-			if(p.getCamionEnTraitement()== null) {
-				p.waitForRemainingTime();
-			}
-		}
-		
-		//incremente l'heure de la mine
-		mine.addTime(stepSize);
-
-		//si en warmup, ajuste dynamiquement le temps moyen d'attente
-		//
-		if(mine.isInWarmup()) {
-			//System.out.println("temps attente moyen :"+mine.calculeTempsAttenteMoyenPelle());
-			//System.out.println("cible temps attente :"+(mine.calculeTempsAttenteMoyenPelle()*0.5));
-			//decisionMaker.setCibleTempsAttentePelle(mine.cibleTempsAttente());
-		}
-
-		return wasIdle;
-	}
 
 	/*
 	 *condition de fin d'un pas : Quand tous les camions ont terminé de travailler
@@ -389,6 +521,94 @@ public class MineSimulator implements GuiListener {
 		}
 		return true;
 	}
+
+
+	private void notifyListenersAutomaticCompleteFinished() {
+		for(int i = 0 ; i < listeners.size(); i++) {
+			listeners.get(i).automaticCompleteFinished();
+		}	
+	}
+
+
+	private void notifyListenersAutomaticCompleteStarted() {
+		for(int i = 0 ; i < listeners.size(); i++) {
+			listeners.get(i).automaticCompleteStarted();
+		}
+
+	}
+
+
+	private void notifyListenersAutomaticCompleteUpdated(double fractionComplete) {
+		for(int i = 0 ; i < listeners.size(); i++) {
+			listeners.get(i).automaticCompleteUpdated(fractionComplete);
+		}	
+	}
+
+	/*
+	 * Interractions avec les listeners
+	 */
+	private void notifyListenersCamionJustArrived(Camion camion, double time) {
+		for(int i = 0 ; i < listeners.size(); i++) {
+			listeners.get(i).camionJustArrived(camion, time);
+		}
+
+	}
+
+	private void notifyListenersMineReset() {
+		for(int i = 0 ; i < listeners.size(); i++) {
+			listeners.get(i).mineResetted(this);
+		}
+
+	}
+
+
+
+	private void notifyListenersPaused() {
+		for(int i = 0 ; i < listeners.size(); i++) {
+			listeners.get(i).minePaused(mine);
+		}
+	}
+
+	private void notifyListenersUnpaused() {
+		for(int i = 0 ; i < listeners.size(); i++) {
+			listeners.get(i).minUnpaused(mine);
+		}
+	}
+
+
+
+	private void notifyListenersUpdated() {
+
+		for(int i = 0 ; i < listeners.size(); i++) {
+			System.out.println("notifyListener");
+			listeners.get(i).mineUpdated(mine);
+		}	
+	}
+
+
+	//choisis le camion qui a terminé le plus tot
+	//
+	private Camion selectCamion() {
+
+		double bestTime = Double.MAX_VALUE;
+		Camion bestCamion = null;
+		for(int i = 0 ; i < mine.getCamions().size(); i++) {
+			Camion c = mine.getCamions().get(i);
+			if(!c.iterFinished()) {
+				if(bestCamion == null) {
+					bestCamion = c;
+					bestTime = c.taskTimeRemaining();
+				}
+				else if(c.taskTimeRemaining() < bestTime) {
+					bestTime = c.taskTimeRemaining();
+					bestCamion = c;
+				}
+			}
+		}
+
+		return bestCamion;
+	}
+
 
 	/*
 	 *set les camions et les pelles pour le debut d'une iteration
@@ -412,7 +632,7 @@ public class MineSimulator implements GuiListener {
 		for(int i = 0 ; i < mine.getConcentrateurs().size(); i++) {
 			mine.getConcentrateurs().get(i).setBeginStep(stepSize);
 		}
-		
+
 		//steriles
 		//
 		for(int i = 0 ; i < mine.getSteriles().size(); i++) {
@@ -420,6 +640,231 @@ public class MineSimulator implements GuiListener {
 		}
 	}
 
+	/*
+	 * setter du champ nbIterPerStep
+	 */
+	private void setNbIterPerStep(int delai) {
+		this.nbIterPerStep = delai;	
+	}
+	/*
+	 * Met la mine en mode pause
+	 * Avertis les listeners
+	 */
+	private void setPauseMode() {
+		timer.stop();
+		notifyListenersPaused();
+
+	}
+
+	/*
+	 * Met la mine en mode play
+	 * Avertis les listeners
+	 */
+	private void setPlayMode() {
+		timer.start();
+		notifyListenersUnpaused();
+
+	}
+
+	/*
+	 *avance la simulation de 1 increment
+	 *retourne un boolean indiquant si un camion s'est retrouvé en état "idle" au cours du tour 
+	 */
+	private boolean step() {
+
+		System.out.println("step");
+		//a priori, aucun camion idle
+		this.justAssigned = false;
+
+		//longueur de temps du step (plus long si on est en phase de warmup
+		//
+		double stepSize = Mine.TIME_INCREMENT;
+		if(mine.isInWarmup()) {
+			stepSize = Mine.TIME_INCREMENT_WARMUP;
+		}
+
+		//prepare les camions et les pelles pour leur debut de step
+		//
+		setCamionsEtPellesBeginStep(stepSize);
+		//liste des pelles et des camions de la mine
+		//
+		ArrayList<Pelle> pelles = mine.getPelles();
+		ArrayList<Camion> camions = mine.getCamions();
+
+		// Tant que pas fin du step, avance les camions et les pelles
+		// Cette condition est necessaire car les camions et les pelles peuvent effectuer plus d'une action par tour
+		//
+		while(selectCamion() != null) {
+
+			Camion c = selectCamion();
+
+			System.out.println("choisis camion ");
+			double temps = c.taskTimeRemaining();
+			if(temps >= stepSize) {
+				temps = stepSize;
+			}
+			stepSize -= temps;
+
+
+			
+			System.out.println(temps);
+			
+			//calcule l'attente des stations (difference entre le temps d'iter et le temps interne d'iter)
+			// si une pelle est inactive, elle le restera pour toute l'iteration
+			// Il faut faire cela avant le reste pour eviter que l'etat des pelles ne soit changé!
+			//
+			//pelles
+			for(int i = 0 ; i < this.mine.getPelles().size(); i++) {
+				if(this.mine.getPelles().get(i).getState() == Station.STATION_STATE_IDLE) {
+					this.mine.getPelles().get(i).attend(temps);
+				}
+			}
+			//concentrateurs
+			for(int i = 0 ; i < this.mine.getConcentrateurs().size(); i++) {
+				if(this.mine.getConcentrateurs().get(i).getState() == Station.STATION_STATE_IDLE) {
+					this.mine.getConcentrateurs().get(i).attend(temps);
+				}
+			}
+			//steriles
+			for(int i = 0 ; i < this.mine.getSteriles().size(); i++) {
+				if(this.mine.getSteriles().get(i).getState() == Station.STATION_STATE_IDLE) {
+					this.mine.getSteriles().get(i).attend(temps);
+				}
+			}
+			
+
+			//traite tous les autres camions pour la meme duree. On sait que ces camions ne terminent pas leur tache
+			for(int i = 0 ; i < camions.size(); i++) {
+				Camion camion = camions.get(i);
+				traiteCamion(camion, temps);
+			}
+
+			//update les files d'attente des stations
+			//
+			//pelles
+			for(int i = 0 ; i < this.mine.getPelles().size(); i++) {
+				this.mine.getPelles().get(i).updateFileAttente();
+		
+			}
+			//steriles
+			for(int i = 0 ; i < this.mine.getSteriles().size(); i++) {
+				this.mine.getSteriles().get(i).updateFileAttente();
+			}
+			//concentrateurs
+			for(int i = 0 ; i < this.mine.getConcentrateurs().size(); i++) {
+				this.mine.getConcentrateurs().get(i).updateFileAttente();
+			}
+
+			
+			
+			//incremente l'heure de la mine
+			mine.addTime(temps);
+
+			//si en warmup, ajuste dynamiquement le temps moyen d'attente
+			//
+			if(mine.isInWarmup()) {
+				//System.out.println("temps attente moyen :"+mine.calculeTempsAttenteMoyenPelle());
+				//System.out.println("cible temps attente :"+(mine.calculeTempsAttenteMoyenPelle()*0.5));
+				//decisionMaker.setCibleTempsAttentePelle(mine.cibleTempsAttente());
+			}
+		}
+		return justAssigned;
+	}
+
+	//traite un camion pour une duree determinee
+	private void traiteCamion(Camion c, double temps) {
+		
+		if(c.getState() == Camion.ETAT_INACTIF) {
+			Station s = decisionMaker.giveObjectiveToCamion(c);
+			c.setObjective(s);
+			traiteCamion(c, temps);
+		}
+		//si le camion est en route, on le fait rouler vers sa destination. Si il arrive à destination avant la fin du tour, on le traite immédiatement à nouveau.
+		//
+		else if(c.getState() == Camion.ETAT_EN_ROUTE) {
+			traiteCamionEnRoute(c, temps);
+		}
+		//si en traitement, charge/decharge le camion selon
+		else if(c.getState() == Camion.ETAT_EN_TRAITEMENT ) {
+			traiteCamionEnTraitement(c, temps);
+		}
+		else if(c.getState() == Camion.ETAT_ATTENTE) {
+			traiteCamionEnAttente(c, temps);
+		}
+
+		// TODO Auto-generated method stub
+
+	}
+
+	//traite camion en attente
+	private void traiteCamionEnAttente(Camion c, double temps) {
+		Camion camionEnTraitement = c.getCurrentStation().getCamionEnTraitement();
+		if(camionEnTraitement == null) {
+			throw new IllegalStateException("On ne peut pas traiter un camion en attente si aucun camion n'est en traitement");
+		}
+		c.attend(temps);
+	}
+
+	//traite un camion qui est en route
+	private void traiteCamionEnRoute(Camion c, double temps) {
+		c.advance(temps);
+		//si viens juste d'arriver a destination, traite immediatement le meme camion
+		//
+		if(c.getState() == Camion.ETAT_JUSTE_ARRIVE) {
+			
+			travelTimePredictor.enregistreHistoriqueTempsParcours(c);
+			notifyListenersCamionJustArrived(c, mine.getTime());
+			c.getCurrentStation().setCamionOnArrival(c);
+		}
+	}
+
+	private void traiteCamionEnTraitement(Camion c, double temps) {
+		//1) remplis/vide le camion autant que possible
+		//2) fait attendre les camions de la file d'attente d'autant
+		//3) si le camion a termine, 
+		//		- on choisit le nouveau camion en traitement.
+		//		- on donne un nouvel objectif au camion (qui devient en route). 
+
+		//trouve le temps de traitement maximum. Il s'agit du max entre : 
+		//	- le temps restant à la pelle
+		//	- le temps restant au camion
+		//	- le temps de chargement/dechargement max
+		Station s = c.getCurrentStation();
+
+		s.addIterTime(temps);
+		boolean modeCharge = !s.isDecharge;
+
+
+		double tempsChargement = temps;
+		double chargeSpeed = s.currentChargeSpeed;
+		double quantite = tempsChargement*chargeSpeed;
+		
+		if(!modeCharge) {
+			c.decharge(quantite, tempsChargement);
+			s.updateQteTraite(quantite, c.getRockType());
+		}
+		else {
+			c.charge(quantite, tempsChargement);
+			
+		}
+		/*
+		ArrayList<Camion> camionsEnAttente = s.getCamionsEnAttente();
+		for(int i = 0 ; i < camionsEnAttente.size(); i++) {
+			camionsEnAttente.get(i).attend(tempsChargement);
+
+		}*/
+
+		if((modeCharge && c.getCharge() == c.getChargeMax()) || (!modeCharge && c.getCharge() == 0)){
+			//s.setCamionEnTraitement(s.camionsEnAttente.get(0));
+			Station objective = decisionMaker.giveObjectiveToCamion(c);
+			c.setObjective(objective);
+			if(!modeCharge) {
+				this.justAssigned = true;
+			}
+
+		}
+
+	}
 
 	/*
 	 * Effectue le warmup de la mine
@@ -436,7 +881,7 @@ public class MineSimulator implements GuiListener {
 		for(int i = 0 ; i < Mine.NB_WARMUP_STEPS; i++) {
 			step();
 		}
-		
+
 		//desactive le mode warmup
 		//
 		mine.setInWarmup(false);
@@ -450,370 +895,9 @@ public class MineSimulator implements GuiListener {
 		mine.resetAllStats();
 	}
 
-	/*
-	 * setter du champ nbIterPerStep
-	 */
-	private void setNbIterPerStep(int delai) {
-		this.nbIterPerStep = delai;	
-	}
+	protected void setTravelTimePredictor(TravelTimePredictor predictor) {
 
-
-
-	/*
-	 * Met la mine en mode play
-	 * Avertis les listeners
-	 */
-	private void setPlayMode() {
-		timer.start();
-		notifyListenersUnpaused();
-
-	}
-
-
-	/*
-	 * Met la mine en mode pause
-	 * Avertis les listeners
-	 */
-	private void setPauseMode() {
-		timer.stop();
-		notifyListenersPaused();
-
-	}
-
-	/*
-	 * Implémentation des méthode de l'interface GuiListener
-	 */
-
-	@Override
-	public void eventDispatched(AWTEvent arg0) {
-	}
-
-	@Override
-	public void chargerButtonClicked(GuiEvent evt) {
-	}
-
-	@Override
-	public void predictTimeChanged(GuiEvent evt) {
-	
-	}
-
-	@Override
-	public void chargeMineConfirmed(GuiEvent evt) {
-	
-	}
-
-	@Override
-	public void meteoSliderChanged(double meteoFactor) {
-		System.out.println("meteoFactor"+meteoFactor);
-		mine.setMeteoFactor(meteoFactor);
-	}
-
-	@Override
-	//si le panel de mine est cliqué, toogle le timer
-	public void minePanelClicked(double fracX, double fracY) {
-	
-		if(getTimer().isRunning()) {
-			System.out.println("set mode pause");
-			setPauseMode();
-		}
-		else {
-			System.out.println("set mode play");
-			setPlayMode();
-	
-		}
-	
-	}
-
-	@Override
-	public void predictFunctionChanged(int newPredictFunctionIndex) {
-		this.travelTimePredictor.setPredictFunction(newPredictFunctionIndex);
-
-	}
-
-
-	@Override
-	public void lambdaValueChanged(double rhoValue) {
-		this.travelTimePredictor.setWeight(rhoValue);
-
-	}
-
-
-	@Override
-	public void numberSampleChanged(int nbSample) {
-		this.travelTimePredictor.setNumberSample(nbSample);
-	}
-
-
-	@Override
-	public void newSimulationRequested(ExampleId exempleId, int numberOfSmallCamions, int numberOfLargeCamions, double tempsSimulationSeconds) {
-		
-		if(this.sommaireFrame!= null) {
-			sommaireFrame.dispose();
-		}
-		sommaireFrame = null;
-		System.out.println("charge mine "+exempleId.getName()+" "+exempleId.getFileName());
-		this.chargeMine(exempleId, numberOfSmallCamions, numberOfLargeCamions, tempsSimulationSeconds);
-
-	}
-
-
-	@Override
-	public void automaticCompletionRequested() {
-		completerSimulation();
-
-	}
-
-
-	@Override
-	public void stopOnAssignStateChanged(boolean selected) {
-		this.stopOnAssign = selected;
-
-	}
-
-
-	@Override
-	public void simulationSpeedChanged(int speed) {
-		this.setNbIterPerStep(speed);
-
-	}
-
-
-	@Override
-	public void playButtonPressed() {
-		this.setPlayMode();
-
-	}
-
-
-	@Override
-	public void pauseButtonPressed() {
-		this.setPauseMode();
-
-	}
-
-
-	@Override
-	public void resetSimulationRequested() {
-		
-		if(this.sommaireFrame!= null) {
-			sommaireFrame.dispose();
-		}
-		sommaireFrame = null;
-		
-		setPauseMode();
-		
-		mine.resetTime();
-		warmup();
-		
-		notifyListenersMineReset();
-		this.stepCounter = 0;
-
-	}
-
-
-	@Override
-	public void scoreFunctionChanged(String scoreFunction) {
-		decisionMaker.setScoreFunctionString(scoreFunction);
-
-	}
-
-	
-	/**
-	 * 
-	 * @return Efficacité moyenne des camoins
-	 */
-	public double getAverageCamionEfficiency() {
-		double sumEff = 0;
-		for(int i = 0 ; i < mine.getCamions().size(); i++) {
-			double eff = computeCamionEfficiency(mine.getCamions().get(i));
-			sumEff += eff;
-		}
-		return sumEff/mine.getCamions().size();
-	}
-
-	/**
-	 * 
-	 * @return Efficacité moyenne des pelles
-	 */
-	public double getAveragePelleEfficiency() {
-		double sumEff = 0;
-		for(int i = 0 ; i < mine.getPelles().size(); i++) {
-			double eff = computePelleEfficiency(mine.getPelles().get(i));
-			sumEff += eff;
-		}
-		return sumEff/mine.getPelles().size();
-	}
-
-	/**
-	 * 
-	 * @return L'efficacité du camion en % tu temps passé à faire des activités autre que l'attente.
-	 */
-	public double computeCamionEfficiency(Camion camion) {
-		if(mine.getTime() == 0) {
-			return 0;
-		}
-		double totalTime = mine.getTime();
-		double waitingTime = camion.getWaitTime();
-
-		double eff = (totalTime - waitingTime)/totalTime *100;
-		return eff;
-	}
-
-
-
-	/**
-	 * 
-	 * @return L'efficacité de la pelle en % du temps passé à remplir des camions.
-	 */
-	public double computePelleEfficiency(Pelle pelle) {
-		if(mine.getTime() == 0) {
-			return 0;
-		}
-		double totalTime = mine.getTime();
-		double waitingTime = pelle.getWaitTime();
-
-		double eff = (totalTime - waitingTime)/totalTime *100;
-		return eff;
-	}
-	
-	/**
-	 * 
-	 * @return Efficacité du camion le plus efficace
-	 */
-	public double getMaxCamionEfficiency() {
-		double effMax = 0;
-		for(int i = 0 ; i < mine.getCamions().size(); i++) {
-			double eff = computeCamionEfficiency(mine.getCamions().get(i));
-			if(eff > effMax) {
-				effMax = eff;
-			}
-		}
-		return effMax;
-	}
-
-
-
-	/**
-	 * 
-	 * @return Efficacité de la pelle la plus efficace
-	 */
-	public double getMaxPelleEfficiency() {
-		double effMax = 0;
-		for(int i = 0 ; i < mine.getPelles().size(); i++) {
-			double eff = computePelleEfficiency(mine.getPelles().get(i));
-			if(eff > effMax) {
-				effMax = eff;
-			}
-		}
-		return effMax;
-	}
-
-	
-	/**
-	 * 
-	 * @return Efficacité du camion le moins efficace
-	 */
-	public double getMinCamionEfficiency() {
-		double effMin = 1000;
-		for(int i = 0 ; i < mine.getCamions().size(); i++) {
-			double eff = computeCamionEfficiency(mine.getCamions().get(i));
-			if(eff < effMin) {
-				effMin = eff;
-			}
-		}
-
-		return effMin;
-	}
-
-
-	/**
-	 * 
-	 * @return Efficacité de la pelle la moins efficace.
-	 */
-	public double getMinPelleEfficiency() {
-		double effMin = 1000;
-		for(int i = 0 ; i < mine.getPelles().size(); i++) {
-			double eff = computePelleEfficiency(mine.getPelles().get(i));
-			if(eff < effMin) {
-				effMin = eff;
-			}
-		}
-
-		return effMin;
-	}
-
-	/**
-	 * 
-	 * @return Nombre total de voyages effectués par les camions
-	 */
-	public int getNumberOfRuns() {
-		int nbVoyages = 0;
-		for(int i = 0 ; i < mine.getCamions().size(); i++) {
-			nbVoyages += mine.getCamions().get(i).getNumberOfRuns();
-		}
-		return nbVoyages;
-	}
-	/*
-	 * Interractions avec les listeners
-	 */
-	private void notifyListenersCamionJustArrived(Camion camion, double time) {
-		for(int i = 0 ; i < listeners.size(); i++) {
-			listeners.get(i).camionJustArrived(camion, time);
-		}
-	
-	}
-
-	private void notifyListenersUpdated() {
-	
-		for(int i = 0 ; i < listeners.size(); i++) {
-			System.out.println("notifyListener");
-			listeners.get(i).mineUpdated(mine);
-		}	
-	}
-
-	private void notifyListenersUnpaused() {
-		for(int i = 0 ; i < listeners.size(); i++) {
-			listeners.get(i).minUnpaused(mine);
-		}
-	}
-
-	private void notifyListenersPaused() {
-		for(int i = 0 ; i < listeners.size(); i++) {
-			listeners.get(i).minePaused(mine);
-		}
-	}
-
-	private void notifyListenersAutomaticCompleteFinished() {
-		for(int i = 0 ; i < listeners.size(); i++) {
-			listeners.get(i).automaticCompleteFinished();
-		}	
-	}
-
-	private void notifyListenersAutomaticCompleteUpdated(double fractionComplete) {
-		for(int i = 0 ; i < listeners.size(); i++) {
-			listeners.get(i).automaticCompleteUpdated(fractionComplete);
-		}	
-	}
-
-	private void notifyListenersMineReset() {
-		for(int i = 0 ; i < listeners.size(); i++) {
-			listeners.get(i).mineResetted(this);
-		}
-	
-	}
-
-	private void notifyListenersAutomaticCompleteStarted() {
-		for(int i = 0 ; i < listeners.size(); i++) {
-			listeners.get(i).automaticCompleteStarted();
-		}
-	 
-	}
-
-	@Override
-	public void planPelleChanged(Pelle p, double newValue) {
-		
-		p.setPlan(newValue);
-
+		this.travelTimePredictor = predictor;
 	}
 
 

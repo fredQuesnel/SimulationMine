@@ -52,32 +52,113 @@ public class CustomDecisionMaker extends DecisionMaker {
 		super(mine);
 	}
 
+	private double computeCustomAssignCost(Camion camion, Pelle pelle) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	private void computeUsefulConstants(Camion camion, Pelle pelle) {
+		
+		ArrayList<Camion> camions = mine.getCamions();
+		//nombre aléatoire
+		random = SimulationMine.random.nextDouble();
+
+		//score max
+		max = Double.MAX_VALUE;
+
+		vitesse_moyenne_camion = camion.getAvgSpeed();
+		temps_moyen_remplissage = camion.getChargeMax()/Pelle.AVERAGE_CHARGE_SPEED;
+
+		//indique 1 si la pelle est occupee
+		pelleOccupee = 0;
+		if(pelle.getCamionEnTraitement() != null) pelleOccupee = 1;
+
+		//nombre de camions en attente
+		nbCamionsEnAttente = pelle.getCamionsEnAttente().size();
+
+		//nombre de camions a la pelle (attente + remplissage)
+		nbCamionsALaPelle = 0;
+		if(pelle.getCamionEnTraitement()!= null) {
+			nbCamionsALaPelle = nbCamionsEnAttente+1;
+		}
+
+		//distance entre le camion et la pelle (m)
+		//si le camion est en route pour un autre objectif, compte la distance entre camion et objectif + distance entre objectif et pelle
+
+		distanceEntreCamionEtPelle = calculeDistanceEntreCamionEtStation(camion, pelle);
+
+
+
+
+		//temps espere vers la pelle (s)
+		tempsDeParcoursEspere = distanceEntreCamionEtPelle/( camion.getAvgSpeed()*mine.getMeteoFactor());
+
+
+		//nombre de camions presentement en route pour la pelle
+		nbCamionsEnRoutePourLaPelle = 0;
+		for(int i = 0 ; i < camions.size(); i++) {
+			if(camions.get(i).getState() == Camion.ETAT_EN_ROUTE && camions.get(i).getObjective() == pelle) {
+				nbCamionsEnRoutePourLaPelle++;
+			}
+		}
+
+		//temps restant avant que la pelle n'aie plus de travail (en considerant seulement les camions en attente)
+		//
+		tempsRestantAvantFinPelle = calculeTempsRestantAvantFinPelle(pelle);
+		Camion camionEnRemplissage = pelle.getCamionEnTraitement();
+		if(camionEnRemplissage != null) {
+
+			//temps de remplissage restant = charge restante / vitesse moyenne charge
+			double chargeRemaining = camionEnRemplissage.getChargeMax()-camionEnRemplissage.getCharge(); 
+			double esperanceTempsRemplissageRestant = chargeRemaining/Pelle.AVERAGE_CHARGE_SPEED;
+
+			tempsRestantAvantFinPelle = esperanceTempsRemplissageRestant + pelle.getCamionsEnAttente().size()*camion.getChargeMax()/Pelle.AVERAGE_CHARGE_SPEED;
+		}
+
+
+		//temps espere avant le debut du remplissage
+		//
+		tempsEspereAvantDebutRemplissage = calculeTempsEspereAvantTraitement(camion, pelle);
+
+		//temps espere d'attente de la pelle
+		//
+
+
+		//attente esperee du camion
+		//
+		attenteEspereeCamion = tempsEspereAvantDebutRemplissage - tempsDeParcoursEspere;
+		if(attenteEspereeCamion < 0) {
+			attenteEspereeCamion = 0;
+		}
+
+		//attente esperee de la pelle (compte seulement le temps ou la pelle attend pour le camion courant, pas pour ceux deja en route!)
+		//peut etre négatif, signifiant que le camion ira en attente.
+		//
+		attenteEspereePelle = tempsDeParcoursEspere - tempsEspereAvantDebutRemplissage;
+	}
+
 	@Override
 	/*
-	 * (non-Javadoc)
-	 * @see ca.polymtl.SimulationMine.decisionMaker.DecisionMaker#computeDecisionScore(ca.polymtl.SimulationMine.MineSimulator.Camion, ca.polymtl.SimulationMine.MineSimulator.Pelle, java.lang.String)
+	 * Calcule le coût d'assignation d'un camion à une pelle dans le problème d'affectation
 	 * 
-	 * Détermine le score associé à l'envoi d'un camion à une pelle, selon une fonction de score donnée
+	 * Input : 
+	 * 		Camion : Camion à assigner
+	 * 		Pelle  : Pelle évaluée
 	 * 
-	 *  Input : 
-	 *  	camion              : Camion à assigner
-	 *  	pelle               : Pelle auquel le camion serait assigné
-	 *  	scoreFunctionString : String indiquant la fonction de score à utilisé
-	 *  
-	 *  Output : 
-	 *  	score sous la forme d'un double. Un petit score est meilleur.
+	 * Output : Coût d'affectation, sous la forme d'un double. Une faible coût est meilleur.
+	 * 
 	 */
-	protected double computeDecisionScore(Camion camion, Pelle pelle, String scoreFunctionString) throws EvalError {
-		//Fonctionalité par défaut : évalue le score à l'aide des paramètres préprogrammés
-		//Commenter pour implémenter votre propre fonction de score.
-		//
-		return super.computeDecisionScore(camion, pelle, scoreFunctionString);
+	protected double calculeOptimalAssignCost(Camion camion, Pelle pelle) {
 
+		//Fonction par défaut
+		// Commenter pour utiliser votre propre fonction de score
+		//
+		return super.calculeOptimalAssignCost(camion, pelle);
 
 		//Votre propre fonction de score!
-		//Décommenter pour utiliser!
+		//Décommenter pour utiliser! Vous ne devriez pas le faire, car cela ne fait pas partie du TP!
 		//
-		//return computeCustomDecisionScore(camion, pelle);
+		//return computeCustomAssignCost(camion, pelle);
 	}
 
 	//Votre propre fonction de score, en java
@@ -120,15 +201,15 @@ public class CustomDecisionMaker extends DecisionMaker {
 		//distance entre le camion et la pelle (m)
 		//si le camion est en route pour un autre objectif, compte la distance entre camion et objectif + distance entre objectif et pelle
 
-		double distanceEntreCamionEtPelle = calculeDistanceEntreCamionEtPelle(camion, pelle);
+		double distanceEntreCamionEtPelle = calculeDistanceEntreCamionEtStation(camion, pelle);
 
 		//temps espere vers la pelle (s)
-		double tempsDeParcoursEspere = calculeTempsParcoursMoyen(distanceEntreCamionEtPelle, camion.getAvgSpeed());
+		double tempsDeParcoursEspere = distanceEntreCamionEtPelle/(camion.getAvgSpeed()*mine.getMeteoFactor());
 
 
 		//temps espere avant le debut du remplissage
 		//
-		double tempsEspereAvantDebutRemplissage = calculeTempsEspereAvantRemplissage(camion, pelle);
+		double tempsEspereAvantDebutRemplissage = calculeTempsEspereAvantTraitement(camion, pelle);
 
 		//temps espere d'attente de la pelle
 		//
@@ -193,112 +274,32 @@ public class CustomDecisionMaker extends DecisionMaker {
 		//return score;
 	}
 
-	private void computeUsefulConstants(Camion camion, Pelle pelle) {
-		
-		ArrayList<Camion> camions = mine.getCamions();
-		//nombre aléatoire
-		random = SimulationMine.random.nextDouble();
-
-		//score max
-		max = Double.MAX_VALUE;
-
-		vitesse_moyenne_camion = camion.getAvgSpeed();
-		temps_moyen_remplissage = camion.getChargeMax()/Pelle.AVERAGE_CHARGE_SPEED;
-
-		//indique 1 si la pelle est occupee
-		pelleOccupee = 0;
-		if(pelle.getCamionEnTraitement() != null) pelleOccupee = 1;
-
-		//nombre de camions en attente
-		nbCamionsEnAttente = pelle.getCamionsEnAttente().size();
-
-		//nombre de camions a la pelle (attente + remplissage)
-		nbCamionsALaPelle = 0;
-		if(pelle.getCamionEnTraitement()!= null) {
-			nbCamionsALaPelle = nbCamionsEnAttente+1;
-		}
-
-		//distance entre le camion et la pelle (m)
-		//si le camion est en route pour un autre objectif, compte la distance entre camion et objectif + distance entre objectif et pelle
-
-		distanceEntreCamionEtPelle = calculeDistanceEntreCamionEtPelle(camion, pelle);
-
-
-
-
-		//temps espere vers la pelle (s)
-		tempsDeParcoursEspere = calculeTempsParcoursMoyen(distanceEntreCamionEtPelle, camion.getAvgSpeed());
-
-
-		//nombre de camions presentement en route pour la pelle
-		nbCamionsEnRoutePourLaPelle = 0;
-		for(int i = 0 ; i < camions.size(); i++) {
-			if(camions.get(i).getState() == Camion.ETAT_EN_ROUTE && camions.get(i).getObjective() == pelle) {
-				nbCamionsEnRoutePourLaPelle++;
-			}
-		}
-
-		//temps restant avant que la pelle n'aie plus de travail (en considerant seulement les camions en attente)
-		//
-		tempsRestantAvantFinPelle = calculeTempsRestantAvantFinPelle(pelle);
-		Camion camionEnRemplissage = pelle.getCamionEnTraitement();
-		if(camionEnRemplissage != null) {
-
-			//temps de remplissage restant = charge restante / vitesse moyenne charge
-			double esperanceTempsRemplissageRestant = camionEnRemplissage.getChargeRemaining()/Pelle.AVERAGE_CHARGE_SPEED;
-
-			tempsRestantAvantFinPelle = esperanceTempsRemplissageRestant + pelle.getCamionsEnAttente().size()*camion.getChargeMax()/Pelle.AVERAGE_CHARGE_SPEED;
-		}
-
-
-		//temps espere avant le debut du remplissage
-		//
-		tempsEspereAvantDebutRemplissage = calculeTempsEspereAvantRemplissage(camion, pelle);
-
-		//temps espere d'attente de la pelle
-		//
-
-
-		//attente esperee du camion
-		//
-		attenteEspereeCamion = tempsEspereAvantDebutRemplissage - tempsDeParcoursEspere;
-		if(attenteEspereeCamion < 0) {
-			attenteEspereeCamion = 0;
-		}
-
-		//attente esperee de la pelle (compte seulement le temps ou la pelle attend pour le camion courant, pas pour ceux deja en route!)
-		//peut etre négatif, signifiant que le camion ira en attente.
-		//
-		attenteEspereePelle = tempsDeParcoursEspere - tempsEspereAvantDebutRemplissage;
-	}
-
 	@Override
 	/*
-	 * Calcule le coût d'assignation d'un camion à une pelle dans le problème d'affectation
+	 * (non-Javadoc)
+	 * @see ca.polymtl.SimulationMine.decisionMaker.DecisionMaker#computeDecisionScore(ca.polymtl.SimulationMine.MineSimulator.Camion, ca.polymtl.SimulationMine.MineSimulator.Pelle, java.lang.String)
 	 * 
-	 * Input : 
-	 * 		Camion : Camion à assigner
-	 * 		Pelle  : Pelle évaluée
+	 * Détermine le score associé à l'envoi d'un camion à une pelle, selon une fonction de score donnée
 	 * 
-	 * Output : Coût d'affectation, sous la forme d'un double. Une faible coût est meilleur.
-	 * 
+	 *  Input : 
+	 *  	camion              : Camion à assigner
+	 *  	pelle               : Pelle auquel le camion serait assigné
+	 *  	scoreFunctionString : String indiquant la fonction de score à utilisé
+	 *  
+	 *  Output : 
+	 *  	score sous la forme d'un double. Un petit score est meilleur.
 	 */
-	protected double calculeOptimalAssignCost(Camion camion, Pelle pelle) {
-
-		//Fonction par défaut
-		// Commenter pour utiliser votre propre fonction de score
+	protected double computeDecisionScore(Camion camion, Pelle pelle, String scoreFunctionString) throws EvalError {
+		//Fonctionalité par défaut : évalue le score à l'aide des paramètres préprogrammés
+		//Commenter pour implémenter votre propre fonction de score.
 		//
-		return super.calculeOptimalAssignCost(camion, pelle);
+		return super.computeDecisionScore(camion, pelle, scoreFunctionString);
+
 
 		//Votre propre fonction de score!
-		//Décommenter pour utiliser! Vous ne devriez pas le faire, car cela ne fait pas partie du TP!
+		//Décommenter pour utiliser!
 		//
-		//return computeCustomAssignCost(camion, pelle);
-	}
-
-	private double computeCustomAssignCost(Camion camion, Pelle pelle) {
-		// TODO Auto-generated method stub
-		return 0;
+		//return computeCustomDecisionScore(camion, pelle);
 	}
 
 }

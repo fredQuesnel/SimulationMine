@@ -1,6 +1,6 @@
 id : "10 pelles"
-default_camions_small : 14
-default_camions_large : 10
+default_camions_small : 0
+default_camions_large : 30
 
 //type min/ste id x y taux_fe taux_s cible_camions_par_heure
 pelle min "pelle1" 500 8000 38 3 3

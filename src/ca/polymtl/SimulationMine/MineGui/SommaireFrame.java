@@ -43,20 +43,20 @@ import javafx.util.Pair;
 
 public class SommaireFrame extends JFrame {
 
-	//nombre de pixels correspondant à une tabulation.
-	int tabWidth = 30;
-	JPanel tabPanel;
-
-	//styles de texte
-	//
-	Font fontTitre1;
-	Font fontTitre2;
-	Font fontNormal;
-
 	//couleurs de police
 	//
 	private static Color darkGreen = new Color(45, 140, 45);
 	private static Color darkRed = new Color(170, 0, 0);
+
+	//nombre de pixels correspondant à une tabulation.
+	int tabWidth = 30;
+	JPanel tabPanel;
+	//styles de texte
+	//
+	Font fontTitre1;
+
+	Font fontTitre2;
+	Font fontNormal;
 
 	//--------------------------------------
 	//statistiques de la mine a afficher
@@ -124,6 +124,77 @@ public class SommaireFrame extends JFrame {
 
 		//pour debuggage
 		//exportSommaireToFile(null);
+	}
+
+	private double arrondiDeuxDecimales(double number) {
+
+		return 1.*((int)((number+0.005)*100))/100.;
+	}
+
+	private JButton boutonAnnuler() {
+		JButton boutonAnnuler = new JButton("Annuler");
+		final JFrame frame = (JFrame) this;
+		boutonAnnuler.addActionListener(new ActionListener(){
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+				
+			}
+			
+		});
+		
+		return boutonAnnuler;
+	}
+
+	private JButton boutonExporter() {
+		JButton boutonExporter = new JButton("Exporter");
+
+		boutonExporter.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+
+				System.out.println("filechooser");
+				JFileChooser fileChooser = new JFileChooser();
+				fileChooser.setDialogTitle("exporter...");
+
+				fileChooser.setSize(new Dimension(1100, 800));
+
+				fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+
+				fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
+
+				fileChooser.setVisible(true);
+
+
+
+				if(fileChooser.showSaveDialog(new JLabel("testing")) == JFileChooser.APPROVE_OPTION){
+					File file = fileChooser.getSelectedFile();
+					exportSommaireToFile(file);
+					System.out.println("fichier choisi"+ file.getName());
+				}
+
+
+
+
+			}
+
+		});
+
+		return boutonExporter;
+	}
+
+	private JPanel buttons() {
+		JPanel buttonsPanel = new JPanel();
+
+		JButton button1 = boutonExporter();
+		buttonsPanel.add(button1);
+
+		JButton button2 = boutonAnnuler();
+		buttonsPanel.add(button2);
+
+		return buttonsPanel;
 	}
 
 	private void getMineStats(MineSimulator mineSimulator) {
@@ -286,176 +357,66 @@ public class SommaireFrame extends JFrame {
 
 	}
 
-	private void setFonts() {
-		Map<TextAttribute, Integer> fontAttributes = new HashMap<TextAttribute, Integer>();
-		fontAttributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
-		fontTitre1 = new Font("Serif",Font.BOLD, 24).deriveFont(fontAttributes);
+	private Component paramsSimulationPanel() {
 
-		fontTitre2 = new Font("Serif",Font.BOLD, 20).deriveFont(fontAttributes);
-
-		fontNormal = new Font("Serif",Font.BOLD, 16);
+		JPanel paramsSimulationPanel = new JPanel();
+		paramsSimulationPanel.setOpaque(false);
 
 
-	}
+		paramsSimulationPanel.setLayout(new GridBagLayout());
 
-	private JPanel buttons() {
-		JPanel buttonsPanel = new JPanel();
-
-		JButton button1 = boutonExporter();
-		buttonsPanel.add(button1);
-
-		JButton button2 = boutonAnnuler();
-		buttonsPanel.add(button2);
-
-		return buttonsPanel;
-	}
-
-	private JButton boutonAnnuler() {
-		JButton boutonAnnuler = new JButton("Annuler");
-		final JFrame frame = (JFrame) this;
-		boutonAnnuler.addActionListener(new ActionListener(){
-			
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
-				
-			}
-			
-		});
-		
-		return boutonAnnuler;
-	}
-
-	private JButton boutonExporter() {
-		JButton boutonExporter = new JButton("Exporter");
-
-		boutonExporter.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-
-				System.out.println("filechooser");
-				JFileChooser fileChooser = new JFileChooser();
-				fileChooser.setDialogTitle("exporter...");
-
-				fileChooser.setSize(new Dimension(1100, 800));
-
-				fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-
-				fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
-
-				fileChooser.setVisible(true);
-
-
-
-				if(fileChooser.showSaveDialog(new JLabel("testing")) == JFileChooser.APPROVE_OPTION){
-					File file = fileChooser.getSelectedFile();
-					exportSommaireToFile(file);
-					System.out.println("fichier choisi"+ file.getName());
-				}
-
-
-
-
-			}
-
-		});
-
-		return boutonExporter;
-	}
-
-	protected void exportSommaireToFile(File file) {
-		//TODO
-		String outString = "";
-
-		//parametres de simulation
-		outString+=this.nomMine+"\t"+this.nbCamions+"\t"+this.dureeSimulationSeconds+"\t";
-
-		//sommaire de productivité
-		outString += this.quantiteMinerai +"\t"+this.quantiteSterile +"\t"+this.nbVoyage +"\t"+this.pourcentFer+"\t"+this.pourcentSouffre;
-		outString +="\t"+this.percentEffPellesMax+"\t"+this.percentEffPellesAvg+"\t"+this.percentEffPellesMin+"\t"+this.percentEffCamionsMax+"\t"+this.percentEffCamionsAvg+"\t"+this.percentEffCamionsMin+"\t"+this.attenteMoyenGlobalPelles+"\t"+this.attenteMoyenGlobalCamions+"\t";
-
-
-
-
-		//productivité de chaque pelle
-		//
-		for(int i = 0 ; i < effPelles.size(); i++){
-			Pelle pelle = effPelles.get(i).getKey();
-			double tauxPlan = planPelles.get(i).getValue();
-			double tauxReel = tauxPelles.get(i).getValue();
-			
-			double eff = effPelles.get(i).getValue();
-
-			outString +=pelle.getId()+"\t"+tauxPlan+"\t"+tauxReel+"\t"+eff+"\t"+pelle.getAverageWaitTimeSeconds()+"\t"+this.attenteMoyenCamions.get(pelle).doubleValue()+"\t";
-
-		}
-
-
-
-
-
-		System.out.println(outString);
-
-		try {
-			FileWriter fw = new FileWriter(file);
-			fw.write(outString);
-			fw.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-
-	}
-
-	private Component sommairePanel() {
-
-		JPanel sommairePanel = new JPanel();
-
-		//layout
-		//
-		sommairePanel.setLayout(new GridBagLayout());
 		GridBagConstraints gc = new GridBagConstraints();
-		sommairePanel.setOpaque(true);
-		sommairePanel.setBackground(Color.WHITE);
-
-
-		//scrollbar
-		//
-		JScrollPane scrollPane = new JScrollPane(sommairePanel);
-		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		//sommairePanel.add(scrollPane);
-
-		//Ajoute les composantes
-		//
 
 		gc.gridx = 0;
 		gc.gridy = 0;
-		gc.weightx=0.001;
-		//gc.weighty=0.001;
-		gc.fill = GridBagConstraints.HORIZONTAL;
-		gc.anchor = GridBagConstraints.NORTHWEST;
-
-		//parametres du simulateur
-		sommairePanel.add(paramsSimulationPanel(), gc);
-
-		gc.gridy++;
-		sommairePanel.add(sommaireProdPanel(), gc);
-
-		gc.gridy++;
-		sommairePanel.add(prodPellesPanel(), gc);
-
-		//JPanel pour prendre le reste de la place
-		JPanel filler = new JPanel();
-		filler.setOpaque(false);
-		gc.gridy++;
-		gc.fill = GridBagConstraints.BOTH;
+		gc.weightx = 1;
 		gc.weighty = 1;
+		gc.insets = new Insets(0, 10, 0, 0);
+		gc.fill = GridBagConstraints.NONE;
+		gc.anchor = GridBagConstraints.WEST;
+		//paramsSimulationPanel.setMinimumSize(new Dimension(100, 1));
+		//paramsSimulationPanel.setPreferredSize(new Dimension(100, 1));
+		//titre
+		//
+		JLabel titreLabel = new JLabel("Paramètres de la simulation");
+		titreLabel.setFont(fontTitre2);
 
-		sommairePanel.add(filler, gc);
-		return scrollPane;
+		paramsSimulationPanel.add(titreLabel, gc);
+
+		gc.insets = new Insets(5, 10+tabWidth, 0, 0);
+
+		//Nom de mine
+		//
+		String mineText = "Mine : "+this.nomMine;
+		JLabel mineLabel = new JLabel(mineText);
+		mineLabel.setFont(fontNormal);
+		gc.gridy++;
+		paramsSimulationPanel.add(mineLabel, gc);
+
+
+		//Nombre de camions
+		//
+		String nbCamionsText = "Nombre de camions : "+this.nbCamions;
+		JLabel nbCamionsLabel = new JLabel(nbCamionsText);
+		nbCamionsLabel.setFont(fontNormal);
+		gc.gridy++;
+		paramsSimulationPanel.add(nbCamionsLabel, gc);
+
+
+
+		//Temps de simulation
+		//
+
+
+		String tempsSimulationText = "Durée simulé : "+this.stringDuree;
+		JLabel tempsSimulationLabel = new JLabel(tempsSimulationText);
+		tempsSimulationLabel.setFont(fontNormal);
+		gc.gridy++;
+		paramsSimulationPanel.add(tempsSimulationLabel, gc);
+
+
+
+		return paramsSimulationPanel ;
 	}
 
 	private Component prodPellesPanel() {
@@ -628,6 +589,67 @@ public class SommaireFrame extends JFrame {
 
 
 		return prodPellesPanel ;
+	}
+
+	private void setFonts() {
+		Map<TextAttribute, Integer> fontAttributes = new HashMap<TextAttribute, Integer>();
+		fontAttributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
+		fontTitre1 = new Font("Serif",Font.BOLD, 24).deriveFont(fontAttributes);
+
+		fontTitre2 = new Font("Serif",Font.BOLD, 20).deriveFont(fontAttributes);
+
+		fontNormal = new Font("Serif",Font.BOLD, 16);
+
+
+	}
+
+	private Component sommairePanel() {
+
+		JPanel sommairePanel = new JPanel();
+
+		//layout
+		//
+		sommairePanel.setLayout(new GridBagLayout());
+		GridBagConstraints gc = new GridBagConstraints();
+		sommairePanel.setOpaque(true);
+		sommairePanel.setBackground(Color.WHITE);
+
+
+		//scrollbar
+		//
+		JScrollPane scrollPane = new JScrollPane(sommairePanel);
+		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		//sommairePanel.add(scrollPane);
+
+		//Ajoute les composantes
+		//
+
+		gc.gridx = 0;
+		gc.gridy = 0;
+		gc.weightx=0.001;
+		//gc.weighty=0.001;
+		gc.fill = GridBagConstraints.HORIZONTAL;
+		gc.anchor = GridBagConstraints.NORTHWEST;
+
+		//parametres du simulateur
+		sommairePanel.add(paramsSimulationPanel(), gc);
+
+		gc.gridy++;
+		sommairePanel.add(sommaireProdPanel(), gc);
+
+		gc.gridy++;
+		sommairePanel.add(prodPellesPanel(), gc);
+
+		//JPanel pour prendre le reste de la place
+		JPanel filler = new JPanel();
+		filler.setOpaque(false);
+		gc.gridy++;
+		gc.fill = GridBagConstraints.BOTH;
+		gc.weighty = 1;
+
+		sommairePanel.add(filler, gc);
+		return scrollPane;
 	}
 
 	private JPanel sommaireProdPanel() {
@@ -839,73 +861,6 @@ public class SommaireFrame extends JFrame {
 		return sommaireProdPanel ;
 	}
 
-	private double arrondiDeuxDecimales(double number) {
-
-		return 1.*((int)((number+0.005)*100))/100.;
-	}
-
-	private Component paramsSimulationPanel() {
-
-		JPanel paramsSimulationPanel = new JPanel();
-		paramsSimulationPanel.setOpaque(false);
-
-
-		paramsSimulationPanel.setLayout(new GridBagLayout());
-
-		GridBagConstraints gc = new GridBagConstraints();
-
-		gc.gridx = 0;
-		gc.gridy = 0;
-		gc.weightx = 1;
-		gc.weighty = 1;
-		gc.insets = new Insets(0, 10, 0, 0);
-		gc.fill = GridBagConstraints.NONE;
-		gc.anchor = GridBagConstraints.WEST;
-		//paramsSimulationPanel.setMinimumSize(new Dimension(100, 1));
-		//paramsSimulationPanel.setPreferredSize(new Dimension(100, 1));
-		//titre
-		//
-		JLabel titreLabel = new JLabel("Paramètres de la simulation");
-		titreLabel.setFont(fontTitre2);
-
-		paramsSimulationPanel.add(titreLabel, gc);
-
-		gc.insets = new Insets(5, 10+tabWidth, 0, 0);
-
-		//Nom de mine
-		//
-		String mineText = "Mine : "+this.nomMine;
-		JLabel mineLabel = new JLabel(mineText);
-		mineLabel.setFont(fontNormal);
-		gc.gridy++;
-		paramsSimulationPanel.add(mineLabel, gc);
-
-
-		//Nombre de camions
-		//
-		String nbCamionsText = "Nombre de camions : "+this.nbCamions;
-		JLabel nbCamionsLabel = new JLabel(nbCamionsText);
-		nbCamionsLabel.setFont(fontNormal);
-		gc.gridy++;
-		paramsSimulationPanel.add(nbCamionsLabel, gc);
-
-
-
-		//Temps de simulation
-		//
-
-
-		String tempsSimulationText = "Durée simulé : "+this.stringDuree;
-		JLabel tempsSimulationLabel = new JLabel(tempsSimulationText);
-		tempsSimulationLabel.setFont(fontNormal);
-		gc.gridy++;
-		paramsSimulationPanel.add(tempsSimulationLabel, gc);
-
-
-
-		return paramsSimulationPanel ;
-	}
-
 	private Component titrePanel() {
 		JPanel mainTitlePanel = new JPanel();
 
@@ -919,6 +874,51 @@ public class SommaireFrame extends JFrame {
 
 		mainTitlePanel.add(titreLabel);
 		return mainTitlePanel;
+	}
+
+	protected void exportSommaireToFile(File file) {
+		//TODO
+		String outString = "";
+
+		//parametres de simulation
+		outString+=this.nomMine+"\t"+this.nbCamions+"\t"+this.dureeSimulationSeconds+"\t";
+
+		//sommaire de productivité
+		outString += this.quantiteMinerai +"\t"+this.quantiteSterile +"\t"+this.nbVoyage +"\t"+this.pourcentFer+"\t"+this.pourcentSouffre;
+		outString +="\t"+this.percentEffPellesMax+"\t"+this.percentEffPellesAvg+"\t"+this.percentEffPellesMin+"\t"+this.percentEffCamionsMax+"\t"+this.percentEffCamionsAvg+"\t"+this.percentEffCamionsMin+"\t"+this.attenteMoyenGlobalPelles+"\t"+this.attenteMoyenGlobalCamions+"\t";
+
+
+
+
+		//productivité de chaque pelle
+		//
+		for(int i = 0 ; i < effPelles.size(); i++){
+			Pelle pelle = effPelles.get(i).getKey();
+			double tauxPlan = planPelles.get(i).getValue();
+			double tauxReel = tauxPelles.get(i).getValue();
+			
+			double eff = effPelles.get(i).getValue();
+
+			outString +=pelle.getId()+"\t"+tauxPlan+"\t"+tauxReel+"\t"+eff+"\t"+pelle.getAverageWaitTimeSeconds()+"\t"+this.attenteMoyenCamions.get(pelle).doubleValue()+"\t";
+
+		}
+
+
+
+
+
+		System.out.println(outString);
+
+		try {
+			FileWriter fw = new FileWriter(file);
+			fw.write(outString);
+			fw.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+
 	}
 
 }

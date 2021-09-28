@@ -187,52 +187,46 @@ public class JMinePanel extends JPanel{
 
 
 
-	protected void openPopupMenu(MouseEvent e) {
-		//trouve la pelle la plus pres du bouton
-		//
-		Mine mine = parentFrame.getMine();
-		//emplacement relatif de la souris, en fraction
-		double fractionX = 1.*e.getX()/this.getWidth();
-		double fractionY = 1.*e.getY()/this.getHeight();
-
-		final Pelle closestPelle = mine.closestPelle(fractionX, fractionY);
-
-		//emplacement de la pelle dans le GUI
-		Point pointPelle = convertPointToWindow(closestPelle.getLocation());
-
-		//menu seulement si assez pres de la pelle
-		//
-		if(e.getX() <= pointPelle.getX()+STATION_WIDTH/2 && e.getX() >= pointPelle.getX()-STATION_WIDTH/2 && 
-				e.getY() <= pointPelle.getY()+STATION_HEIGHT/2 && e.getY() >= pointPelle.getY()-STATION_HEIGHT/2){
-
-			//cree le menu
-			JPopupMenu ppm = new JPopupMenu();
-			JMenuItem menuItem = new JMenuItem("Modifier le plan."); 
-			ppm.add(menuItem);
-
-			menuItem.addActionListener(new ActionListener(){
-
-				@Override
-				public void actionPerformed(ActionEvent arg0) {
-					System.out.println("clic");
-					String strNbCamionsParHeure = JOptionPane.showInputDialog(closestPelle.getId()+" : Nombre de camions/heure?");
-
-					//Utilisation de Float car le package Double est défini pour des coordonneés 2D
-					double nbCamionsParHeure = Float.parseFloat(strNbCamionsParHeure);
-
-					parentFrame.notifyListenersPlanPelleChanged(closestPelle, nbCamionsParHeure);
-
-					repaint();
-				}
-
-			});
-			//affiche le menu
-			ppm.show(e.getComponent(), e.getX(), e.getY());
-		}
+	public void automaticCompleteFinished() {
+		progressBarPanel.setVisible(false);
+		repaint();
 
 	}
 
 
+
+	public void automaticCompleteStarted() {
+		Dimension panelSize = this.getSize();
+		int width = 300;
+		int height = 50;
+		int startx = (int) ( panelSize.getWidth()/2-width/2);
+		int starty = (int) (panelSize.getHeight()/2-height/2);
+		bounds = new Rectangle(startx, starty, width, height);
+		progressBarPanel.setBounds(bounds);
+
+		progressBarPanel.setVisible(true);
+		//repaint();
+		//progressBarPanel.paintImmediately(bounds);
+		paintImmediately(bounds);
+
+
+		//progressBarPanel.paintImmediately(0, 0, 10000, 10000);
+		//test.validate();
+		//progressBarPanel.repaint(1);		
+	}
+
+	public void automaticCompleteUpdated(double fractionComplete) {
+
+		progressBar.setValue((int) fractionComplete);
+		//progressBarPanel.paintImmediately(bounds);
+
+		paintImmediately(bounds);
+
+	}
+
+	public void mineResetted() {
+		this.repaint();		
+	}
 
 	//peint la mine
 	public void paintComponent(Graphics g) {
@@ -289,6 +283,35 @@ public class JMinePanel extends JPanel{
 				paintPelle(pelles.get(i), g);
 			}
 		}
+
+	}
+
+	public void updateMine() {
+		System.out.println("update");
+		revalidate();
+		repaint();	
+	}
+
+	//convertis un point dans l'espace de la mine en point dans l'espace de la fenetre
+	private Point convertPointToWindow(Double double1) {
+		double ratioX = this.getWidth()/Mine.WIDTH;
+		double ratioY = this.getHeight()/Mine.HEIGHT;
+
+		Point newPoint = new Point((int) (double1.getX()*ratioX), (int) (double1.getY()*ratioY));
+		return newPoint;
+	}
+
+	//peint un camion
+	private void paintCamion(Camion camion, Graphics g) {
+		Point point = convertPointToWindow(camion.getLocation());
+		g.setColor(Color.RED);
+
+		BufferedImage camionImage = camion.getGoingWestImage();
+		if(camion.isGoingEast()) {
+			camionImage = camion.getGoingEastImage();
+		}
+		g.drawImage(camionImage, (int) (point.getX()-CAMION_WIDTH/2), (int) (point.getY()-CAMION_HEIGHT/2), (int) (point.getX()+CAMION_WIDTH/2), (int) (point.getY()+CAMION_HEIGHT/2), 0, 0, camionImage.getWidth(), camionImage.getHeight(), null);
+
 
 	}
 
@@ -371,170 +394,6 @@ public class JMinePanel extends JPanel{
 
 	}
 
-	//peint les chemins reliant le concentrateur  et le stérile aux pelles
-	private void paintRoutes(Graphics g, Mine mine) {
-		//Station concentrateur = mine.getConcentrateur();
-
-		//Station sterile = mine.getSterile();
-
-		ArrayList<Pelle> pelles = mine.getPelles();
-
-		for(int i = 0 ; i < pelles.size(); i++) {
-			Pelle p = pelles.get(i);
-			Point pointPelle = convertPointToWindow(p.getLocation());
-
-			//lien avec concentrateur
-			//
-			for(int j = 0 ; j < mine.getConcentrateurs().size(); j++) {
-				Concentrateur concentrateur = mine.getConcentrateurs().get(j);
-				if(concentrateur != null) {
-					Point pointConcentrateur = convertPointToWindow(concentrateur.getLocation());
-					g.setColor(Color.green);
-					g.drawLine((int) pointConcentrateur.getX(), (int) pointConcentrateur.getY(), (int) pointPelle.getX(), (int) pointPelle.getY());
-				}
-			}
-			//lien avec steriles
-			//
-			for(int j = 0 ; j < mine.getSteriles().size(); j++) {
-				Sterile sterile = mine.getSteriles().get(j);
-				if(sterile!= null) {
-					Point pointSterile = convertPointToWindow(sterile.getLocation());
-					g.setColor(Color.green);
-					g.drawLine((int) pointSterile.getX(), (int) pointSterile.getY(), (int) pointPelle.getX(), (int) pointPelle.getY());
-				}
-			}
-		}
-
-	}
-
-	private void paintStatsPanel(Graphics g, MineSimulator mineSimulator) {
-		int width = 430;
-		int height = 180;
-		g.setColor(Color.black);
-
-		Mine mine = mineSimulator.getMine();
-		//format des nombres
-		DecimalFormat df = new DecimalFormat("0.00");
-
-		double minCamionEff = mineSimulator.getMinCamionEfficiency();
-		String minCamionEffStr = df.format(minCamionEff);
-		double maxCamionEff = mineSimulator.getMaxCamionEfficiency();
-		String maxCamionEffStr = df.format(maxCamionEff);
-		double avgCamionEff = mineSimulator.getAverageCamionEfficiency();
-		String avgCamionEffStr = df.format(avgCamionEff);
-
-		double minPelleEff = mineSimulator.getMinPelleEfficiency();
-		String minPelleEffStr = df.format(minPelleEff);
-		double maxPelleEff = mineSimulator.getMaxPelleEfficiency();
-		String maxPelleEffStr = df.format(maxPelleEff);
-		double avgPelleEff = mineSimulator.getAveragePelleEfficiency();
-		String avgPelleEffStr = df.format(avgPelleEff);
-
-		double time = mine.getTime()/3600;
-		String timeStr = df.format(time);
-
-		g.setColor(new Color(255, 255, 255, 170));
-		g.fillRect(this.getWidth()-width-1, 0, width, height);
-		g.setColor(Color.black);
-		g.drawRect(this.getWidth()-width-1, 0, width, height);
-
-		Font bigFont = g.getFont().deriveFont((float) 20.0);
-		Font smallFont = g.getFont().deriveFont((float) 17.0);
-
-		g.setFont(bigFont);
-		g.drawString("Efficacité moyenne des camions : ", this.getWidth()-width+20, 30);
-
-		int alignXMinMaxAvg = this.getWidth()-width+290;
-		//g.setFont(smallFont);
-		//g.drawString("Min.  : "+minCamionEffStr,alignXMinMaxAvg , 30);
-		//g.drawString("Max. : "+maxCamionEffStr ,alignXMinMaxAvg , 50);
-		g.drawString(avgCamionEffStr+" %" ,alignXMinMaxAvg+65 , 30);
-
-		g.drawString("Efficacité des pelles : ", this.getWidth()-width+20, 60);
-
-		//g.setFont(smallFont);
-		g.drawString("Min.  : "+minPelleEffStr+" %",alignXMinMaxAvg , 60);
-		g.drawString("Max. : "+maxPelleEffStr+" %",alignXMinMaxAvg , 80);
-		g.drawString("Moy. : "+avgPelleEffStr+" %",alignXMinMaxAvg , 100);
-
-		g.drawString("Nombre de voyages : "+mineSimulator.getNumberOfRuns(), this.getWidth()-width+20, 130);
-		System.out.println(timeStr);
-		g.drawString("Temps écoulé : "+timeStr+" h", this.getWidth()-width+20, 160);
-
-
-		//DEBUG
-		// temps d'attente de tous les camions
-		/*
-		int verticalHeight = 190;
-		ArrayList<Camion> camions = mine.getCamions();
-		for(int i = 0 ; i < camions.size(); i++) {
-			double attente = camions.get(i).getWaitTime();
-			g.drawString("Camion "+i+" : "+attente, this.getWidth()-width+20, verticalHeight);
-			verticalHeight += 20;
-
-		}
-		 */
-
-
-	}
-
-	//peint une station
-	private void paintSterile(Sterile sterile, Graphics g) {
-		g.setColor(Color.BLACK);	
-
-		Font previousFont = g.getFont();
-		Font boldFont = g.getFont().deriveFont(Font.BOLD); 
-		//new Font ("Sanserif", Font.BOLD, 10);
-		Font normalFont = previousFont;
-
-
-		Point point = convertPointToWindow(sterile.getLocation());
-		//g.fillOval((int) (point.getX()-STATION_WIDTH/2), (int) (point.getY()-STATION_HEIGHT/2), STATION_WIDTH, STATION_HEIGHT);
-		g.drawImage(sterileImage, (int) (point.getX()-STATION_WIDTH/2), (int) (point.getY()-STATION_HEIGHT/2), (int) (point.getX()+STATION_WIDTH/2), (int) (point.getY()+STATION_HEIGHT/2), 0, 0, sterileImage.getWidth(), sterileImage.getHeight(), null);
-
-
-		//rectangle d'information
-		//coordonnees rect
-		g.setColor(new Color(255, 255, 255, 170));
-		int xrect =(int) point.getX()+STATION_WIDTH/2;
-		if(xrect+JMinePanel.INFO_RECT_WIDTH > this.getWidth()){
-			xrect = this.getWidth()-this.INFO_RECT_WIDTH;
-		}
-		if(xrect < 0){
-			xrect = 0;
-		}
-		int yrect = (int) (point.getY()-STATION_HEIGHT);
-		if(yrect+JMinePanel.INFO_RECT_STERILE_HEIGHT >= this.getHeight()){
-			yrect = this.getHeight()-this.INFO_RECT_STERILE_HEIGHT;
-		}
-		if(yrect < 0){
-			yrect = 0;
-		}
-
-		int paddingx = 2;
-
-		g.fillRect(xrect, yrect, this.INFO_RECT_WIDTH, this.INFO_RECT_STERILE_HEIGHT);
-
-		//ID de la pelle
-		g.setColor(Color.black);
-		g.setFont (boldFont);
-		g.drawString(sterile.getId(), xrect+paddingx, yrect +12);
-
-		g.setFont(normalFont);
-
-		//camions en attente
-		//
-		int nbCamions = sterile.getCamionsEnAttente().size();
-
-		if(sterile.getCamionEnTraitement() != null) {
-			nbCamions++;
-		}
-		g.setColor(new Color(0, 0, 170));
-		g.drawString("attente :  "+nbCamions, xrect+paddingx, yrect +25 );
-
-		//remet le font d'avant
-		g.setFont(previousFont);
-	}
 
 	//peint une pelle
 	private void paintPelle(Pelle pelle, Graphics g) {
@@ -610,79 +469,220 @@ public class JMinePanel extends JPanel{
 		g.setFont(previousFont);
 	}
 
-	//peint un camion
-	private void paintCamion(Camion camion, Graphics g) {
-		Point point = convertPointToWindow(camion.getLocation());
-		g.setColor(Color.RED);
 
-		BufferedImage camionImage = camion.getGoingWestImage();
-		if(camion.isGoingEast()) {
-			camionImage = camion.getGoingEastImage();
+
+	//peint les chemins reliant le concentrateur  et le stérile aux pelles
+	private void paintRoutes(Graphics g, Mine mine) {
+		//Station concentrateur = mine.getConcentrateur();
+
+		//Station sterile = mine.getSterile();
+
+		ArrayList<Pelle> pelles = mine.getPelles();
+
+		for(int i = 0 ; i < pelles.size(); i++) {
+			Pelle p = pelles.get(i);
+			Point pointPelle = convertPointToWindow(p.getLocation());
+
+			//lien avec concentrateur
+			//
+			for(int j = 0 ; j < mine.getConcentrateurs().size(); j++) {
+				Concentrateur concentrateur = mine.getConcentrateurs().get(j);
+				if(concentrateur != null) {
+					Point pointConcentrateur = convertPointToWindow(concentrateur.getLocation());
+					g.setColor(Color.green);
+					g.drawLine((int) pointConcentrateur.getX(), (int) pointConcentrateur.getY(), (int) pointPelle.getX(), (int) pointPelle.getY());
+				}
+			}
+			//lien avec steriles
+			//
+			for(int j = 0 ; j < mine.getSteriles().size(); j++) {
+				Sterile sterile = mine.getSteriles().get(j);
+				if(sterile!= null) {
+					Point pointSterile = convertPointToWindow(sterile.getLocation());
+					g.setColor(Color.green);
+					g.drawLine((int) pointSterile.getX(), (int) pointSterile.getY(), (int) pointPelle.getX(), (int) pointPelle.getY());
+				}
+			}
 		}
-		g.drawImage(camionImage, (int) (point.getX()-CAMION_WIDTH/2), (int) (point.getY()-CAMION_HEIGHT/2), (int) (point.getX()+CAMION_WIDTH/2), (int) (point.getY()+CAMION_HEIGHT/2), 0, 0, camionImage.getWidth(), camionImage.getHeight(), null);
-
-
-	}
-
-	//convertis un point dans l'espace de la mine en point dans l'espace de la fenetre
-	private Point convertPointToWindow(Double double1) {
-		double ratioX = this.getWidth()/Mine.WIDTH;
-		double ratioY = this.getHeight()/Mine.HEIGHT;
-
-		Point newPoint = new Point((int) (double1.getX()*ratioX), (int) (double1.getY()*ratioY));
-		return newPoint;
-	}
-
-
-	public void mineResetted() {
-		this.repaint();		
-	}
-
-
-
-	public void updateMine() {
-		System.out.println("update");
-		revalidate();
-		repaint();	
-	}
-
-
-
-
-	public void automaticCompleteStarted() {
-		Dimension panelSize = this.getSize();
-		int width = 300;
-		int height = 50;
-		int startx = (int) ( panelSize.getWidth()/2-width/2);
-		int starty = (int) (panelSize.getHeight()/2-height/2);
-		bounds = new Rectangle(startx, starty, width, height);
-		progressBarPanel.setBounds(bounds);
-
-		progressBarPanel.setVisible(true);
-		//repaint();
-		//progressBarPanel.paintImmediately(bounds);
-		paintImmediately(bounds);
-
-
-		//progressBarPanel.paintImmediately(0, 0, 10000, 10000);
-		//test.validate();
-		//progressBarPanel.repaint(1);		
-	}
-
-
-	public void automaticCompleteUpdated(double fractionComplete) {
-
-		progressBar.setValue((int) fractionComplete);
-		//progressBarPanel.paintImmediately(bounds);
-
-		paintImmediately(bounds);
 
 	}
 
 
-	public void automaticCompleteFinished() {
-		progressBarPanel.setVisible(false);
-		repaint();
+
+
+	private void paintStatsPanel(Graphics g, MineSimulator mineSimulator) {
+		int width = 430;
+		int height = 180;
+		g.setColor(Color.black);
+
+		Mine mine = mineSimulator.getMine();
+		//format des nombres
+		DecimalFormat df = new DecimalFormat("0.00");
+
+		double minCamionEff = mineSimulator.getMinCamionEfficiency();
+		String minCamionEffStr = df.format(minCamionEff);
+		double maxCamionEff = mineSimulator.getMaxCamionEfficiency();
+		String maxCamionEffStr = df.format(maxCamionEff);
+		double avgCamionEff = mineSimulator.getAverageCamionEfficiency();
+		String avgCamionEffStr = df.format(avgCamionEff);
+
+		double minPelleEff = mineSimulator.getMinPelleEfficiency();
+		String minPelleEffStr = df.format(minPelleEff);
+		double maxPelleEff = mineSimulator.getMaxPelleEfficiency();
+		String maxPelleEffStr = df.format(maxPelleEff);
+		double avgPelleEff = mineSimulator.getAveragePelleEfficiency();
+		String avgPelleEffStr = df.format(avgPelleEff);
+
+		double time = mine.getTime()/3600;
+		String timeStr = df.format(time);
+
+		g.setColor(new Color(255, 255, 255, 170));
+		g.fillRect(this.getWidth()-width-1, 0, width, height);
+		g.setColor(Color.black);
+		g.drawRect(this.getWidth()-width-1, 0, width, height);
+
+		Font bigFont = g.getFont().deriveFont((float) 20.0);
+		Font smallFont = g.getFont().deriveFont((float) 17.0);
+
+		g.setFont(bigFont);
+		g.drawString("Efficacité moyenne des camions : ", this.getWidth()-width+20, 30);
+
+		int alignXMinMaxAvg = this.getWidth()-width+290;
+		//g.setFont(smallFont);
+		//g.drawString("Min.  : "+minCamionEffStr,alignXMinMaxAvg , 30);
+		//g.drawString("Max. : "+maxCamionEffStr ,alignXMinMaxAvg , 50);
+		g.drawString(avgCamionEffStr+" %" ,alignXMinMaxAvg+65 , 30);
+
+		g.drawString("Efficacité des pelles : ", this.getWidth()-width+20, 60);
+
+		//g.setFont(smallFont);
+		g.drawString("Min.  : "+minPelleEffStr+" %",alignXMinMaxAvg , 60);
+		g.drawString("Max. : "+maxPelleEffStr+" %",alignXMinMaxAvg , 80);
+		g.drawString("Moy. : "+avgPelleEffStr+" %",alignXMinMaxAvg , 100);
+
+		g.drawString("Nombre de voyages : "+mineSimulator.getNumberOfRuns(), this.getWidth()-width+20, 130);
+		System.out.println(timeStr);
+		g.drawString("Temps écoulé : "+timeStr+" h", this.getWidth()-width+20, 160);
+
+
+		//DEBUG
+		// temps d'attente de tous les camions
+		/*
+		int verticalHeight = 190;
+		ArrayList<Camion> camions = mine.getCamions();
+		for(int i = 0 ; i < camions.size(); i++) {
+			double attente = camions.get(i).getWaitTime();
+			g.drawString("Camion "+i+" : "+attente, this.getWidth()-width+20, verticalHeight);
+			verticalHeight += 20;
+
+		}
+		 */
+
+
+	}
+
+
+	//peint une station
+	private void paintSterile(Sterile sterile, Graphics g) {
+		g.setColor(Color.BLACK);	
+
+		Font previousFont = g.getFont();
+		Font boldFont = g.getFont().deriveFont(Font.BOLD); 
+		//new Font ("Sanserif", Font.BOLD, 10);
+		Font normalFont = previousFont;
+
+
+		Point point = convertPointToWindow(sterile.getLocation());
+		//g.fillOval((int) (point.getX()-STATION_WIDTH/2), (int) (point.getY()-STATION_HEIGHT/2), STATION_WIDTH, STATION_HEIGHT);
+		g.drawImage(sterileImage, (int) (point.getX()-STATION_WIDTH/2), (int) (point.getY()-STATION_HEIGHT/2), (int) (point.getX()+STATION_WIDTH/2), (int) (point.getY()+STATION_HEIGHT/2), 0, 0, sterileImage.getWidth(), sterileImage.getHeight(), null);
+
+
+		//rectangle d'information
+		//coordonnees rect
+		g.setColor(new Color(255, 255, 255, 170));
+		int xrect =(int) point.getX()+STATION_WIDTH/2;
+		if(xrect+JMinePanel.INFO_RECT_WIDTH > this.getWidth()){
+			xrect = this.getWidth()-this.INFO_RECT_WIDTH;
+		}
+		if(xrect < 0){
+			xrect = 0;
+		}
+		int yrect = (int) (point.getY()-STATION_HEIGHT);
+		if(yrect+JMinePanel.INFO_RECT_STERILE_HEIGHT >= this.getHeight()){
+			yrect = this.getHeight()-this.INFO_RECT_STERILE_HEIGHT;
+		}
+		if(yrect < 0){
+			yrect = 0;
+		}
+
+		int paddingx = 2;
+
+		g.fillRect(xrect, yrect, this.INFO_RECT_WIDTH, this.INFO_RECT_STERILE_HEIGHT);
+
+		//ID de la pelle
+		g.setColor(Color.black);
+		g.setFont (boldFont);
+		g.drawString(sterile.getId(), xrect+paddingx, yrect +12);
+
+		g.setFont(normalFont);
+
+		//camions en attente
+		//
+		int nbCamions = sterile.getCamionsEnAttente().size();
+
+		if(sterile.getCamionEnTraitement() != null) {
+			nbCamions++;
+		}
+		g.setColor(new Color(0, 0, 170));
+		g.drawString("attente :  "+nbCamions, xrect+paddingx, yrect +25 );
+
+		//remet le font d'avant
+		g.setFont(previousFont);
+	}
+
+
+	protected void openPopupMenu(MouseEvent e) {
+		//trouve la pelle la plus pres du bouton
+		//
+		Mine mine = parentFrame.getMine();
+		//emplacement relatif de la souris, en fraction
+		double fractionX = 1.*e.getX()/this.getWidth();
+		double fractionY = 1.*e.getY()/this.getHeight();
+
+		final Pelle closestPelle = mine.closestPelle(fractionX, fractionY);
+
+		//emplacement de la pelle dans le GUI
+		Point pointPelle = convertPointToWindow(closestPelle.getLocation());
+
+		//menu seulement si assez pres de la pelle
+		//
+		if(e.getX() <= pointPelle.getX()+STATION_WIDTH/2 && e.getX() >= pointPelle.getX()-STATION_WIDTH/2 && 
+				e.getY() <= pointPelle.getY()+STATION_HEIGHT/2 && e.getY() >= pointPelle.getY()-STATION_HEIGHT/2){
+
+			//cree le menu
+			JPopupMenu ppm = new JPopupMenu();
+			JMenuItem menuItem = new JMenuItem("Modifier le plan."); 
+			ppm.add(menuItem);
+
+			menuItem.addActionListener(new ActionListener(){
+
+				@Override
+				public void actionPerformed(ActionEvent arg0) {
+					System.out.println("clic");
+					String strNbCamionsParHeure = JOptionPane.showInputDialog(closestPelle.getId()+" : Nombre de camions/heure?");
+
+					//Utilisation de Float car le package Double est défini pour des coordonneés 2D
+					double nbCamionsParHeure = Float.parseFloat(strNbCamionsParHeure);
+
+					parentFrame.notifyListenersPlanPelleChanged(closestPelle, nbCamionsParHeure);
+
+					repaint();
+				}
+
+			});
+			//affiche le menu
+			ppm.show(e.getComponent(), e.getX(), e.getY());
+		}
 
 	}
 }
