@@ -3,6 +3,7 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
 		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="SimulationMine/lp_solve"/>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
@@ -26,7 +27,7 @@
 	<classpathentry kind="lib" path="lib/orsonpdf-1.6-eval.jar"/>
 	<classpathentry kind="lib" path="lib/servlet.jar"/>
 	<classpathentry kind="lib" path="lib/swtgraphics2d.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Fred/Desktop/test_mine_package/workspace/SimulationMine/lib/lpsolve55j.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Fred/Desktop/test_mine_package/workspace/SimulationMine/lib/junit.jar"/>
+	<classpathentry kind="lib" path="lib/junit.jar"/>
+	<classpathentry kind="lib" path="lib/lpsolve55j.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
