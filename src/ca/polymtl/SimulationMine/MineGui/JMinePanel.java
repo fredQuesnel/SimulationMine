@@ -21,7 +21,9 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
@@ -375,7 +377,7 @@ public class JMinePanel extends JPanel{
 		g.drawString("attente :  "+nbCamions, xrect+paddingx, yrect +25 );
 
 
-		//Qualité du minerai
+		//Qualitï¿½ du minerai
 		//
 		double percentMinerai = concentrateur.getPercentIron();
 		double percentSouffre = concentrateur.getPercentSulfur();
@@ -449,7 +451,7 @@ public class JMinePanel extends JPanel{
 		g.drawString("attente :  "+nbCamions, xrect+paddingx, yrect +25 );
 
 
-		//Qualité du minerai
+		//Qualitï¿½ du minerai
 		//
 		double percentMinerai = pelle.getRockType().getPercentIron();
 		double percentSouffre = pelle.getRockType().getPercentSulfur();
@@ -471,7 +473,7 @@ public class JMinePanel extends JPanel{
 
 
 
-	//peint les chemins reliant le concentrateur  et le stérile aux pelles
+	//peint les chemins reliant le concentrateur  et le stï¿½rile aux pelles
 	private void paintRoutes(Graphics g, Mine mine) {
 		//Station concentrateur = mine.getConcentrateur();
 
@@ -511,30 +513,28 @@ public class JMinePanel extends JPanel{
 
 
 	private void paintStatsPanel(Graphics g, MineSimulator mineSimulator) {
-		int width = 430;
-		int height = 180;
+		int width = 330;
+		int height = 80;
 		g.setColor(Color.black);
 
 		Mine mine = mineSimulator.getMine();
 		//format des nombres
-		DecimalFormat df = new DecimalFormat("0.00");
-
-		double minCamionEff = mineSimulator.getMinCamionEfficiency();
-		String minCamionEffStr = df.format(minCamionEff);
-		double maxCamionEff = mineSimulator.getMaxCamionEfficiency();
-		String maxCamionEffStr = df.format(maxCamionEff);
-		double avgCamionEff = mineSimulator.getAverageCamionEfficiency();
-		String avgCamionEffStr = df.format(avgCamionEff);
-
-		double minPelleEff = mineSimulator.getMinPelleEfficiency();
-		String minPelleEffStr = df.format(minPelleEff);
-		double maxPelleEff = mineSimulator.getMaxPelleEfficiency();
-		String maxPelleEffStr = df.format(maxPelleEff);
-		double avgPelleEff = mineSimulator.getAveragePelleEfficiency();
-		String avgPelleEffStr = df.format(avgPelleEff);
-
+		//DecimalFormat df = new DecimalFormat("0,00");
+		SimpleDateFormat df = new SimpleDateFormat("HH:mm");
+		
 		double time = mine.getTime()/3600;
-		String timeStr = df.format(time);
+		int nbHours = (int) time;
+		int nbMin = (int) ((time-nbHours)*60);
+		String timeStr = "";
+		if(nbMin == 0) {
+			timeStr = nbHours+":00";
+		}
+		else if (nbMin <10) {
+			timeStr = nbHours+":0"+nbMin;	
+		}
+		else {
+			timeStr = nbHours+":"+nbMin;	
+		}
 
 		g.setColor(new Color(255, 255, 255, 170));
 		g.fillRect(this.getWidth()-width-1, 0, width, height);
@@ -545,24 +545,13 @@ public class JMinePanel extends JPanel{
 		Font smallFont = g.getFont().deriveFont((float) 17.0);
 
 		g.setFont(bigFont);
-		g.drawString("Efficacité moyenne des camions : ", this.getWidth()-width+20, 30);
 
-		int alignXMinMaxAvg = this.getWidth()-width+290;
-		//g.setFont(smallFont);
-		//g.drawString("Min.  : "+minCamionEffStr,alignXMinMaxAvg , 30);
-		//g.drawString("Max. : "+maxCamionEffStr ,alignXMinMaxAvg , 50);
-		g.drawString(avgCamionEffStr+" %" ,alignXMinMaxAvg+65 , 30);
-
-		g.drawString("Efficacité des pelles : ", this.getWidth()-width+20, 60);
-
-		//g.setFont(smallFont);
-		g.drawString("Min.  : "+minPelleEffStr+" %",alignXMinMaxAvg , 60);
-		g.drawString("Max. : "+maxPelleEffStr+" %",alignXMinMaxAvg , 80);
-		g.drawString("Moy. : "+avgPelleEffStr+" %",alignXMinMaxAvg , 100);
-
-		g.drawString("Nombre de voyages : "+mineSimulator.getNumberOfRuns(), this.getWidth()-width+20, 130);
-		System.out.println(timeStr);
-		g.drawString("Temps écoulé : "+timeStr+" h", this.getWidth()-width+20, 160);
+		g.drawString("Temps Ã©coulÃ© : ", this.getWidth()-width+20, 30);
+		g.drawString(timeStr, this.getWidth()-width+240, 30);
+		g.drawString(" h", this.getWidth()-width+300, 30);
+		
+		g.drawString("Nombre de voyages : ", this.getWidth()-width+20, 60);
+		g.drawString(""+mineSimulator.getNumberOfRuns(), this.getWidth()-width+240, 60);
 
 
 		//DEBUG
@@ -671,7 +660,7 @@ public class JMinePanel extends JPanel{
 					System.out.println("clic");
 					String strNbCamionsParHeure = JOptionPane.showInputDialog(closestPelle.getId()+" : Nombre de camions/heure?");
 
-					//Utilisation de Float car le package Double est défini pour des coordonneés 2D
+					//Utilisation de Float car le package Double est dï¿½fini pour des coordonneï¿½s 2D
 					double nbCamionsParHeure = Float.parseFloat(strNbCamionsParHeure);
 
 					parentFrame.notifyListenersPlanPelleChanged(closestPelle, nbCamionsParHeure);

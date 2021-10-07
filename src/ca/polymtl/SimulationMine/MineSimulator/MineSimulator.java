@@ -856,6 +856,7 @@ public class MineSimulator implements GuiListener {
 		}*/
 
 		if((modeCharge && c.getCharge() == c.getChargeMax()) || (!modeCharge && c.getCharge() == 0)){
+			c.setStateInactif();
 			//s.setCamionEnTraitement(s.camionsEnAttente.get(0));
 			Station objective = decisionMaker.giveObjectiveToCamion(c);
 			c.setObjective(objective);
