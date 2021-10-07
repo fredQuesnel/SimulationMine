@@ -14,34 +14,34 @@ import ca.polymtl.SimulationMine.decisionMaker.CustomDecisionMaker;
 import ca.polymtl.SimulationMine.decisionMaker.DecisionMaker;
 import ca.polymtl.SimulationMine.decisionMaker.TravelTimePredictor;
 
-//classe représentant une simulation de mine. Elle gere la simulation en tant que telle et 
+//classe reprï¿½sentant une simulation de mine. Elle gere la simulation en tant que telle et 
 //l'interfacage avec le gui
 //
 public class MineSimulator implements GuiListener {
 
-	//engin de décision
+	//engin de dï¿½cision
 	public CustomDecisionMaker decisionMaker;
 
-	//mine simulée
+	//mine simulï¿½e
 	private Mine mine;
 
-	//objets qui écoutent la simulation
+	//objets qui ï¿½coutent la simulation
 	private ArrayList<MineSimulationListener> listeners;
 
 	private SommaireFrame sommaireFrame;
 
 	/*
-	 * État de la simulation
+	 * ï¿½tat de la simulation
 	 */
-	//nombre de pas de simulation effectués
+	//nombre de pas de simulation effectuï¿½s
 	private int stepCounter;	
 	//nombre max de pas pour la simulation actuelle
 	private int max_steps;
 	//nombre de pas par iteration (determine la vitesse de simulation)
 	private int nbIterPerStep;
-	//timer en charge d'updater la simulation à intervalle régulier
+	//timer en charge d'updater la simulation ï¿½ intervalle rï¿½gulier
 	private Timer timer;
-	//si true, stop à chaque fois qu'un camion arrive au stérile/au concentrateur	
+	//si true, stop ï¿½ chaque fois qu'un camion arrive au stï¿½rile/au concentrateur	
 	private boolean stopOnAssign;
 
 	private TravelTimePredictor travelTimePredictor;
@@ -57,7 +57,7 @@ public class MineSimulator implements GuiListener {
 		//instantie la liste des listeners
 		listeners = new ArrayList<MineSimulationListener>();
 
-		//Créé la mine et l'initialise
+		//Crï¿½ï¿½ la mine et l'initialise
 		//
 		mine = new Mine(this);
 		mine.init(Mine.exampleIds.get(0));
@@ -65,7 +65,7 @@ public class MineSimulator implements GuiListener {
 		//cree le predicteur de temps de parcours
 		this.travelTimePredictor = new TravelTimePredictor(mine);
 
-		//Créé l'engin de décision
+		//Crï¿½ï¿½ l'engin de dï¿½cision
 		//
 		decisionMaker = new CustomDecisionMaker(mine);
 
@@ -80,20 +80,20 @@ public class MineSimulator implements GuiListener {
 		//nombre max de pas
 		this.max_steps = (int) (SimulationMine.DEFAULT_SIMULATION_TIME_SECONDS/Mine.TIME_INCREMENT);
 
-		//par defaut, on ne stop pas a chaque fois qu'un camion arrive au stérile/concentrateur
+		//par defaut, on ne stop pas a chaque fois qu'un camion arrive au stï¿½rile/concentrateur
 		this.stopOnAssign = false;
 
 		//ajoute le timer de la simulation
 		//
 		this.timer = createTimer();
-		//delai par défaut (millisecondes) entre 2 itérations
+		//delai par dï¿½faut (millisecondes) entre 2 itï¿½rations
 		//
 		this.setNbIterPerStep(26);
 
 	}
 
 	/*
-	 * Ajoute un listener à la liste des listeners
+	 * Ajoute un listener ï¿½ la liste des listeners
 	 */
 	public void addListener(MineSimulationListener listener){
 		listeners.add(listener);
@@ -132,7 +132,7 @@ public class MineSimulator implements GuiListener {
 	}
 
 	/*
-	 * Complète automatiquement la simulation (sans attendre les evenements du timer)
+	 * Complï¿½te automatiquement la simulation (sans attendre les evenements du timer)
 	 */
 	public void completerSimulation() {
 		//avertis les listeners
@@ -140,7 +140,7 @@ public class MineSimulator implements GuiListener {
 
 		setPauseMode();
 
-		//compte combien de pas représentent 1% de complétion
+		//compte combien de pas reprï¿½sentent 1% de complï¿½tion
 		//
 		int counterStart = stepCounter;
 		int stepsLeft = max_steps-counterStart;
@@ -150,7 +150,7 @@ public class MineSimulator implements GuiListener {
 		//
 		while(stepCounter < max_steps) {
 			step();
-			//à chaque pourcentage, avertis les listeners
+			//ï¿½ chaque pourcentage, avertis les listeners
 			//
 			if((max_steps-stepCounter)%onePercent == 0) {
 				int progress = max_steps-stepsLeft+stepCounter;
@@ -165,7 +165,7 @@ public class MineSimulator implements GuiListener {
 
 	/**
 	 * 
-	 * @return L'efficacité du camion en % tu temps passé à faire des activités autre que l'attente.
+	 * @return L'efficacitï¿½ du camion en % tu temps passï¿½ ï¿½ faire des activitï¿½s autre que l'attente.
 	 */
 	public double computeCamionEfficiency(Camion camion) {
 		if(mine.getTime() == 0) {
@@ -173,14 +173,15 @@ public class MineSimulator implements GuiListener {
 		}
 		double totalTime = mine.getTime();
 		double waitingTime = camion.getWaitTime();
+		double emptyTravelTime= camion.getEmptyTravelTime();
 
-		double eff = (totalTime - waitingTime)/totalTime *100;
+		double eff = (totalTime - waitingTime - emptyTravelTime)/totalTime *100;
 		return eff;
 	}
 
 	/**
 	 * 
-	 * @return L'efficacité de la pelle en % du temps passé à remplir des camions.
+	 * @return L'efficacitï¿½ de la pelle en % du temps passï¿½ ï¿½ remplir des camions.
 	 */
 	public double computePelleEfficiency(Pelle pelle) {
 		if(mine.getTime() == 0) {
@@ -199,7 +200,7 @@ public class MineSimulator implements GuiListener {
 
 	/**
 	 * 
-	 * @return Efficacité moyenne des camoins
+	 * @return Efficacitï¿½ moyenne des camoins
 	 */
 	public double getAverageCamionEfficiency() {
 		double sumEff = 0;
@@ -212,7 +213,7 @@ public class MineSimulator implements GuiListener {
 
 	/**
 	 * 
-	 * @return Efficacité moyenne des pelles
+	 * @return Efficacitï¿½ moyenne des pelles
 	 */
 	public double getAveragePelleEfficiency() {
 		double sumEff = 0;
@@ -225,7 +226,7 @@ public class MineSimulator implements GuiListener {
 
 	/**
 	 * 
-	 * @return Efficacité du camion le plus efficace
+	 * @return Efficacitï¿½ du camion le plus efficace
 	 */
 	public double getMaxCamionEfficiency() {
 		double effMax = 0;
@@ -240,7 +241,7 @@ public class MineSimulator implements GuiListener {
 
 	/**
 	 * 
-	 * @return Efficacité de la pelle la plus efficace
+	 * @return Efficacitï¿½ de la pelle la plus efficace
 	 */
 	public double getMaxPelleEfficiency() {
 		double effMax = 0;
@@ -256,7 +257,7 @@ public class MineSimulator implements GuiListener {
 
 	/**
 	 * 
-	 * @return Efficacité du camion le moins efficace
+	 * @return Efficacitï¿½ du camion le moins efficace
 	 */
 	public double getMinCamionEfficiency() {
 		double effMin = 1000;
@@ -277,7 +278,7 @@ public class MineSimulator implements GuiListener {
 
 	/**
 	 * 
-	 * @return Efficacité de la pelle la moins efficace.
+	 * @return Efficacitï¿½ de la pelle la moins efficace.
 	 */
 	public double getMinPelleEfficiency() {
 		double effMin = 1000;
@@ -293,7 +294,7 @@ public class MineSimulator implements GuiListener {
 
 	/**
 	 * 
-	 * @return Nombre total de voyages effectués par les camions
+	 * @return Nombre total de voyages effectuï¿½s par les camions
 	 */
 	public int getNumberOfRuns() {
 		int nbVoyages = 0;
@@ -314,7 +315,7 @@ public class MineSimulator implements GuiListener {
 
 	/**
 	 * 
-	 * @return Objet responsable de la prédiction des temps de parcours.
+	 * @return Objet responsable de la prï¿½diction des temps de parcours.
 	 */
 	public TravelTimePredictor getTravelTimePredictor() {
 
@@ -341,11 +342,11 @@ public class MineSimulator implements GuiListener {
 	}
 
 	/*
-	 * Implémentation des méthode de l'interface GuiListener
+	 * Implï¿½mentation des mï¿½thode de l'interface GuiListener
 	 */
 
 	@Override
-	//si le panel de mine est cliqué, toogle le timer
+	//si le panel de mine est cliquï¿½, toogle le timer
 	public void minePanelClicked(double fracX, double fracY) {
 
 		if(getTimer().isRunning()) {
@@ -457,7 +458,7 @@ public class MineSimulator implements GuiListener {
 
 	/*
 	 * Cree le timer de la simulation
-	 * Lorsque le timer s'active, effectue un nombre de pas à la simulation
+	 * Lorsque le timer s'active, effectue un nombre de pas ï¿½ la simulation
 	 */
 	private Timer createTimer() {
 
@@ -473,10 +474,10 @@ public class MineSimulator implements GuiListener {
 					stop = true;
 					setPauseMode();
 				}
-				//effectue des pas jusqu'à ce que soit : 
-				//	1) on ait effectué nbIterPerStep pas
-				//	2) on ait terminé la simulation
-				//	3) un camion vienne d'etre assigné, et on doit faire pause
+				//effectue des pas jusqu'ï¿½ ce que soit : 
+				//	1) on ait effectuï¿½ nbIterPerStep pas
+				//	2) on ait terminï¿½ la simulation
+				//	3) un camion vienne d'etre assignï¿½, et on doit faire pause
 				for(int i = 0 ; i < nbIterPerStep && !stop ; i++) {
 
 					//effectue le pas
@@ -508,7 +509,7 @@ public class MineSimulator implements GuiListener {
 
 
 	/*
-	 *condition de fin d'un pas : Quand tous les camions ont terminé de travailler
+	 *condition de fin d'un pas : Quand tous les camions ont terminï¿½ de travailler
 	 */
 	private boolean endStepCondition() {
 		for(int i = 0 ; i < mine.getCamions().size(); i++) {
@@ -586,7 +587,7 @@ public class MineSimulator implements GuiListener {
 	}
 
 
-	//choisis le camion qui a terminé le plus tot
+	//choisis le camion qui a terminï¿½ le plus tot
 	//
 	private Camion selectCamion() {
 
@@ -668,7 +669,7 @@ public class MineSimulator implements GuiListener {
 
 	/*
 	 *avance la simulation de 1 increment
-	 *retourne un boolean indiquant si un camion s'est retrouvé en état "idle" au cours du tour 
+	 *retourne un boolean indiquant si un camion s'est retrouvï¿½ en ï¿½tat "idle" au cours du tour 
 	 */
 	private boolean step() {
 
@@ -711,7 +712,7 @@ public class MineSimulator implements GuiListener {
 			
 			//calcule l'attente des stations (difference entre le temps d'iter et le temps interne d'iter)
 			// si une pelle est inactive, elle le restera pour toute l'iteration
-			// Il faut faire cela avant le reste pour eviter que l'etat des pelles ne soit changé!
+			// Il faut faire cela avant le reste pour eviter que l'etat des pelles ne soit changï¿½!
 			//
 			//pelles
 			for(int i = 0 ; i < this.mine.getPelles().size(); i++) {
@@ -779,7 +780,7 @@ public class MineSimulator implements GuiListener {
 			c.setObjective(s);
 			traiteCamion(c, temps);
 		}
-		//si le camion est en route, on le fait rouler vers sa destination. Si il arrive à destination avant la fin du tour, on le traite immédiatement à nouveau.
+		//si le camion est en route, on le fait rouler vers sa destination. Si il arrive ï¿½ destination avant la fin du tour, on le traite immï¿½diatement ï¿½ nouveau.
 		//
 		else if(c.getState() == Camion.ETAT_EN_ROUTE) {
 			traiteCamionEnRoute(c, temps);
@@ -826,7 +827,7 @@ public class MineSimulator implements GuiListener {
 		//		- on donne un nouvel objectif au camion (qui devient en route). 
 
 		//trouve le temps de traitement maximum. Il s'agit du max entre : 
-		//	- le temps restant à la pelle
+		//	- le temps restant ï¿½ la pelle
 		//	- le temps restant au camion
 		//	- le temps de chargement/dechargement max
 		Station s = c.getCurrentStation();
