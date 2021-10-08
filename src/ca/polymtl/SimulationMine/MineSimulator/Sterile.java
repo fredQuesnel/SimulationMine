@@ -12,7 +12,7 @@ public class Sterile extends Station {
 	public Sterile(double i, double j, String id) {
 		super(i, j, id);
 		this.isDecharge = true;
-		totalQuantity = 0;
+		totalQuantity = 0; 
 	}
 	
 	 

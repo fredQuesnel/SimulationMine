@@ -143,13 +143,12 @@ public class Mine {
 
 	private int numberSmallCamions;
 
-	private MineSimulator mineSimulator;
+	//private MineSimulator mineSimulator;
 	//------------------------------------------
 	// constructeur qui construit une mine vide
 	//------------------------------------------
-	public Mine(MineSimulator mineSimulator) {
+	public Mine() {
 
-		this.mineSimulator = mineSimulator;
 		this.pelles = new ArrayList<Pelle>();
 		this.camions= new ArrayList<Camion>();
 
@@ -549,7 +548,7 @@ public class Mine {
 		this.numberSmallCamions = nbSmallCamions;
 		this.numberLargeCamions = nbLargeCamions;
 		for(int i = 0 ; i < nbSmallCamions; i++) {
-			Camion camion = new Camion(steriles.get(0), this, mineSimulator, smallCamionImage) {
+			Camion camion = new Camion(steriles.get(0), this, smallCamionImage) {
 
 				/** Vitesse moyenne du camion	 */
 				public static final double VITESSE_MOYENNE = 9;
@@ -586,7 +585,7 @@ public class Mine {
 		}
 
 		for(int i = 0 ; i < nbLargeCamions; i++) {
-			Camion camion = new Camion(steriles.get(0), this, mineSimulator, largeCamionImage) {
+			Camion camion = new Camion(steriles.get(0), this, largeCamionImage) {
 
 				/** Vitesse moyenne du camion	 */
 				public static final double VITESSE_MOYENNE = 5;

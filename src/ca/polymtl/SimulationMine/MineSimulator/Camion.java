@@ -83,13 +83,12 @@ public abstract class Camion {
 	//images du camion
 	private BufferedImage goingEastImage;
 	private BufferedImage goingWestImage;
-	private MineSimulator mineSimulator;
+	//private MineSimulator mineSimulator;
 	private double emptyTravelTime;
 
 	//constructeur
 	//
-	public Camion(Station station, Mine mine, MineSimulator mineSimulator, BufferedImage goingEastImage) {
-		this.mineSimulator = mineSimulator;
+	public Camion(Station station, Mine mine, BufferedImage goingEastImage) {
 		
 		this.goingEastImage = goingEastImage;
 		this.goingWestImage = goingEastImage;
@@ -278,9 +277,13 @@ public abstract class Camion {
 		this.speed = getRandomSpeed();
 		this.state = ETAT_EN_ROUTE;
 
-		this.predictedTravelTime = mineSimulator.getTravelTimePredictor().predictTravelTime(currentStation, objective, this);
+		
 		this.currentTravelTime = 0;
 
+	}
+	
+	public void setPredictedTravelTime(double predictedTravelTime) {
+		this.predictedTravelTime = predictedTravelTime;
 	}
 
 	//calcule le temps restant a la tache actuelle

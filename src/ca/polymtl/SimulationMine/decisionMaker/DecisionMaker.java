@@ -34,7 +34,7 @@ public class DecisionMaker {
 
 	public static boolean isFunctionStringValid(String function) {
 
-		Camion camion = new Camion(dummyMine.getSteriles().get(0), dummyMine, null, null) {
+		Camion camion = new Camion(dummyMine.getSteriles().get(0), dummyMine,  null) {
 
 			@Override
 			public double getAvgSpeed() {

@@ -59,7 +59,7 @@ public class MineSimulator implements GuiListener {
 
 		//Cr�� la mine et l'initialise
 		//
-		mine = new Mine(this);
+		mine = new Mine();
 		mine.init(Mine.exampleIds.get(0));
 
 		//cree le predicteur de temps de parcours
@@ -778,6 +778,7 @@ public class MineSimulator implements GuiListener {
 		if(c.getState() == Camion.ETAT_INACTIF) {
 			Station s = decisionMaker.giveObjectiveToCamion(c);
 			c.setObjective(s);
+			c.setPredictedTravelTime(this.travelTimePredictor.predictTravelTime(c.getCurrentStation(), s, c));
 			traiteCamion(c, temps);
 		}
 		//si le camion est en route, on le fait rouler vers sa destination. Si il arrive � destination avant la fin du tour, on le traite imm�diatement � nouveau.
@@ -860,6 +861,7 @@ public class MineSimulator implements GuiListener {
 			//s.setCamionEnTraitement(s.camionsEnAttente.get(0));
 			Station objective = decisionMaker.giveObjectiveToCamion(c);
 			c.setObjective(objective);
+			c.setPredictedTravelTime(this.travelTimePredictor.predictTravelTime(c.getCurrentStation(), s, c));
 			if(!modeCharge) {
 				this.justAssigned = true;
 			}
