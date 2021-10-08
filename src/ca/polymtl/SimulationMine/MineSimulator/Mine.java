@@ -154,7 +154,7 @@ public class Mine {
 
 		this.meteoFactor = Mine.DEFAULT_METEO_FACTOR;
 
-		
+
 
 		this.time = 0;
 
@@ -293,7 +293,7 @@ public class Mine {
 	}
 
 
-	
+
 
 	/**
 	 * 
@@ -377,8 +377,10 @@ public class Mine {
 	protected void init(ExampleId exempleId, int nbSmallCamions, int nbLargeCamions) {
 		erasePrevious();
 
+		String failureScenariosFilename = "";
+
 		System.out.println("charge mine "+exempleId.getName());
-		
+
 		this.dataSeriesHandles = new ArrayList<String>();
 
 		//retrouve l'objet ExampleId de l'exemple
@@ -408,8 +410,15 @@ public class Mine {
 			scanner.nextLine();
 			int defaultLargeCamion = 0;
 			int defaultSmallCamion = 0;
+
+
 			while(scanner.hasNext()) {
-				if(	scanner.hasNext("default_camions_small")) {
+				if( scanner.hasNext("failure_scenarios")) {
+					scanner.next();
+					failureScenariosFilename = scanner.next();
+					System.out.println("failure scenarios "+failureScenariosFilename);
+				}
+				else if(	scanner.hasNext("default_camions_small")) {
 					scanner.next();
 					scanner.next(":");
 					defaultSmallCamion = scanner.nextInt(); 
@@ -456,11 +465,11 @@ public class Mine {
 					scanner.next();
 					String nomStation1  = scanner.next(Pattern.compile("\"\\S*\""));
 					String nomStation2  = scanner.next(Pattern.compile("\"\\S*\""));
-					
-					
+
+
 					nomStation1 = nomStation1.substring(1, nomStation1.length()-1);
 					nomStation2 = nomStation2.substring(1, nomStation2.length()-1);
-					
+
 					//retrouve les objets station
 					//
 					Station station1 = null;
@@ -492,14 +501,14 @@ public class Mine {
 							station2 = steriles.get(i);
 						}
 					}
-					
+
 					if(station1==null) {
 						throw new Exception("Station non définie : "+nomStation1);
 					}
 					if(station2==null) {
 						throw new Exception("Station non définie : "+nomStation2);
 					}
-					
+
 					dataSeriesHandles.add("reel:"+TravelTimePredictor.getMapKeyForODPair(station1, station2 ));
 					dataSeriesHandles.add("pred:"+TravelTimePredictor.getMapKeyForODPair(station1, station2 ));
 				}
@@ -509,17 +518,17 @@ public class Mine {
 
 
 			}
-			
-			
+
+
 			if(nbSmallCamions == -1) {
 				nbSmallCamions = defaultSmallCamion;
 			}
-			
+
 			if(nbLargeCamions == -1) {
 				nbLargeCamions = defaultLargeCamion;
 			}
-			
-			
+
+
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
@@ -556,7 +565,7 @@ public class Mine {
 				private static final double ECART_TYPE_VITESSE = 0.6;//ancien 0.5
 				/** Charge maximum du camion.	 */
 				public static final double CHARGE_MAX = 60.;
-				
+
 				private static final double PREDICT_TIME_ADJUST_FACTOR = 1.; 
 
 				@Override
@@ -610,7 +619,7 @@ public class Mine {
 				public double getPredictTimeAdjustFactor() {
 					return PREDICT_TIME_ADJUST_FACTOR;
 				}
-				
+
 				@Override
 				public double getStdSpeed() {
 					return ECART_TYPE_VITESSE;
@@ -621,18 +630,56 @@ public class Mine {
 			camions.add(camion);
 		}
 
+		//cree les "failureScenarios"
+		if(!failureScenariosFilename.equals("")) {
+			createFailureScenarios(failureScenariosFilename);
+		}
 		//cree les handles des donnees
 		/*
-		
+
 		for(int i = 0 ; i < pelles.size(); i++) {
 			if(pelles.get(i).getId().equals("pelle1") || pelles.get(i).getId().equals("pelle3") ) {
 				dataSeriesHandles.add("reel:"+TravelTimePredictor.getMapKeyForODPair(steriles.get(0), pelles.get(i) ));
 				dataSeriesHandles.add("pred:"+TravelTimePredictor.getMapKeyForODPair(steriles.get(0), pelles.get(i) ));
 			}
 		}
-		*/
+		 */
 
 	}
+
+	//load le fichier décrivant les scénarios de panne
+	//
+	private void createFailureScenarios(String failureScenariosFilename) {
+		//Lis le fichier
+		//
+		try {
+			System.out.println("mines/"+failureScenariosFilename);
+
+			Scanner scanner = new Scanner(new File("mines/"+failureScenariosFilename));
+			//pour que le point délimite la pratie fractionnaire
+			scanner.useLocale(Locale.US);
+			
+			String line;
+			//chaque ligne  représentee un scénario
+			while(scanner.hasNextLine()) {
+				line = scanner.nextLine();
+				//TODO
+				
+			}
+				
+				
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+
+
+
 
 
 	//reset toutes les stats de la mine et de ses objets

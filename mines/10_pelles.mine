@@ -20,3 +20,5 @@ sterile "sterile2" 3000 9000
 display "pelle3" "sterile"
 display "pelle1" "concentrateur"
 display "pelle4" "concentrateur"
+
+failure_scenarios "10_pelles.fail"

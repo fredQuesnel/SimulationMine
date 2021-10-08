@@ -337,7 +337,6 @@ public class MineSimulator implements GuiListener {
 
 	@Override
 	public void meteoSliderChanged(double meteoFactor) {
-		System.out.println("meteoFactor"+meteoFactor);
 		mine.setMeteoFactor(meteoFactor);
 	}
 
@@ -581,7 +580,6 @@ public class MineSimulator implements GuiListener {
 	private void notifyListenersUpdated() {
 
 		for(int i = 0 ; i < listeners.size(); i++) {
-			System.out.println("notifyListener");
 			listeners.get(i).mineUpdated(mine);
 		}	
 	}
@@ -673,7 +671,6 @@ public class MineSimulator implements GuiListener {
 	 */
 	private boolean step() {
 
-		System.out.println("step");
 		//a priori, aucun camion idle
 		this.justAssigned = false;
 
@@ -699,7 +696,6 @@ public class MineSimulator implements GuiListener {
 
 			Camion c = selectCamion();
 
-			System.out.println("choisis camion ");
 			double temps = c.taskTimeRemaining();
 			if(temps >= stepSize) {
 				temps = stepSize;
@@ -708,7 +704,6 @@ public class MineSimulator implements GuiListener {
 
 
 			
-			System.out.println(temps);
 			
 			//calcule l'attente des stations (difference entre le temps d'iter et le temps interne d'iter)
 			// si une pelle est inactive, elle le restera pour toute l'iteration
