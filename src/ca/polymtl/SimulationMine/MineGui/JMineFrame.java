@@ -13,21 +13,37 @@ import ca.polymtl.SimulationMine.MineSimulator.MineSimulationListener;
 import ca.polymtl.SimulationMine.MineSimulator.MineSimulator;
 import ca.polymtl.SimulationMine.MineSimulator.Pelle;
 
+/**
+ * Frame contenant la fenêtre principale de l'interface graphique. Cette classe gère également la communication avec
+ * la classe MineSimulator, la classe qui contrôle la simulation.
+ * 
+ * @author Frédéric Quesnel
+ *
+ */
+
 public class JMineFrame extends JFrame implements MineSimulationListener{
 
 	private static final long serialVersionUID = 1L;
+	
+	/** Panel affichant l'animation de la mine.	 */
 	private JMinePanel minePanel;
+	/** Panel avec les éléments de contrôle de la mine*/
 	private JControlPanel controlPanel;
+	
+	/** Liste des listeners de cette classe*/
 	private ArrayList<GuiListener> listenerList;
 
-	private Mine mine;
+	/** Objet controlant la simulation*/
 	private MineSimulator mineSimulator;
 
 
+	/** Constructeur
+	 * 
+	 * Initialise les Panels
+	 */
 	public JMineFrame(MineSimulator mineSimulator) {
 		
 		this.mineSimulator = mineSimulator;
-		this.mine = mineSimulator.getMine();
 
 		listenerList = new ArrayList<GuiListener>();
 		JPanel mainPanel = new JPanel();
@@ -115,7 +131,7 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 
 
 	public Mine getMine() {
-		return mine;
+		return mineSimulator.getMine();
 	}
 
 
@@ -143,7 +159,6 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 
 	@Override
 	public void mineResetted(MineSimulator mineSimulator) {
-		this.mine = mineSimulator.getMine();
 		this.minePanel.mineResetted();
 		
 	}
@@ -300,9 +315,5 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 
 
 
-
-	public void setMine(Mine mine) {
-		this.mine = mine;
-	}
 
 }

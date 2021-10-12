@@ -7,6 +7,8 @@ public class GuiEvent extends AWTEvent {
 	
 	
 	/**
+	 * Classe décrivant un événement de l'interface utilisateur
+	 * @author Frédéric Quesnel
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
