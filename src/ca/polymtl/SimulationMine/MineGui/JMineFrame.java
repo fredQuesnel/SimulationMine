@@ -53,7 +53,7 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 
 		
 		this.setMinimumSize(new Dimension(900, 600));
-		
+		 
 		this.minePanel = new JMinePanel(this);
 
 

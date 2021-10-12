@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"ca.polymtl.SimulationMine.decisionMaker"},{"l":"ca.polymtl.SimulationMine.MineGui"},{"l":"ca.polymtl.SimulationMine.MineSimulator"}];updateSearchResults();
