@@ -6,14 +6,18 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+
+/**
+ * Classe abstraite décrivant un camion. 
+ * Cette classe est seulement abstraite pour permettre de déclarer différents types de camions.
+ * 
+ * @author Frédéric Quesnel
+ */
 public abstract class Camion {
 
 	/*
 	 * Constantes
 	 */
-
-
-
 
 	//etats possibles
 	//
