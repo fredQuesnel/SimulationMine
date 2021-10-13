@@ -415,7 +415,8 @@ public class Mine {
 			while(scanner.hasNext()) {
 				if( scanner.hasNext("failure_scenarios")) {
 					scanner.next();
-					failureScenariosFilename = scanner.next();
+					failureScenariosFilename = scanner.next(Pattern.compile("\".*\""));
+					failureScenariosFilename = failureScenariosFilename.substring(1,  failureScenariosFilename.length()-1);
 					System.out.println("failure scenarios "+failureScenariosFilename);
 				}
 				else if(	scanner.hasNext("default_camions_small")) {
@@ -658,16 +659,39 @@ public class Mine {
 			Scanner scanner = new Scanner(new File("mines/"+failureScenariosFilename));
 			//pour que le point délimite la pratie fractionnaire
 			scanner.useLocale(Locale.US);
-			
+
 			String line;
 			//chaque ligne  représentee un scénario
 			while(scanner.hasNextLine()) {
 				line = scanner.nextLine();
+				Scanner lineScanner = new Scanner(line);
+				lineScanner.useLocale(Locale.US);
+				
+				FailureScenario fs = new FailureScenario();
+				
+				//lis chaque "failure" du scénario
+				while(lineScanner.hasNext("\".*\"")) {
+					String stationName = lineScanner.next("\".*\"");
+					stationName = stationName.substring(1, stationName.length()-1);
+					Station station = getStation(stationName); 
+					if( station == null) {
+						throw new RuntimeException("La station "+stationName+" n'existe pas.");
+					}
+					String heureString = lineScanner.next(".+:.+");
+					long length = lineScanner.nextLong();
+					
+					System.out.println(stationName+" "+heureString+" "+length);
+					if(lineScanner.hasNext(",")) {
+						lineScanner.next(",");
+					}
+
+				}
+
 				//TODO
-				
+
 			}
-				
-				
+
+
 
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -675,6 +699,82 @@ public class Mine {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+
+
+
+
+	/**
+	 * 
+	 * @param stationId
+	 * @return station dont l'ID correspond à l'argument, ou null si une telle station n'existe pas.
+	 */
+	private Station getStation(String stationId) {
+		Station s = null;
+		//recherche dans les pelles
+		s = getPelle(stationId);
+		//sinon recherche dans les steriles
+		if(s == null) {
+			s= getSterile(stationId);
+		}
+
+		if(s == null) {
+			s = getConcentrator(stationId);
+		}
+
+		return s;
+	}
+
+
+
+	/**
+	 * 
+	 * @param stationId
+	 * @return Concentrateur dont l'ID correspond à celui fourni, ou null si un tel concentrateur n'existe pas.
+	 */
+	private Station getConcentrator(String stationId) {
+		for(int i = 0 ; i < this.concentrateurs.size(); i++) {
+			if(this.concentrateurs.get(i).getId().compareTo(stationId)==0) {
+				return this.concentrateurs.get(i);
+			}
+		}
+		return null;
+	}
+
+
+
+	/**
+	 * 
+	 * @param stationId
+	 * @return sterile dont l'ID correspond à celui fourni, ou null si un tel sterile n'existe pas.
+	 */
+	private Station getSterile(String stationId) {
+		for(int i = 0 ; i < this.steriles.size(); i++) {
+			if(this.steriles.get(i).getId().compareTo(stationId)==0) {
+				return this.steriles.get(i);
+			}
+		}
+		return null;
+	}
+
+
+
+
+
+
+	/**
+	 * 
+	 * @param stationId
+	 * @return Pelle correspondant à l'ID fourni, ou null si une telle pelle n'existe pas.
+	 */
+	private Station getPelle(String stationId) {
+		for(int i = 0; i < this.getPelles().size(); i++) {
+			if(this.getPelles().get(i).getId().compareTo(stationId) == 0) {
+				return this.getPelles().get(i);
+			}
+		}
+		return null;
 	}
 
 
