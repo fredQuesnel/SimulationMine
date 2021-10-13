@@ -49,7 +49,7 @@ public class Mine {
 	public static double HEIGHT = 10000;
 
 	/**
-	 * facteur météo
+	 * facteur mï¿½tï¿½o
 	 */
 	protected static double DEFAULT_METEO_FACTOR = 1;
 	//duree d'un pas de temps (secondes)
@@ -170,7 +170,7 @@ public class Mine {
 	//retourne la pelle la plus pres des coordonnees relatives fournies
 	/**
 	 * 
-	 * @return La  pelle la plus près des coordonnées relatives données.
+	 * @return La  pelle la plus prï¿½s des coordonnï¿½es relatives donnï¿½es.
 	 */
 	public Pelle closestPelle(double fractionX, double fractionY) {
 		double x = fractionX*this.WIDTH;
@@ -223,7 +223,7 @@ public class Mine {
 
 	/**
 	 * 
-	 * @return Les noms des séries de données qui sont suivies.
+	 * @return Les noms des sï¿½ries de donnï¿½es qui sont suivies.
 	 */
 	public ArrayList<String> getDataSeriesHandles() {
 		return this.dataSeriesHandles;
@@ -233,7 +233,7 @@ public class Mine {
 
 	/**
 	 * 
-	 * @return Numéro de la mine active
+	 * @return Numï¿½ro de la mine active
 	 */
 	public int getExemple() {
 		return exemple;
@@ -242,7 +242,7 @@ public class Mine {
 
 	/**
 	 * 
-	 * @return Facteur météo (entre 50 et 100)
+	 * @return Facteur mï¿½tï¿½o (entre 50 et 100)
 	 */
 	public double getMeteoFactor() {
 		return meteoFactor;
@@ -306,7 +306,7 @@ public class Mine {
 
 	/**
 	 * 
-	 * @return Station de stérile
+	 * @return Station de stï¿½rile
 	 */
 	public ArrayList<Sterile> getSteriles() {
 		return steriles;
@@ -314,7 +314,7 @@ public class Mine {
 
 	/**
 	 * 
-	 * @return Temps depuis le début de la simulation (secondes)
+	 * @return Temps depuis le dï¿½but de la simulation (secondes)
 	 */
 	public double getTime() {
 		return time;
@@ -324,7 +324,7 @@ public class Mine {
 
 	/**
 	 * 
-	 * @return true si la mine est présenement en warmup (avant le début d'une simulation), false sinon.
+	 * @return true si la mine est prï¿½senement en warmup (avant le dï¿½but d'une simulation), false sinon.
 	 */
 	public boolean isInWarmup() {
 		return this.inWarmup;
@@ -403,7 +403,7 @@ public class Mine {
 			System.out.println("mines/"+currentExampleId.getFileName());
 
 			Scanner scanner = new Scanner(new File("mines/"+currentExampleId.getFileName()));
-			//pour que le point délimite la pratie fractionnaire
+			//pour que le point dï¿½limite la pratie fractionnaire
 			scanner.useLocale(Locale.US);
 			//ignore la premiere ligne
 			scanner.nextLine();
@@ -422,7 +422,7 @@ public class Mine {
 				}
 				else if( scanner.hasNext("pelle")) {
 					scanner.next();
-					scanner.next();//si minerais ou stérile
+					scanner.next();//si minerais ou stï¿½rile
 					String nom = scanner.next(Pattern.compile("\".*\""));
 					nom = nom.substring(1, nom.length()-1);
 					int posX = scanner.nextInt();
@@ -495,10 +495,10 @@ public class Mine {
 					}
 					
 					if(station1==null) {
-						throw new Exception("Station non définie : "+nomStation1);
+						throw new Exception("Station non dï¿½finie : "+nomStation1);
 					}
 					if(station2==null) {
-						throw new Exception("Station non définie : "+nomStation2);
+						throw new Exception("Station non dï¿½finie : "+nomStation2);
 					}
 					
 					dataSeriesHandles.add("reel:"+TravelTimePredictor.getMapKeyForODPair(station1, station2 ));
@@ -553,7 +553,7 @@ public class Mine {
 
 				/** Vitesse moyenne du camion	 */
 				public static final double VITESSE_MOYENNE = 9;
-				/** Écart type sur la vitesse du camion	 */
+				/** ï¿½cart type sur la vitesse du camion	 */
 				private static final double ECART_TYPE_VITESSE = 0.6;//ancien 0.5
 				/** Charge maximum du camion.	 */
 				public static final double CHARGE_MAX = 60.;
@@ -590,7 +590,7 @@ public class Mine {
 
 				/** Vitesse moyenne du camion	 */
 				public static final double VITESSE_MOYENNE = 5;
-				/** Écart type sur la vitesse du camion	 */
+				/** ï¿½cart type sur la vitesse du camion	 */
 				private static final double ECART_TYPE_VITESSE = 0.3;//ancien 0.5
 				/** Charge maximum du camion.	 */
 				public static final double CHARGE_MAX = 100.;

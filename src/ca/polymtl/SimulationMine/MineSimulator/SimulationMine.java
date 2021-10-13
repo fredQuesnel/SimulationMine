@@ -1,4 +1,5 @@
 package ca.polymtl.SimulationMine.MineSimulator;
+
 import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Random;
@@ -12,7 +13,7 @@ import ca.polymtl.SimulationMine.MineGui.SommaireFrame;
 import ca.polymtl.SimulationMine.MineGui.TravelTimeChart;
 
 public class SimulationMine {
-
+ 
 	public static double DEFAULT_SIMULATION_TIME_SECONDS = 24*3600;
 
 
@@ -24,7 +25,7 @@ public class SimulationMine {
 
 	public static JMineFrame mineFrame;
 
-
+ 
  
 	
 	public static void main(String[] args) {
