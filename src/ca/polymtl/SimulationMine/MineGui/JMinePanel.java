@@ -63,7 +63,8 @@ public class JMinePanel extends JPanel{
 	private static int CAMION_HEIGHT = 20;
 
 	private BufferedImage pelleImage;
-
+	private BufferedImage pellePanneImage;
+	
 	private BufferedImage sterileImage;
 	private BufferedImage concentrateurImage;
 
@@ -170,6 +171,7 @@ public class JMinePanel extends JPanel{
 		try {
 			camionImage = ImageIO.read(new File("images/camion.png"));
 			pelleImage = ImageIO.read(new File("images/pelle.png"));
+			pellePanneImage = ImageIO.read(new File("images/pelle_panne.png"));
 
 			sterileImage = ImageIO.read(new File("images/sterile.png"));
 			concentrateurImage = ImageIO.read(new File("images/concentrateur.png"));
@@ -237,7 +239,6 @@ public class JMinePanel extends JPanel{
 		Mine mine = parentFrame.getMine();
 
 		if(mine != null) {
-			System.out.println("je desine une mine");
 			super.paintComponent(g);
 
 			//background
@@ -289,7 +290,6 @@ public class JMinePanel extends JPanel{
 	}
 
 	public void updateMine() {
-		System.out.println("update");
 		revalidate();
 		repaint();	
 	}
@@ -404,7 +404,12 @@ public class JMinePanel extends JPanel{
 
 		Point point = convertPointToWindow(pelle.getLocation());
 		//g.drawOval((int) (point.getX()-STATION_WIDTH/2), (int) (point.getY()-STATION_HEIGHT/2), STATION_WIDTH, STATION_HEIGHT);
-		g.drawImage(pelleImage, (int) (point.getX()-STATION_WIDTH/2), (int) (point.getY()-STATION_HEIGHT/2), (int) (point.getX()+STATION_WIDTH/2), (int) (point.getY()+STATION_HEIGHT/2), 0, 0, pelleImage.getWidth(), pelleImage.getHeight(), null);
+		BufferedImage imageToDraw = pelleImage;
+		if(pelle.getState() == Station.STATION_STATE_PANNE) {
+			imageToDraw = this.pellePanneImage;
+		}
+		
+		g.drawImage(imageToDraw, (int) (point.getX()-STATION_WIDTH/2), (int) (point.getY()-STATION_HEIGHT/2), (int) (point.getX()+STATION_WIDTH/2), (int) (point.getY()+STATION_HEIGHT/2), 0, 0, pelleImage.getWidth(), pelleImage.getHeight(), null);
 
 		Font previousFont = g.getFont();
 		Font boldFont = g.getFont().deriveFont(Font.BOLD); 

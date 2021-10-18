@@ -47,15 +47,14 @@ public class Mine {
 	public static double WIDTH = 10000;
 
 	public static double HEIGHT = 10000;
+	
+	public static long ONE_DAY_SEC = 24*3600;
 
 	/**
 	 * facteur mï¿½tï¿½o
 	 */
 	protected static double DEFAULT_METEO_FACTOR = 1;
-	//duree d'un pas de temps (secondes)
-	protected static double TIME_INCREMENT = 4; // secondes
 
-	protected static double TIME_INCREMENT_WARMUP = 60;//1 minute 
 
 
 
@@ -109,6 +108,7 @@ public class Mine {
 
 	//nombre de steps dans la simulation
 
+	private int dayNumber;
 	//temps
 	private double time;
 
@@ -142,6 +142,8 @@ public class Mine {
 	private int numberLargeCamions;
 
 	private int numberSmallCamions;
+
+	private ArrayList<FailureScenario> failureScenarios;
 
 	//private MineSimulator mineSimulator;
 	//------------------------------------------
@@ -355,8 +357,10 @@ public class Mine {
 		this.steriles = new ArrayList<Sterile>();
 		this.pelles = new ArrayList<Pelle>();
 		this.camions = new ArrayList<Camion>();
+		this.failureScenarios = new ArrayList<FailureScenario>();
 		this.numberLargeCamions = 0;
 		this.numberSmallCamions = 0;
+		this.dayNumber = 0;
 		this.dataSeriesHandles = null;
 
 	}
@@ -364,7 +368,13 @@ public class Mine {
 
 
 	protected void addTime(double time) {
+		double previousTime = this.time;
 		this.time+=time;
+		
+		if((int) this.time/Mine.ONE_DAY_SEC > previousTime/Mine.ONE_DAY_SEC ) {
+			this.dayNumber++;
+		}
+		
 	}
 
 
@@ -382,6 +392,8 @@ public class Mine {
 		System.out.println("charge mine "+exempleId.getName());
 
 		this.dataSeriesHandles = new ArrayList<String>();
+		this.failureScenarios = new ArrayList<FailureScenario>();
+		this.dayNumber = 0;
 
 		//retrouve l'objet ExampleId de l'exemple
 		ExampleId exId = null;
@@ -651,6 +663,9 @@ public class Mine {
 	//load le fichier décrivant les scénarios de panne
 	//
 	private void createFailureScenarios(String failureScenariosFilename) {
+		
+		//reset
+		this.failureScenarios = new ArrayList<FailureScenario>();
 		//Lis le fichier
 		//
 		try {
@@ -678,9 +693,17 @@ public class Mine {
 						throw new RuntimeException("La station "+stationName+" n'existe pas.");
 					}
 					String heureString = lineScanner.next(".+:.+");
-					long length = lineScanner.nextLong();
+					int nbHours = Integer.parseInt(heureString.substring(0, heureString.indexOf(":")));
+					int nbMinutes = Integer.parseInt(heureString.substring(heureString.indexOf(":")+1));
+				
+					long beginTimeSec = nbHours*3600+nbMinutes*60;
+							
+					long endTimeSec = beginTimeSec + lineScanner.nextLong();
 					
-					System.out.println(stationName+" "+heureString+" "+length);
+					fs.addStationFailureEvent(new StationFailureEvent(beginTimeSec, endTimeSec, station));
+					this.failureScenarios.add(fs);
+					System.out.println(stationName+" "+heureString+" "+endTimeSec);
+					
 					if(lineScanner.hasNext(",")) {
 						lineScanner.next(",");
 					}
@@ -840,6 +863,26 @@ public class Mine {
 
 	protected void setMeteoFactor(double meteoFactor) {
 		this.meteoFactor = meteoFactor;
+	}
+
+
+
+
+
+
+	public int getDayNumber() {
+		return this.dayNumber;
+	}
+
+
+
+
+
+
+	public FailureScenario getRandomFailureScenario() {
+		int index = (int) (Math.random()*failureScenarios.size());
+		// TODO Auto-generated method stub
+		return failureScenarios.get(index);
 	}
 
 

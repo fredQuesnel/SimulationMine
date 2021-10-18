@@ -273,6 +273,7 @@ public abstract class Camion {
 	public void setObjective(Station objective) {
 
 		this.origine = this.currentStation;
+		this.currentStation = null;
 		this.objective = objective;
 		this.goingEast = true;
 		if(objective.getLocation().getX() > this.location.getX()) {
@@ -348,6 +349,9 @@ public abstract class Camion {
 		double distanceParcourue = timeIncrement*speedWithMeteo;
 
 		if(distanceParcourue >= distanceRestante) {
+			if(this.objective == null) {
+				throw new IllegalStateException("objective == null");
+			}
 			this.currentStation = this.objective;
 			location.setLocation(objective.getLocation());
 			this.state = ETAT_JUSTE_ARRIVE;
@@ -562,7 +566,11 @@ public abstract class Camion {
 
 	//met le camion en traitement
 	protected void setEnTraitement() {
+		if(this.currentStation==null) {
+			throw new IllegalStateException("Ne peut pas etre mis en traitement si aucune station courante.");
+		}
 		this.state = Camion.ETAT_EN_TRAITEMENT;
+		
 	}
 
 	

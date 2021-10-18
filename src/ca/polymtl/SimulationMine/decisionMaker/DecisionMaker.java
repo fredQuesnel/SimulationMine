@@ -1,6 +1,7 @@
 package ca.polymtl.SimulationMine.decisionMaker;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.ListIterator;
 
 import bsh.EvalError;
 import bsh.Interpreter;
@@ -124,10 +125,22 @@ public class DecisionMaker {
 	//
 	public Station giveObjectiveToCamion(Camion camion) {
 
-		if(!camion.getCurrentStation().isDecharge) {
+		
+		
+		if(camion.getCurrentStation()!=null && !camion.getCurrentStation().isDecharge) {
 			return selectReturnStation(camion, (Pelle) camion.getCurrentStation());
 		}
-		ArrayList<Pelle> pelles = mine.getPelles();
+		ArrayList<Pelle> pelles = (ArrayList<Pelle>) mine.getPelles().clone();
+		
+		//enleve les pelles en panne
+		//
+		ListIterator<Pelle> iter = pelles.listIterator();
+		while(iter.hasNext()) {
+			if(iter.next().getState() == Station.STATION_STATE_PANNE) {
+				iter.remove();
+			}
+		}
+		
 
 		//System.out.println("objectif : "+this.scoreFunctionString);
 

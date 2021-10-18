@@ -37,12 +37,6 @@ public class Sterile extends Station {
 		
 	}
 
-	/*
-	 * Met un camion en remplissage
-	 */
-	protected void setCamionEnTraitement(Camion camion) {
-		super.setCamionEnTraitement(camion);
-	}
 
 
 
