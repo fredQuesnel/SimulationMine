@@ -45,7 +45,7 @@ public abstract class Station {
 	protected Station(double i, double j, String id) {
 		this.location = new Point2D.Double(i, j);
 		this.id = id;
-		this.state = this.STATION_STATE_IDLE;
+		this.state = Station.STATION_STATE_IDLE;
 		
 		this.camionsEnAttente = new ArrayList<Camion>();
 		camionEnTraitement = null;
@@ -187,7 +187,7 @@ public abstract class Station {
 		this.iterCurrentTime = 0;
 		this.iterStepSize = stepSize;
 		this.iterFinished = false;
-		computeNewChargeSpeed();
+		computeNewTraitementSpeed();
 
 
 	}
@@ -265,7 +265,7 @@ public abstract class Station {
 	protected abstract void updateQteTraite(double quantite, RockType rockType);
 
 	//TODO rendre indépendant du nombre de pas de simulation.
-	abstract void computeNewChargeSpeed();
+	abstract void computeNewTraitementSpeed();
 
 	protected void setFailureMode(boolean failure) {
 		if(failure) {

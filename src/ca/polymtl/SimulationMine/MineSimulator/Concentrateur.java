@@ -104,7 +104,7 @@ public class Concentrateur extends Station {
 
 
 	@Override
-	void computeNewChargeSpeed() {
+	void computeNewTraitementSpeed() {
 		double lambda = 0.75;
 		double speedAdjust = SimulationMine.random.nextGaussian()*Concentrateur.ECART_TYPE_DECHARGE_SPEED+Concentrateur.AVERAGE_DECHARGE_SPEED;
 

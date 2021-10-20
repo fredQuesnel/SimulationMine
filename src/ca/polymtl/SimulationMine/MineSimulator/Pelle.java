@@ -1,9 +1,7 @@
 package ca.polymtl.SimulationMine.MineSimulator;
-import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
 
-import ca.polymtl.SimulationMine.decisionMaker.DecisionMaker;
 
 public class Pelle extends Station{
 	/*
@@ -39,8 +37,6 @@ public class Pelle extends Station{
 	//plan de travail
 	private double cibleCamionsParHeure;
 
-	//plan de travail par defaut
-	private final double defaultCibleCamionsParHeure;
 
 
 	
@@ -59,7 +55,6 @@ public class Pelle extends Station{
 	public Pelle(int i, int j, String id, double cibleCamionsParHeure) {
 		super(i,j, id);
 		
-		defaultCibleCamionsParHeure = cibleCamionsParHeure;
 		this.cibleCamionsParHeure = cibleCamionsParHeure;
 		this.isDecharge = false;
 	}
@@ -74,7 +69,6 @@ public class Pelle extends Station{
 	 * @return Cible d'attente des camions à la pelle, selon le plan
 	 */
 	public double cibleAttenteCamionSeconds(){
-		//TODO
 		//Formule : attente = lambda/(mu (mu-lembda))
 		//
 		// Avec : 
@@ -129,7 +123,7 @@ public class Pelle extends Station{
 	}
 
 	//TODO rendre indépendant du nombre de pas de simulation.
-	protected void computeNewChargeSpeed() {
+	protected void computeNewTraitementSpeed() {
 		double lambda = 0.75;
 		double speedAdjust = SimulationMine.random.nextGaussian()*Pelle.ECART_TYPE_CHARGE_SPEED+Pelle.AVERAGE_CHARGE_SPEED;
 
@@ -165,7 +159,7 @@ public class Pelle extends Station{
 
 		double lambda = newValue;
 		//en nb camions par heure
-		double mu = this.AVERAGE_CHARGE_SPEED/100*3600;
+		double mu = Pelle.AVERAGE_CHARGE_SPEED/100*3600;
 
 		if(lambda > mu){
 			JOptionPane.showMessageDialog(null, "Taux d'arrivée trop grand. Vous devez choisir une valeur inférieure à "+mu);

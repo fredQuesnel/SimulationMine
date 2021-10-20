@@ -98,8 +98,6 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 	@Override
 	public void automaticCompleteStarted() {
 		this.minePanel.automaticCompleteStarted();
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
@@ -119,8 +117,6 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 
 	@Override
 	public void eventDispatched(AWTEvent arg0) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	public JControlPanel getControlPanel() {

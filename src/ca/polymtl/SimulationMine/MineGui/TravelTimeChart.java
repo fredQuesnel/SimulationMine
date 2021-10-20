@@ -10,10 +10,7 @@ import java.util.Map.Entry;
 
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
 import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartMouseEvent;
-import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.block.BlockBorder;
@@ -34,6 +31,10 @@ import ca.polymtl.SimulationMine.decisionMaker.TravelTimePredictor;
 
 public class TravelTimeChart extends JFrame implements MineSimulationListener{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private HashMap<String, XYSeries> seriesMap;
 	private XYSeriesCollection dataset;
 	private ChartPanel chartPanel;

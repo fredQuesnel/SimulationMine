@@ -9,7 +9,6 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import ca.polymtl.SimulationMine.MineGui.JMineFrame;
-import ca.polymtl.SimulationMine.MineGui.SommaireFrame;
 import ca.polymtl.SimulationMine.MineGui.TravelTimeChart;
 
 public class SimulationMine {

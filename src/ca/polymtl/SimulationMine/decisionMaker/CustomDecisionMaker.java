@@ -8,7 +8,6 @@ import ca.polymtl.SimulationMine.MineSimulator.Concentrateur;
 import ca.polymtl.SimulationMine.MineSimulator.Mine;
 import ca.polymtl.SimulationMine.MineSimulator.Pelle;
 import ca.polymtl.SimulationMine.MineSimulator.SimulationMine;
-import ca.polymtl.SimulationMine.MineSimulator.Station;
 
 public class CustomDecisionMaker extends DecisionMaker {
  
@@ -19,43 +18,48 @@ public class CustomDecisionMaker extends DecisionMaker {
 	 * 			fonction computeCustomDecisionScore avec 30 lignes de définition de variables...
 	 */
 	// Nombre aléatoire entre 0 et 1
+	@SuppressWarnings("unused")
 	private double random;
 	// Score maximum
+	@SuppressWarnings("unused")
 	private double max;
 	// Vitesse moyenne du camion en m/s
+	@SuppressWarnings("unused")
 	private double vitesse_moyenne_camion;
 	// Temps moyen de remplissage d'un camion par la pelle
+	@SuppressWarnings("unused")
 	private double temps_moyen_remplissage;
 	// Indique 1 si la pelle est présentement occupée, 0 sinon
+	@SuppressWarnings("unused")
 	private int pelleOccupee;
 	// Indique le nombre de camions dans la file d'attente de la pelle (sans compter le camion en remplissage
 	private int nbCamionsEnAttente;
 	// Indique le nombre de camions à la pelle (en attente + en remplissage)
+	@SuppressWarnings("unused")
 	private int nbCamionsALaPelle;
 	//distance entre le camion et la pelle.
 	private double distanceEntreCamionEtPelle;
 	//temps espéré pour le parcours entre le camion et la pelle
 	private double tempsDeParcoursEspere;
 	//nombre de camions présentement en route pour la pelle
+	@SuppressWarnings("unused")
 	private int nbCamionsEnRoutePourLaPelle;
 	//Temps espéré avant que la pelle n'ait fini de remplir les camions présentement dans la file d'attente 
 	// (sans compter les camions présentement en route)
+	@SuppressWarnings("unused")
 	private double tempsRestantAvantFinPelle;
 	// Si le camion est affecté à la pelle, temps espéré avant le début du remplissage du camion.
 	private double tempsEspereAvantDebutRemplissage;
 	// Si le camion est affecté à la pelle, temps d'attente espéré du camion
 	private double attenteEspereeCamion;
 	// Si le camion est affecté à la pelle, temps d'attente espéré de la pelle
+	@SuppressWarnings("unused")
 	private double attenteEspereePelle;
 
 	public CustomDecisionMaker(Mine mine) {
 		super(mine);
 	}
 
-	private double computeCustomAssignCost(Camion camion, Pelle pelle) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
 
 	private void computeUsefulConstants(Camion camion, Pelle pelle) {
 		
@@ -234,10 +238,7 @@ public class CustomDecisionMaker extends DecisionMaker {
 		if(attenteEspereePelle > pelle.cibleAttentePelleSeconds()){
 			attenteEspereePelle = pelle.cibleAttentePelleSeconds();
 		}
-		//si négatif, remet a zero
-		//if(attenteEspereePelle < 0){
-			//attenteEspereePelle = 0; 
-		//}		
+		
 
 		//System.out.println("attente esperee pelle "+attenteEspereePelle+" vs cible attente pelle "+pelle.cibleAttentePelleSeconds());
 		//System.out.println("attente esperee camion "+attenteEspereeCamion);
@@ -247,21 +248,6 @@ public class CustomDecisionMaker extends DecisionMaker {
 
 		double penaliteQuadAttenteCamion = super.calculePenaliteQuadAttenteCamion(attenteEspereeCamion/3600.,0);// pelle.cibleAttenteCamionSeconds()/3600.);
 
-		//System.out.println("penalite attente pelle "+penaliteQuadAttentePelle);
-		//System.out.println("penalite attente camion "+penaliteQuadAttenteCamion);
-		
-		//System.out.println("total "+(penaliteQuadAttentePelle+penaliteQuadAttenteCamion));
-		
-		//System.out.println("");
-		
-		
-		//System.out.println("attente esperee pelle "+attenteEspereePelle);
-		//System.out.println("cible attente camion "+pelle.cibleAttenteCamionSeconds());
-		//System.out.println("attente esperee camion "+attenteEspereeCamion);
-		//System.out.println("score camion "+penaliteQuadAttenteCamion);
-		//System.out.println("score pelle "+penaliteQuadAttentePelle);
-		
-		return penaliteQuadAttentePelle+penaliteQuadAttenteCamion;
 		
 		/* Lire la documentation pour voir comment accéder aux autres caractéristiques des pelles et des camions
 		 * 
@@ -271,7 +257,7 @@ public class CustomDecisionMaker extends DecisionMaker {
 		 * Votre code ici!
 		 */
 		
-		//return score;
+		return score;
 	}
 
 	@Override

@@ -541,23 +541,6 @@ public class MineSimulator implements GuiListener {
 		});
 	}
 
-
-	/*
-	 *condition de fin d'un pas : Quand tous les camions ont termin� de travailler
-	 */
-	private boolean endStepCondition() {
-		for(int i = 0 ; i < mine.getCamions().size(); i++) {
-			Camion c = mine.getCamions().get(i);
-			if(!c.iterFinished()) {
-				System.out.println("Camion "+c.getRemainingTimeInTurn()+" "+c.getState());
-				return false;
-			}
-
-		}
-		return true;
-	}
-
-
 	private void notifyListenersAutomaticCompleteFinished() {
 		for(int i = 0 ; i < listeners.size(); i++) {
 			listeners.get(i).automaticCompleteFinished();
@@ -727,15 +710,11 @@ public class MineSimulator implements GuiListener {
 		setCamionsEtPellesBeginStep(stepSize);
 		//liste des pelles et des camions de la mine
 		//
-		ArrayList<Pelle> pelles = mine.getPelles();
-		ArrayList<Camion> camions = mine.getCamions();
 
 		// Tant que pas fin du step, avance les camions et les pelles
 		// Cette condition est necessaire car les camions et les pelles peuvent effectuer plus d'une action par tour
 		//
 		while(selectCamion() != null) {
-
-			Camion c = selectCamion();
 
 			double temps = timeUntilNextEvent();
 			if(temps >= stepSize) {
@@ -773,8 +752,8 @@ public class MineSimulator implements GuiListener {
 			
 
 			//traite tous les camions pour la meme duree. On sait que ces camions ne terminent pas leur tache
-			for(int i = 0 ; i < camions.size(); i++) {
-				Camion camion = camions.get(i);
+			for(int i = 0 ; i < this.mine.getCamions().size(); i++) {
+				Camion camion = this.mine.getCamions().get(i);
 				traiteCamion(camion, temps);
 			}
 
@@ -880,7 +859,6 @@ public class MineSimulator implements GuiListener {
 		for(int i = 0 ; i < addToCompleted.size(); i++) {
 			this.completedFailureEvents.add(addToCompleted.get(i));
 		}
-		// TODO Auto-generated method stub
 		
 	}
 
@@ -935,9 +913,7 @@ public class MineSimulator implements GuiListener {
 			System.out.println("Aucun evenement pour la journee");
 		}
 
-		// TODO Auto-generated method stub
-		
-	}
+				}
 
 	//traite un camion pour une duree determinee
 	private void traiteCamion(Camion c, double temps) {
@@ -961,9 +937,6 @@ public class MineSimulator implements GuiListener {
 		else if(c.getState() == Camion.ETAT_ATTENTE) {
 			traiteCamionEnAttente(c, temps);
 		}
-
-		// TODO Auto-generated method stub
-
 	}
 
 	//traite camion en attente

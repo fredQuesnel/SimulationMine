@@ -6,12 +6,10 @@ import java.util.ListIterator;
 import bsh.EvalError;
 import bsh.Interpreter;
 import ca.polymtl.SimulationMine.MineSimulator.Camion;
-import ca.polymtl.SimulationMine.MineSimulator.Concentrateur;
 import ca.polymtl.SimulationMine.MineSimulator.Mine;
 import ca.polymtl.SimulationMine.MineSimulator.Pelle;
 import ca.polymtl.SimulationMine.MineSimulator.SimulationMine;
 import ca.polymtl.SimulationMine.MineSimulator.Station;
-import ca.polymtl.SimulationMine.MineSimulator.Sterile;
 import lpsolve.*; 
 
 public class DecisionMaker {
@@ -49,7 +47,6 @@ public class DecisionMaker {
 
 			@Override
 			public double getPredictTimeAdjustFactor() {
-				// TODO Auto-generated method stub
 				return 0;
 			}
 
@@ -96,6 +93,7 @@ public class DecisionMaker {
 	private LpSolve solver;
 
 
+	@SuppressWarnings("static-access")
 	public DecisionMaker(Mine mine) {
 		this.mine = mine;
 
@@ -104,15 +102,6 @@ public class DecisionMaker {
 
 		dummyMine = mine;
 	}
-
-
-
-	//constructeur privé : utilisé seulement pour evaluer la validité de certaines règles
-	private DecisionMaker() {
-		//cibleTempsAttentePelle=0;
-	}
-
-
 
 
 	public String getScoreFunctionString() {
@@ -131,6 +120,7 @@ public class DecisionMaker {
 			return selectReturnStation(camion, (Pelle) camion.getCurrentStation());
 		}
 		
+		@SuppressWarnings("unchecked")
 		ArrayList<Pelle> pelles = (ArrayList<Pelle>) mine.getPelles().clone();
 		
 		//enleve les pelles en panne
@@ -329,10 +319,6 @@ public class DecisionMaker {
 		//enleve le camion a assignere de la liste des candidats, puisqu'il doit absolument
 		//etre optimise (on le rajoute a la fin)
 		camionsClone.remove(camionToAssign);
-
-
-		@SuppressWarnings("unchecked")
-		ArrayList<Camion> camionsCandidates = (ArrayList<Camion>) camionsClone.clone();
 
 		//si n pelles, trouve les n-1 camions qui seront disponibles le plus rapidement.
 		for(int i = 0 ; i < optimizablePelles.size()-1; i++) {
@@ -976,11 +962,8 @@ public class DecisionMaker {
 		//
 		double attenteEspereePelle = tempsDeParcoursEspere - tempsEspereAvantDebutRemplissage;
 
-		double penaliteQuadAttentePelle = calculePenaliteQuadAttentePelle(attenteEspereePelle, pelle.cibleAttentePelleSeconds());
-
-
-
-		double penaliteQuadAttenteCamion = calculePenaliteQuadAttenteCamion(attenteEspereeCamion, pelle.cibleAttenteCamionSeconds());
+		//double penaliteQuadAttentePelle = calculePenaliteQuadAttentePelle(attenteEspereePelle, pelle.cibleAttentePelleSeconds());
+		//double penaliteQuadAttenteCamion = calculePenaliteQuadAttenteCamion(attenteEspereeCamion, pelle.cibleAttenteCamionSeconds());
 
 
 		Interpreter interpreter = new Interpreter();  // Construct an interpreter
@@ -1005,7 +988,7 @@ public class DecisionMaker {
 		interpreter.set("n2", nbCamionsALaPelle);
 		interpreter.set("n3", nbCamionsEnRoutePourLaPelle);
 
-		interpreter.set("ecart_cible_quadratique", penaliteQuadAttentePelle);
+		//interpreter.set("ecart_cible_quadratique", penaliteQuadAttentePelle);
 
 		interpreter.set("optimal_assign", optimalAssignCost);
 

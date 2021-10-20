@@ -174,8 +174,8 @@ public class Mine {
 	 * @return La  pelle la plus prï¿½s des coordonnï¿½es relatives donnï¿½es.
 	 */
 	public Pelle closestPelle(double fractionX, double fractionY) {
-		double x = fractionX*this.WIDTH;
-		double y = fractionY*this.HEIGHT;
+		double x = fractionX*Mine.WIDTH;
+		double y = fractionY*Mine.HEIGHT;
 
 
 
@@ -331,21 +331,6 @@ public class Mine {
 		return this.inWarmup;
 	}
 
-	private double calculeTempsAttenteMoyenPelle() {
-		double totalAttentePelles = 0;
-		int totalRemplissagePelles = 0;
-		for(int i = 0 ; i < pelles.size(); i++) {
-			totalAttentePelles += pelles.get(i).getWaitTime();
-			totalRemplissagePelles += pelles.get(i).getNbCamionsTraites();
-		}
-
-		double tempsAttenteMoyen = totalAttentePelles/totalRemplissagePelles;
-
-		if(totalRemplissagePelles == 0) {
-			tempsAttenteMoyen = 0;
-		}
-		return tempsAttenteMoyen;
-	}
 
 
 
@@ -545,7 +530,6 @@ public class Mine {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -563,7 +547,6 @@ public class Mine {
 			smallCamionImage = ImageIO.read(new File("images/camion_small.png"));
 			largeCamionImage = ImageIO.read(new File("images/camion_large.png"));
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -588,7 +571,6 @@ public class Mine {
 
 				@Override
 				public double getChargeMax() {
-					// TODO Auto-generated method stub
 					return CHARGE_MAX;
 				}
 
@@ -624,7 +606,6 @@ public class Mine {
 
 				@Override
 				public double getChargeMax() {
-					// TODO Auto-generated method stub
 					return CHARGE_MAX;
 				}
 
@@ -647,17 +628,6 @@ public class Mine {
 		if(!failureScenariosFilename.equals("")) {
 			createFailureScenarios(failureScenariosFilename);
 		}
-		//cree les handles des donnees
-		/*
-
-		for(int i = 0 ; i < pelles.size(); i++) {
-			if(pelles.get(i).getId().equals("pelle1") || pelles.get(i).getId().equals("pelle3") ) {
-				dataSeriesHandles.add("reel:"+TravelTimePredictor.getMapKeyForODPair(steriles.get(0), pelles.get(i) ));
-				dataSeriesHandles.add("pred:"+TravelTimePredictor.getMapKeyForODPair(steriles.get(0), pelles.get(i) ));
-			}
-		}
-		 */
-
 	}
 
 	//load le fichier décrivant les scénarios de panne
@@ -690,6 +660,7 @@ public class Mine {
 					stationName = stationName.substring(1, stationName.length()-1);
 					Station station = getStation(stationName); 
 					if( station == null) {
+						lineScanner.close();
 						throw new RuntimeException("La station "+stationName+" n'existe pas.");
 					}
 					String heureString = lineScanner.next(".+:.+");
@@ -709,17 +680,15 @@ public class Mine {
 					}
 
 				}
-
-				//TODO
+				lineScanner.close();
 
 			}
 
-
+			scanner.close();
 
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -881,7 +850,6 @@ public class Mine {
 
 	public FailureScenario getRandomFailureScenario() {
 		int index = (int) (Math.random()*failureScenarios.size());
-		// TODO Auto-generated method stub
 		return failureScenarios.get(index);
 	}
 
