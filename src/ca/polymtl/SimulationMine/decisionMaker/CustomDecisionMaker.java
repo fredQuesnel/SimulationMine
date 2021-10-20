@@ -288,4 +288,37 @@ public class CustomDecisionMaker extends DecisionMaker {
 		//return computeCustomDecisionScore(camion, pelle);
 	}
 
+	@Override
+	/**
+	 * Ajuste le plan des pelles. Pour l'instant, ne change rien.
+	 */
+	public void updatePlan() {
+		
+		//Par défaut : ne change pas le plan.
+		//Commenter la ligne suivante pour implémenter votre propre fonction d'ajustement du plan.
+		super.updatePlan();
+		
+		//Votre fonction ici. Vous pouvez changer le plan de la pelle p pelle en effectuant : 
+		// p.setPlan(nb_camions_par_heure)
+		
+		//Pour savoir si une pelle est en panne, effectuez : 
+		// if(p.getState() == Pelle.STATION_STATE_PANNE)
+		
+		//Pour plus de détails, lire la documentation
+		
+		//Exemple : 
+		/*
+		for(int i = 0 ; i < mine.getPelles().size(); i++) {
+			Pelle p = mine.getPelles().get(i);
+			if(p.getState() == Pelle.STATION_STATE_PANNE){
+				p.setPlan(0);
+			}
+			else{
+				p.setPlan(p.getPlanNbCamionsParHeure()); //conserve le plan actuel
+			}
+		}
+		*/
+		
+	}
+
 }

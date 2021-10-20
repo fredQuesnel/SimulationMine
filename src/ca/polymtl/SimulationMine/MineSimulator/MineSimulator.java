@@ -801,6 +801,8 @@ public class MineSimulator implements GuiListener {
 
 	private void updateFailureEvents() {
 		
+		boolean situationChanged = false;
+		
 		ArrayList<StationFailureEvent> addToOngoing = new ArrayList<StationFailureEvent>();
 		ArrayList<StationFailureEvent> addToCompleted = new ArrayList<StationFailureEvent>();
 		
@@ -810,6 +812,7 @@ public class MineSimulator implements GuiListener {
 		while(iter.hasNext()) {
 			StationFailureEvent fe = iter.next();
 			if( fe.getBeginTimeSec() <= mine.getTime() ) {
+				situationChanged = true;
 				Station s = fe.getStation();
 				s.setFailureMode(true);
 				iter.remove();
@@ -842,6 +845,7 @@ public class MineSimulator implements GuiListener {
 		while(iter.hasNext()) {
 			StationFailureEvent fe = iter.next();
 			if(fe.getEndTimeSec() <= mine.getTime()) {
+				situationChanged = true;
 				Station s = fe.getStation();
 				s.setFailureMode(false);
 				iter.remove();
@@ -851,6 +855,10 @@ public class MineSimulator implements GuiListener {
 			}
 		}
 		
+		//update le plan si les pannes ont changé.
+		if(situationChanged) {
+			this.decisionMaker.updatePlan();
+		}
 		//ajoute les evenements aux listes des "ongoing" et "completed
 		//
 		for(int i = 0 ; i < addToOngoing.size(); i++) {

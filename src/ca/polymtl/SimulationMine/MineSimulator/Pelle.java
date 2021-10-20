@@ -37,7 +37,7 @@ public class Pelle extends Station{
 	//plan de travail
 	private double cibleCamionsParHeure;
 
-
+	private double defaultCibleCamionsParHeure;
 
 	
 	
@@ -56,6 +56,7 @@ public class Pelle extends Station{
 		super(i,j, id);
 		
 		this.cibleCamionsParHeure = cibleCamionsParHeure;
+		this.defaultCibleCamionsParHeure = cibleCamionsParHeure;
 		this.isDecharge = false;
 	}
 
@@ -151,7 +152,7 @@ public class Pelle extends Station{
 		
 	}
 
-	protected void setPlan(double newValue){
+	public void setPlan(double newValue){
 		System.out.println("je veux maintenant "+newValue);
 
 		// lambda = taux arrivée des camions (camions/h)

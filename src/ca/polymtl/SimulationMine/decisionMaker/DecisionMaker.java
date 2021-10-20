@@ -103,7 +103,17 @@ public class DecisionMaker {
 		dummyMine = mine;
 	}
 
-
+	/**
+	 * Ajuste le plan des pelles. Pour l'instant, ne change rien.
+	 */
+	public void updatePlan() {
+		for(int i = 0 ; i < mine.getPelles().size(); i++) {
+			Pelle p = mine.getPelles().get(i);
+			p.setPlan(p.getPlanNbCamionsParHeure());
+		}
+	}
+	
+	
 	public String getScoreFunctionString() {
 
 		return this.scoreFunctionString;
