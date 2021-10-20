@@ -16,7 +16,7 @@ public class FailureScenario {
 		this.failureEvents = new ArrayList<StationFailureEvent>();
 	}
 	
-	void addPelleFailureEvent(StationFailureEvent event) {
+	void addStationFailureEvent(StationFailureEvent event) {
 		failureEvents.add(event);
 	}
 	

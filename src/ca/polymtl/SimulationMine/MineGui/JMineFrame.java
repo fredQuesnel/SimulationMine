@@ -167,7 +167,6 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 
 	@Override
 	public void mineUpdated(Mine mine) {
-		System.out.println("dansMineFrame");
 		this.minePanel.updateMine();
 		
 	}

@@ -86,13 +86,7 @@ public class Concentrateur extends Station {
 		
 	}
 
-	/*
-	 * Met un camion en remplissage
-	 */
-	protected void setCamionEnTraitement(Camion camion) {
-		super.setCamionEnTraitement(camion);
-	}
-	
+
 	protected void setCamionOnArrival(Camion camion) {
 		super.setCamionOnArrival(camion);
 		camion.setNumberOfRuns(camion.getNumberOfRuns()+1);
