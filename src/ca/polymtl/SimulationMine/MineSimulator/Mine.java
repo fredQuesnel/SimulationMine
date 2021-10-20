@@ -849,8 +849,13 @@ public class Mine {
 
 
 	public FailureScenario getRandomFailureScenario() {
+		
+		FailureScenario fs = null;
+		if(failureScenarios.size() > 0) {
 		int index = (int) (Math.random()*failureScenarios.size());
-		return failureScenarios.get(index);
+		fs = failureScenarios.get(index);
+		}
+		return fs;
 	}
 
 
