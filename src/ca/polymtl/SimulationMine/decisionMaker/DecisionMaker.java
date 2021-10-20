@@ -130,6 +130,7 @@ public class DecisionMaker {
 		if(camion.getCurrentStation()!=null && !camion.getCurrentStation().isDecharge) {
 			return selectReturnStation(camion, (Pelle) camion.getCurrentStation());
 		}
+		
 		ArrayList<Pelle> pelles = (ArrayList<Pelle>) mine.getPelles().clone();
 		
 		//enleve les pelles en panne
@@ -145,7 +146,7 @@ public class DecisionMaker {
 		//System.out.println("objectif : "+this.scoreFunctionString);
 
 		if(this.scoreFunctionString.equals(OPTIMIZE_FUNCTION_STRING)) {
-			Pelle optimalPelle = giveOptimalObjectiveToCamion(camion);
+			Pelle optimalPelle = giveOptimalObjectiveToCamion(camion, pelles);
 			return optimalPelle;
 			//camion.setObjective(optimalPelle);
 		}
@@ -195,9 +196,9 @@ public class DecisionMaker {
 	}
 
 
-	public Pelle giveOptimalObjectiveToCamion(Camion camionToAssign) {
+	public Pelle giveOptimalObjectiveToCamion(Camion camionToAssign, ArrayList<Pelle> pelles) {
 
-		ArrayList<Pelle> optimizablePelles = mine.getPelles();
+		ArrayList<Pelle> optimizablePelles = pelles;
 		ArrayList<Camion> optimizableCamions = findOptimizableCamions(optimizablePelles, camionToAssign);
 
 		HashMap<Camion, Pelle> optimalAssign = resoutProblemeAssignation(optimizableCamions, optimizablePelles);

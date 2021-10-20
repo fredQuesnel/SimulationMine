@@ -99,8 +99,8 @@ public abstract class Station {
 	
 	
 	public double getCurrentWaitingPeriod() {
-		if(this.state != Station.STATION_STATE_IDLE || this.state != Station.STATION_STATE_PANNE ) {
-			throw new IllegalStateException("Ne peut pas retourner la periode d'attente courante si la pelle n'est pas en attente.");
+		if(this.state != Station.STATION_STATE_IDLE && this.state != Station.STATION_STATE_PANNE ) {
+			throw new IllegalStateException("Ne peut pas retourner la periode d'attente courante si la pelle n'est pas en attente ou en panne.");
 		}
 		return currentWaitingPeriod;
 	}

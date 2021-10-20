@@ -624,13 +624,11 @@ public class MineSimulator implements GuiListener {
 	//
 	private Camion selectCamion() {
 
-		System.out.println("selectCamion");
 		double bestTime = Double.MAX_VALUE;
 		Camion bestCamion = null;
 		for(int i = 0 ; i < mine.getCamions().size(); i++) {
 			Camion c = mine.getCamions().get(i);
 			if(c.getState() == Camion.ETAT_EN_TRAITEMENT) {
-				System.out.println("station "+c.getCurrentStation().getId());
 			}
 			if(!c.iterFinished()) {
 				if(bestCamion == null) {
@@ -946,10 +944,7 @@ public class MineSimulator implements GuiListener {
 		
 		if(c.getState() == Camion.ETAT_INACTIF) {
 			Station s = decisionMaker.giveObjectiveToCamion(c);
-			System.out.println("station courante "+c.getCurrentStation().getId());
-			System.out.println("nouvel objectif "+s.getId());
 			c.setObjective(s);
-			System.out.println("etat :"+c.getState());
 			
 			c.setPredictedTravelTime(this.travelTimePredictor.predictTravelTime(c.getOrigine(), s, c));
 			traiteCamion(c, temps);
