@@ -59,7 +59,7 @@ public class MineSimulator implements GuiListener {
 
 		//Cr�� la mine et l'initialise
 		//
-		mine = new Mine(this);
+		mine = new Mine();
 		mine.init(Mine.exampleIds.get(0));
 
 		//cree le predicteur de temps de parcours
@@ -337,7 +337,6 @@ public class MineSimulator implements GuiListener {
 
 	@Override
 	public void meteoSliderChanged(double meteoFactor) {
-		System.out.println("meteoFactor"+meteoFactor);
 		mine.setMeteoFactor(meteoFactor);
 	}
 
@@ -581,7 +580,6 @@ public class MineSimulator implements GuiListener {
 	private void notifyListenersUpdated() {
 
 		for(int i = 0 ; i < listeners.size(); i++) {
-			System.out.println("notifyListener");
 			listeners.get(i).mineUpdated(mine);
 		}	
 	}
@@ -673,7 +671,6 @@ public class MineSimulator implements GuiListener {
 	 */
 	private boolean step() {
 
-		System.out.println("step");
 		//a priori, aucun camion idle
 		this.justAssigned = false;
 
@@ -699,7 +696,6 @@ public class MineSimulator implements GuiListener {
 
 			Camion c = selectCamion();
 
-			System.out.println("choisis camion ");
 			double temps = c.taskTimeRemaining();
 			if(temps >= stepSize) {
 				temps = stepSize;
@@ -708,7 +704,6 @@ public class MineSimulator implements GuiListener {
 
 
 			
-			System.out.println(temps);
 			
 			//calcule l'attente des stations (difference entre le temps d'iter et le temps interne d'iter)
 			// si une pelle est inactive, elle le restera pour toute l'iteration
@@ -778,6 +773,7 @@ public class MineSimulator implements GuiListener {
 		if(c.getState() == Camion.ETAT_INACTIF) {
 			Station s = decisionMaker.giveObjectiveToCamion(c);
 			c.setObjective(s);
+			c.setPredictedTravelTime(this.travelTimePredictor.predictTravelTime(c.getCurrentStation(), s, c));
 			traiteCamion(c, temps);
 		}
 		//si le camion est en route, on le fait rouler vers sa destination. Si il arrive � destination avant la fin du tour, on le traite imm�diatement � nouveau.
@@ -860,6 +856,7 @@ public class MineSimulator implements GuiListener {
 			//s.setCamionEnTraitement(s.camionsEnAttente.get(0));
 			Station objective = decisionMaker.giveObjectiveToCamion(c);
 			c.setObjective(objective);
+			c.setPredictedTravelTime(this.travelTimePredictor.predictTravelTime(c.getCurrentStation(), s, c));
 			if(!modeCharge) {
 				this.justAssigned = true;
 			}
