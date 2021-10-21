@@ -96,9 +96,9 @@ public class Pelle extends Station{
 	 */
 	public double cibleAttentePelleSeconds(){
 		
-		double averageChargeParCamion = averageChargeParCamion();
+		double cibleAttente = 0;
 		
-		double averageChargeTimeSeconds = averageChargeParCamion/AVERAGE_CHARGE_SPEED;
+		double averageChargeParCamion = averageChargeParCamion();
 
 		double cibleCamionsParHeure = cibleTonnesParHeure/averageChargeParCamion;
 		
@@ -106,11 +106,14 @@ public class Pelle extends Station{
 
 		//si travaille plus d'une heure par heure, temps cible d'attente nul.
 		if(tempsTravailParHeureEnSecondes >=3600){
-			return 0;
+			cibleAttente = 0;
 		}
 		else{
-			return (3600-tempsTravailParHeureEnSecondes)/cibleCamionsParHeure;
+			cibleAttente = (3600-tempsTravailParHeureEnSecondes)/cibleCamionsParHeure;
 		}
+		
+		System.out.println("Pelle "+this.getId()+"cibleAttente "+cibleAttente);
+		return cibleAttente;
 	}
 
 	/**
@@ -130,6 +133,7 @@ public class Pelle extends Station{
 			averageChargeParCamion += this.arrivalLog.get(i).getChargeMax();
 		}
 		averageChargeParCamion = averageChargeParCamion/nbDataPoint;
+		System.out.println("charge moyenne : "+averageChargeParCamion);
 		return averageChargeParCamion;
 	}
 

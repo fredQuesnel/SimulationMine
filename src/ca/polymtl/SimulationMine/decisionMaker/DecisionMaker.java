@@ -631,15 +631,15 @@ public class DecisionMaker {
 			double penaliteQuadAttenteCamion = calculePenaliteQuadAttenteCamion(attenteEspereeCamion/3600.,0);// pelle.cibleAttenteCamionSeconds()/3600.);
 			
 			System.out.println(pelle.getId());
-			if(pelle.getId().compareTo("pelle3")== 0 || true) {
+			if(false) {
 				
 				System.out.println("attente esperee pelle  : "+attenteEspereePelle);
 				System.out.println("attente esperee camion : "+attenteEspereeCamion);
 				System.out.println("penalite pelle         : "+penaliteQuadAttentePelle);
 				System.out.println("penalite camion        : "+penaliteQuadAttenteCamion);
-				
+				System.out.println("score                  : "+(penaliteQuadAttentePelle+penaliteQuadAttenteCamion));	
 			}
-			System.out.println("score                  : "+penaliteQuadAttentePelle+penaliteQuadAttenteCamion);
+			
 			return penaliteQuadAttentePelle+penaliteQuadAttenteCamion;
 		}
 		else {
