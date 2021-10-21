@@ -274,7 +274,7 @@ public class SommaireFrame extends JFrame {
 		//
 		planPelles = new ArrayList<Pair<Pelle, Double>>();
 		for(int i = 0 ; i < pelles.size(); i++){
-			double plan = pelles.get(i).getPlanNbCamionsParHeure();
+			double plan = pelles.get(i).getPlanNbTonnesParHeure();
 			Pair<Pelle, Double> pair = new Pair<Pelle, Double>(pelles.get(i), plan);
 			planPelles.add(pair);
 		}

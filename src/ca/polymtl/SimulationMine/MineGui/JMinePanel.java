@@ -453,10 +453,10 @@ public class JMinePanel extends JPanel{
 
 		//plan
 		//
-		double nbCamionsParHeure = pelle.getPlanNbCamionsParHeure();
+		double nbCamionsParHeure = pelle.getPlanNbTonnesParHeure();
 		//g.drawString("Plan : ", xrect+paddingx, yrect +50);
 		g.setColor(new Color(0, 100, 0));
-		g.drawString(df.format(nbCamionsParHeure)+" cam./h", xrect+paddingx, yrect +64);
+		g.drawString(df.format(nbCamionsParHeure)+" t/h", xrect+paddingx, yrect +64);
 
 		//remet le font d'avant
 		g.setFont(previousFont);
@@ -645,8 +645,7 @@ public class JMinePanel extends JPanel{
 
 				@Override
 				public void actionPerformed(ActionEvent arg0) {
-					System.out.println("clic");
-					String strNbCamionsParHeure = JOptionPane.showInputDialog(closestPelle.getId()+" : Nombre de camions/heure?");
+					String strNbCamionsParHeure = JOptionPane.showInputDialog(closestPelle.getId()+" : Nombre de tonnes/heure?");
 
 					//Utilisation de Float car le package Double est d�fini pour des coordonne�s 2D
 					double nbCamionsParHeure = Float.parseFloat(strNbCamionsParHeure);

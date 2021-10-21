@@ -35,9 +35,9 @@ public class Pelle extends Station{
 
 
 	//plan de travail
-	private double cibleCamionsParHeure;
+	private double cibleTonnesParHeure;
 
-	private double defaultCibleCamionsParHeure;
+	private double defaultCibleTonnesParHeure;
 
 	
 	
@@ -52,11 +52,12 @@ public class Pelle extends Station{
 	/*
 	 * Constructeur
 	 */
-	public Pelle(int i, int j, String id, double cibleCamionsParHeure) {
+	public Pelle(int i, int j, String id, double cibleTonnesParHeure) {
 		super(i,j, id);
 		
-		this.cibleCamionsParHeure = cibleCamionsParHeure;
-		this.defaultCibleCamionsParHeure = cibleCamionsParHeure;
+		
+		this.cibleTonnesParHeure = cibleTonnesParHeure;
+		this.defaultCibleTonnesParHeure = cibleTonnesParHeure;
 		this.isDecharge = false;
 	}
 
@@ -76,9 +77,10 @@ public class Pelle extends Station{
 		// lambda = taux arrivée des camions (camions/h)
 		// mu    = taux de service de la pelle (camions/h)
 
-		double lambda = this.cibleCamionsParHeure;
+		double averageChargeParCamion = averageChargeParCamion();
+		double lambda = this.cibleTonnesParHeure/averageChargeParCamion;
 		//en nb camions par heure
-		double mu = Pelle.AVERAGE_CHARGE_SPEED/100*3600;
+		double mu = Pelle.AVERAGE_CHARGE_SPEED/averageChargeParCamion*3600;
 
 		//attente en heures
 		double attente = lambda/(mu*(mu-lambda));
@@ -93,9 +95,14 @@ public class Pelle extends Station{
 	 * @return La cible d'attente de la pelle selon le plan
 	 */
 	public double cibleAttentePelleSeconds(){
-		double averageChargeTimeSeconds = 100./this.currentChargeSpeed;
+		
+		double averageChargeParCamion = averageChargeParCamion();
+		
+		double averageChargeTimeSeconds = averageChargeParCamion/AVERAGE_CHARGE_SPEED;
 
-		double tempsTravailParHeureEnSecondes = averageChargeTimeSeconds*cibleCamionsParHeure;
+		double cibleCamionsParHeure = cibleTonnesParHeure/averageChargeParCamion;
+		
+		double tempsTravailParHeureEnSecondes = cibleTonnesParHeure/AVERAGE_CHARGE_SPEED;
 
 		//si travaille plus d'une heure par heure, temps cible d'attente nul.
 		if(tempsTravailParHeureEnSecondes >=3600){
@@ -107,12 +114,32 @@ public class Pelle extends Station{
 	}
 
 	/**
+	 * Estime la charge moyenne d'un camion visitant la pelle selon la moyenne des N derniers camions à l'avoir visité. 
+	 * Si moins de N camions ont visité la pelle, prends la moyenne de tous les camions. 
+	 * Si aucun camion n'a visité la pelle, retourne 0.
+	 * @return
+	 */
+	private double averageChargeParCamion() {
+		double averageChargeParCamion = 0;
+		int nbDataPoint = Station.AVG_LOAD_FORMULA_N;
+		if(nbDataPoint >this.arrivalLog.size()) {
+			nbDataPoint = this.arrivalLog.size();
+		}
+		
+		for(int i = this.arrivalLog.size()-nbDataPoint; i < this.arrivalLog.size(); i++) {
+			averageChargeParCamion += this.arrivalLog.get(i).getChargeMax();
+		}
+		averageChargeParCamion = averageChargeParCamion/nbDataPoint;
+		return averageChargeParCamion;
+	}
+
+	/**
 	 * 
 	 * @return Selon le plan, nombre de camions par heure se rendant à la pelle.
 	 */
-	public double getPlanNbCamionsParHeure() {
+	public double getPlanNbTonnesParHeure() {
 
-		return this.cibleCamionsParHeure;
+		return this.cibleTonnesParHeure;
 	}
 
 	/**
@@ -162,11 +189,11 @@ public class Pelle extends Station{
 		//en nb camions par heure
 		double mu = Pelle.AVERAGE_CHARGE_SPEED/100*3600;
 
-		if(lambda > mu){
-			JOptionPane.showMessageDialog(null, "Taux d'arrivée trop grand. Vous devez choisir une valeur inférieure à "+mu);
+		if(newValue < 0){
+			JOptionPane.showMessageDialog(null, "Vous devez choisir une valeur > 0");
 		}
 		else{
-			this.cibleCamionsParHeure = newValue;
+			this.cibleTonnesParHeure = newValue;
 		}
 
 	}

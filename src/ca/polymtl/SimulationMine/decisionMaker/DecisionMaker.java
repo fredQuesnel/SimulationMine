@@ -109,7 +109,7 @@ public class DecisionMaker {
 	public void updatePlan() {
 		for(int i = 0 ; i < mine.getPelles().size(); i++) {
 			Pelle p = mine.getPelles().get(i);
-			p.setPlan(p.getPlanNbCamionsParHeure());
+			p.setPlan(p.getPlanNbTonnesParHeure());
 		}
 	}
 	
