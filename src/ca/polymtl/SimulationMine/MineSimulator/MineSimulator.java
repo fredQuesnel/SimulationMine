@@ -993,12 +993,11 @@ public class MineSimulator implements GuiListener {
 
 		if(!modeCharge) {
 			c.decharge(quantite, tempsChargement);
-			s.updateQteTraite(quantite, c.getRockType());
 		}
 		else {
 			c.charge(quantite, tempsChargement);
-
 		}
+		s.updateQteTraite(quantite, c.getRockType());
 		/*
 		ArrayList<Camion> camionsEnAttente = s.getCamionsEnAttente();
 		for(int i = 0 ; i < camionsEnAttente.size(); i++) {

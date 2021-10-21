@@ -39,6 +39,7 @@ public class Pelle extends Station{
 
 	private double defaultCibleTonnesParHeure;
 
+	private double totalQuantity;
 	
 	
 	
@@ -55,7 +56,7 @@ public class Pelle extends Station{
 	public Pelle(int i, int j, String id, double cibleTonnesParHeure) {
 		super(i,j, id);
 		
-		
+		this.totalQuantity = 0;
 		this.cibleTonnesParHeure = cibleTonnesParHeure;
 		this.defaultCibleTonnesParHeure = cibleTonnesParHeure;
 		this.isDecharge = false;
@@ -211,8 +212,15 @@ public class Pelle extends Station{
 
 	@Override
 	protected void updateQteTraite(double quantite, RockType rockType) {
+		System.out.println("ajoute "+quantite);
+		this.totalQuantity += quantite;
 		// Ne fait rien.
 		
+	}
+
+	public double getTotalQuantity() {
+		
+		return totalQuantity;
 	}
 
 	

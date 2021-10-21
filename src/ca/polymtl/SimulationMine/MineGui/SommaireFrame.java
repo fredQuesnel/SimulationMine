@@ -265,7 +265,7 @@ public class SommaireFrame extends JFrame {
 		//
 		tauxPelles = new ArrayList<Pair<Pelle, Double>>();
 		for(int i = 0 ; i < pelles.size(); i++){
-			double taux = 1.*pelles.get(i).getNbCamionsTraites()/mineSimulator.getTempsSimulationSeconds()*3600;
+			double taux = pelles.get(i).getTotalQuantity()/mineSimulator.getTempsSimulationSeconds()*3600;//1.*pelles.get(i).getNbCamionsTraites()/mineSimulator.getTempsSimulationSeconds()*3600;
 			Pair<Pelle, Double> pair = new Pair<Pelle, Double>(pelles.get(i), taux);
 			tauxPelles.add(pair);
 		}
@@ -482,7 +482,7 @@ public class SommaireFrame extends JFrame {
 			gc.insets = new Insets(5, 0, 0, 0);
 			gc.gridx = 1;
 			gc.weightx = 0.0;
-			String tauxPlanText2 = ""+arrondiDeuxDecimales(tauxPlan)+"camions/h.";
+			String tauxPlanText2 = ""+arrondiDeuxDecimales(tauxPlan)+" tonnes/h.";
 			JLabel tauxPlanLabel2 = new JLabel(tauxPlanText2);
 			tauxPlanLabel2.setFont(fontNormal);
 			prodPellesPanel.add(tauxPlanLabel2, gc);
@@ -501,7 +501,7 @@ public class SommaireFrame extends JFrame {
 			gc.insets = new Insets(5, 0, 0, 0);
 			gc.gridx = 1;
 			gc.weightx = 0.0;
-			String tauxReelText2 = ""+arrondiDeuxDecimales(tauxReel)+"camions/h.";
+			String tauxReelText2 = ""+arrondiDeuxDecimales(tauxReel)+" tonnes/h.";
 			JLabel tauxReelLabel2 = new JLabel(tauxReelText2);
 			tauxReelLabel2.setFont(fontNormal);
 			prodPellesPanel.add(tauxReelLabel2, gc);
