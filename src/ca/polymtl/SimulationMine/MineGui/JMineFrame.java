@@ -78,14 +78,19 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 
 
 
-	//Ajoute un observer au GUI
+	/**
+	 * Ajoute un observer
+	 * @param mineSimulator observer
+	 */
 	public void addObserver(GuiListener mineSimulator) {
 		listenerList.add(mineSimulator);
 	}
 
 
 
-
+	/**
+	 * Lorsque le controleur de mine indique que la complétion automatique de la simulation est terminée
+	 */
 	@Override
 	public void automaticCompleteFinished() {
 		this.minePanel.automaticCompleteFinished();
@@ -94,7 +99,9 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 
 
 
-
+	/**
+	 * Lorsque le controleur de mine indique que la complétion automatique de la simulation a débutée
+	 */
 	@Override
 	public void automaticCompleteStarted() {
 		this.minePanel.automaticCompleteStarted();

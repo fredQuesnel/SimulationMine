@@ -502,8 +502,9 @@ public class JControlPanel extends JPanel{
 		return nTextField;
 	}
 
-	//Cree le textfield dans lequel l'utilisateur choisis le nombre de camions
-	//
+	/**
+	 * Cree le textfield dans lequel l'utilisateur choisis le nombre de camions
+	 */
 	private void createNumberCamionsLargeTextField() {
 
 		//Créé le champs
