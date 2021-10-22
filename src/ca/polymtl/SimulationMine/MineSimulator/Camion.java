@@ -21,17 +21,17 @@ public abstract class Camion {
 
 	//etats possibles
 	//
-	/** État indiquant un camion auquel aucune activité n'est assignée.	 */
+	/** ï¿½tat indiquant un camion auquel aucune activitï¿½ n'est assignï¿½e.	 */
 	public static int ETAT_INACTIF = 1;
-	/** État indiquant un camion en route vers sa destination.	 */
+	/** ï¿½tat indiquant un camion en route vers sa destination.	 */
 	public static int ETAT_EN_ROUTE = 2;
-	/** État indiquant un camion en attente de chargement.	 */
+	/** ï¿½tat indiquant un camion en attente de chargement.	 */
 	public static int ETAT_ATTENTE = 3;
-	/** État indiquant un camion en chargement.	 */
+	/** ï¿½tat indiquant un camion en chargement.	 */
 	public static int ETAT_EN_TRAITEMENT = 4;
-	/** État indiquant un camion qui viens juste d'arriver à sa destination.	 */
+	/** ï¿½tat indiquant un camion qui viens juste d'arriver ï¿½ sa destination.	 */
 	public static int ETAT_JUSTE_ARRIVE = 5;
-	/** État indiquant un camion en déchargement.	 */
+	/** ï¿½tat indiquant un camion en dï¿½chargement.	 */
 	//public static int ETAT_DECHARGE = 6;
 
 
@@ -57,7 +57,7 @@ public abstract class Camion {
 	private Station objective;
 	private boolean goingEast;
 
-	// Station (null si à aucune station)
+	// Station (null si ï¿½ aucune station)
 	//
 	private Station currentStation;
 
@@ -68,7 +68,7 @@ public abstract class Camion {
 	//si en chargement
 	private double charge;
 
-	//statistiques de productivité
+	//statistiques de productivitï¿½
 	//
 	private double waitTime;
 
@@ -87,12 +87,12 @@ public abstract class Camion {
 	//images du camion
 	private BufferedImage goingEastImage;
 	private BufferedImage goingWestImage;
-	private MineSimulator mineSimulator;
+	//private MineSimulator mineSimulator;
+	private double emptyTravelTime;
 
 	//constructeur
 	//
-	public Camion(Station station, Mine mine, MineSimulator mineSimulator, BufferedImage goingEastImage) {
-		this.mineSimulator = mineSimulator;
+	public Camion(Station station, Mine mine, BufferedImage goingEastImage) {
 		
 		this.goingEastImage = goingEastImage;
 		this.goingWestImage = goingEastImage;
@@ -110,6 +110,7 @@ public abstract class Camion {
 		this.speed = 2;
 		this.state = ETAT_INACTIF;
 		this.waitTime = 0;
+		this.emptyTravelTime = 0;
 		this.numberOfRuns = 0;
 		this.goingEast = true;
 		this.currentStation = station;
@@ -120,14 +121,14 @@ public abstract class Camion {
 	}
 	/**
 	 * 
-	 * @return Le temps total d'attente du camion à la station
+	 * @return Le temps total d'attente du camion ï¿½ la station
 	 */
 	public double getAttenteAtStation(Station station){
 		return this.waitTimePerStation.get(station).doubleValue();
 	}
 	/**
 	 * 
-	 * @return La moyenne du temps d'attente du camion à la station donnée
+	 * @return La moyenne du temps d'attente du camion ï¿½ la station donnï¿½e
 	 */
 	public double getAverageWaitTimeSecondsForStation(Station station){
 		double waitTime =this.waitTimePerStation.get(station).doubleValue();
@@ -142,7 +143,7 @@ public abstract class Camion {
 	
 	/**
 	 * 
-	 * @return Si le camion est présentement en charge, retourne le temps courant de chargement.
+	 * @return Si le camion est prï¿½sentement en charge, retourne le temps courant de chargement.
 	 */
 	public double getCharge() {
 
@@ -153,7 +154,7 @@ public abstract class Camion {
 
 	/** 
 	 * 
-	 * @return Station courante du camion (indéfini si le camion n'est pas à une station)
+	 * @return Station courante du camion (indï¿½fini si le camion n'est pas ï¿½ une station)
 	 */
 	public Station getCurrentStation() {
 		return currentStation;
@@ -184,7 +185,7 @@ public abstract class Camion {
 
 	/**
 	 * 
-	 * @return Le nombre de fois où le camion est allé à la station
+	 * @return Le nombre de fois oï¿½ le camion est allï¿½ ï¿½ la station
 	 */
 	public double getNbVisitAtStation(Station station){
 		return this.nbVisitPerStation.get(station).intValue();
@@ -192,14 +193,14 @@ public abstract class Camion {
 
 	/**
 	 * 
-	 * @return Le nombre de voyages (allé-retours) que le camion a effectué durant la simulation courante.
+	 * @return Le nombre de voyages (allï¿½-retours) que le camion a effectuï¿½ durant la simulation courante.
 	 */
 	public int getNumberOfRuns() {
 		return numberOfRuns;
 	}
 	/**
 	 * 
-	 * @return Destination du camion, ou null si le camion n'est pas en déplacement.
+	 * @return Destination du camion, ou null si le camion n'est pas en dï¿½placement.
 	 */
 	public Station getObjective() {
 		return objective;
@@ -225,7 +226,7 @@ public abstract class Camion {
 
 	/**
 	 * 
-	 * @return Type de roche dans le camion (indéfini si le camion est vide)
+	 * @return Type de roche dans le camion (indï¿½fini si le camion est vide)
 	 */
 	public RockType getRockType() {
 		return rockType;
@@ -240,7 +241,7 @@ public abstract class Camion {
 
 	/**
 	 * 
-	 * @return État du camion correspondant à l'activité en cours.
+	 * @return ï¿½tat du camion correspondant ï¿½ l'activitï¿½ en cours.
 	 */
 	public int getState() {
 		return state;
@@ -250,7 +251,7 @@ public abstract class Camion {
 
 	/**
 	 * 
-	 * @return Le temps total (s) que le camion a passé en attente durant la simulation courante.
+	 * @return Le temps total (s) que le camion a passï¿½ en attente durant la simulation courante.
 	 */
 	public double getWaitTime() {
 		return waitTime;
@@ -259,7 +260,7 @@ public abstract class Camion {
 	/**
 	 * 
 	 * @return true si la destination du camion est a l'est de son emplacement. 
-	 * Utilisé pour l'interface graphique.
+	 * Utilisï¿½ pour l'interface graphique.
 	 */
 	public boolean isGoingEast() {
 		return goingEast;
@@ -272,6 +273,7 @@ public abstract class Camion {
 	public void setObjective(Station objective) {
 
 		this.origine = this.currentStation;
+		this.currentStation = null;
 		this.objective = objective;
 		this.goingEast = true;
 		if(objective.getLocation().getX() > this.location.getX()) {
@@ -280,9 +282,13 @@ public abstract class Camion {
 		this.speed = getRandomSpeed();
 		this.state = ETAT_EN_ROUTE;
 
-		this.predictedTravelTime = mineSimulator.getTravelTimePredictor().predictTravelTime(currentStation, objective, this);
+		
 		this.currentTravelTime = 0;
 
+	}
+	
+	public void setPredictedTravelTime(double predictedTravelTime) {
+		this.predictedTravelTime = predictedTravelTime;
 	}
 
 	//calcule le temps restant a la tache actuelle
@@ -331,7 +337,7 @@ public abstract class Camion {
 		}
 
 		if(temps > this.getRemainingTimeInTurn()+0.0001) {
-			throw new IllegalStateException("Le temps de deplacement ne doit pas dépasser le temps restant : "+temps + " > "+this.getRemainingTimeInTurn());
+			throw new IllegalStateException("Le temps de deplacement ne doit pas dï¿½passer le temps restant : "+temps + " > "+this.getRemainingTimeInTurn());
 		}
 		double timeIncrement = temps;//this.getRemainingTimeInTurn();
 		//Si la distance entre l'objectif et la position est inferieur a la distance parcourue dans l'incerment de temps
@@ -343,12 +349,17 @@ public abstract class Camion {
 		double distanceParcourue = timeIncrement*speedWithMeteo;
 
 		if(distanceParcourue >= distanceRestante) {
+			if(this.objective == null) {
+				throw new IllegalStateException("objective == null");
+			}
 			this.currentStation = this.objective;
 			location.setLocation(objective.getLocation());
 			this.state = ETAT_JUSTE_ARRIVE;
 			//retourne le temps restant dans le tour
 			this.iterCurrentTime+= distanceRestante/speedWithMeteo;
-
+			if(this.getCharge() == 0) {
+				this.emptyTravelTime+= distanceRestante/speedWithMeteo;
+			}
 			this.currentTravelTime += distanceRestante/speedWithMeteo;		
 		}
 
@@ -368,6 +379,11 @@ public abstract class Camion {
 			//this.setRemainingTimeInTurn(0);
 
 			this.currentTravelTime += timeIncrement;
+			
+			if(this.getCharge() == 0) {
+				this.emptyTravelTime+= timeIncrement;
+			}
+			
 			this.iterCurrentTime += timeIncrement;
 			
 		}
@@ -387,7 +403,7 @@ public abstract class Camion {
 		}
 
 		if(temps > this.getRemainingTimeInTurn()+0.0001) {
-			throw new IllegalArgumentException("Le temps d'attente ne doit pas dépasser le temps restant : "+temps+" > "+this.getRemainingTimeInTurn());
+			throw new IllegalArgumentException("Le temps d'attente ne doit pas dï¿½passer le temps restant : "+temps+" > "+this.getRemainingTimeInTurn());
 		}
 
 		this.waitTime+= temps;
@@ -407,15 +423,15 @@ public abstract class Camion {
 	protected void charge(double quantite, double temps) {
 
 		//valide la demande de decharge
-		//marge d'erreur de 0.0001 pour erreur numérique
+		//marge d'erreur de 0.0001 pour erreur numï¿½rique
 		if(quantite - 0.0001 > this.getChargeMax()-this.charge) {
-			throw new IllegalArgumentException("Quantité chargée trop grande : "+quantite+" > "+(this.getChargeMax()-this.charge));
+			throw new IllegalArgumentException("Quantitï¿½ chargï¿½e trop grande : "+quantite+" > "+(this.getChargeMax()-this.charge));
 		}
 		if(temps > this.getRemainingTimeInTurn()+0.0001) {
-			throw new IllegalArgumentException("Temps de décharge trop grand : "+temps+" > "+this.getRemainingTimeInTurn());
+			throw new IllegalArgumentException("Temps de dï¿½charge trop grand : "+temps+" > "+this.getRemainingTimeInTurn());
 		}
 		if(this.getState()!= Camion.ETAT_EN_TRAITEMENT) {
-			throw new IllegalStateException("Peut seulement décharger en ETAT_CHARGE. État actuel : "+this.getState());
+			throw new IllegalStateException("Peut seulement dï¿½charger en ETAT_CHARGE. ï¿½tat actuel : "+this.getState());
 		}
 
 
@@ -436,15 +452,15 @@ public abstract class Camion {
 	protected void decharge(double quantiteDecharge, double tempsTraitement) {
 	
 		//valide la demande de decharge
-		//marge d'erreur de 0.0001 pour erreur numériques
+		//marge d'erreur de 0.0001 pour erreur numï¿½riques
 		if(quantiteDecharge - 0.0001 > this.charge) {
-			throw new IllegalArgumentException("Quantité déchargée trop grande : "+quantiteDecharge+" > "+this.charge);
+			throw new IllegalArgumentException("Quantitï¿½ dï¿½chargï¿½e trop grande : "+quantiteDecharge+" > "+this.charge);
 		}
 		if(tempsTraitement > this.getRemainingTimeInTurn()+0.0001) {
-			throw new IllegalArgumentException("Temps de décharge trop grand : "+tempsTraitement+" > "+this.getRemainingTimeInTurn());
+			throw new IllegalArgumentException("Temps de dï¿½charge trop grand : "+tempsTraitement+" > "+this.getRemainingTimeInTurn());
 		}
 		if(this.getState()!= Camion.ETAT_EN_TRAITEMENT) {
-			throw new IllegalStateException("Peut seulement décharger en ETAT_EN_TRAITEMENT. État actuel : "+this.getState());
+			throw new IllegalStateException("Peut seulement dï¿½charger en ETAT_EN_TRAITEMENT. ï¿½tat actuel : "+this.getState());
 		}
 	
 		this.iterCurrentTime+=tempsTraitement;
@@ -475,7 +491,7 @@ public abstract class Camion {
 
 
 
-	//retourne true si l'iteration actuelle est terminee pour le camion (il a épuisé tout son temps)
+	//retourne true si l'iteration actuelle est terminee pour le camion (il a ï¿½puisï¿½ tout son temps)
 	//
 	protected boolean iterFinished() {
 		return this.iterFinished;
@@ -485,6 +501,7 @@ public abstract class Camion {
 	protected void resetStats() {
 		this.numberOfRuns = 0;
 		this.waitTime = 0;
+		this.emptyTravelTime = 0;
 
 		waitTimePerStation = new HashMap<Station, java.lang.Double>();
 		nbVisitPerStation = new HashMap<Station, Integer>();
@@ -538,7 +555,7 @@ public abstract class Camion {
 		this.iterFinished = false;
 	}
 
-	//fait attendre le camion jusqu'à la fin du tour
+	//fait attendre le camion jusqu'ï¿½ la fin du tour
 	//
 	/*
 	protected void waitUntilEndIter() {
@@ -549,7 +566,11 @@ public abstract class Camion {
 
 	//met le camion en traitement
 	protected void setEnTraitement() {
+		if(this.currentStation==null) {
+			throw new IllegalStateException("Ne peut pas etre mis en traitement si aucune station courante.");
+		}
 		this.state = Camion.ETAT_EN_TRAITEMENT;
+		
 	}
 
 	
@@ -569,6 +590,9 @@ public abstract class Camion {
 	//met le camion en etat inactif
 	protected void setStateInactif() {
 		this.state = Camion.ETAT_INACTIF;
+	}
+	public double getEmptyTravelTime() {
+		return this.emptyTravelTime;
 	}
 
 

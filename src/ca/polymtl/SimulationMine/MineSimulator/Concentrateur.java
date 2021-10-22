@@ -86,13 +86,7 @@ public class Concentrateur extends Station {
 		
 	}
 
-	/*
-	 * Met un camion en remplissage
-	 */
-	protected void setCamionEnTraitement(Camion camion) {
-		super.setCamionEnTraitement(camion);
-	}
-	
+
 	protected void setCamionOnArrival(Camion camion) {
 		super.setCamionOnArrival(camion);
 		camion.setNumberOfRuns(camion.getNumberOfRuns()+1);
@@ -110,7 +104,7 @@ public class Concentrateur extends Station {
 
 
 	@Override
-	void computeNewChargeSpeed() {
+	void computeNewTraitementSpeed() {
 		double lambda = 0.75;
 		double speedAdjust = SimulationMine.random.nextGaussian()*Concentrateur.ECART_TYPE_DECHARGE_SPEED+Concentrateur.AVERAGE_DECHARGE_SPEED;
 

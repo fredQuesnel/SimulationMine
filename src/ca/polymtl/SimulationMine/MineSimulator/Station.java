@@ -9,12 +9,21 @@ public abstract class Station {
 	public final static int STATION_STATE_IDLE = 1;
 	/** État indiquant une pelle active*/
 	public final static int STATION_STATE_WORKING = 2;
+	/** État indiquant une pelle en panne */
+	public final static int STATION_STATE_PANNE = 3;
+	
+	/** On calcule la charge moyenne d'un camion visitant la mine en prenant la moyenne des N derniers camions. Ce paramètre définit N.*/
+	protected final static int AVG_LOAD_FORMULA_N = 20;
+	
 	
 	private Point2D.Double location;
 	private String id;
 	
 	public boolean isDecharge; 
 	
+	
+	//log d'arrivée des camions. Utile pour calculer la moyenne mobile des charges.
+	protected ArrayList<Camion> arrivalLog;
 	
 	protected ArrayList<Camion> camionsEnAttente;
 	//ETAT de la pelle 
@@ -43,8 +52,9 @@ public abstract class Station {
 	protected Station(double i, double j, String id) {
 		this.location = new Point2D.Double(i, j);
 		this.id = id;
-		this.state = this.STATION_STATE_IDLE;
+		this.state = Station.STATION_STATE_IDLE;
 		
+		this.arrivalLog = new ArrayList<Camion>();
 		this.camionsEnAttente = new ArrayList<Camion>();
 		camionEnTraitement = null;
 		waitingTime = 0;
@@ -97,8 +107,8 @@ public abstract class Station {
 	
 	
 	public double getCurrentWaitingPeriod() {
-		if(this.state != Station.STATION_STATE_IDLE) {
-			throw new IllegalStateException("Ne peut pas retourner la periode d'attente courante si la pelle n'est pas en attente.");
+		if(this.state != Station.STATION_STATE_IDLE && this.state != Station.STATION_STATE_PANNE ) {
+			throw new IllegalStateException("Ne peut pas retourner la periode d'attente courante si la pelle n'est pas en attente ou en panne.");
 		}
 		return currentWaitingPeriod;
 	}
@@ -155,7 +165,7 @@ public abstract class Station {
 		else{
 			this.currentWaitingPeriod+=time;
 			this.waitingTime+= time;
-			this.iterCurrentTime+= time;
+			//this.iterCurrentTime+= time;
 		}
 	}
 
@@ -185,8 +195,7 @@ public abstract class Station {
 		this.iterCurrentTime = 0;
 		this.iterStepSize = stepSize;
 		this.iterFinished = false;
-		computeNewChargeSpeed();
-
+		computeNewTraitementSpeed();
 
 	}
 
@@ -215,14 +224,29 @@ public abstract class Station {
 		this.currentWaitingPeriod = 0;
 	}
 	protected void setCamionOnArrival(Camion camion) {
+		
+		//Dans tous les cas, ajoute le camion au log des arrivées.
+		this.arrivalLog.add(camion);
+		
+		
+		if(camion.getCurrentStation()==null) {
+			throw new IllegalStateException("Le camion doit avoir une station!");
+		}
+		
+		if( this.state == Station.STATION_STATE_PANNE) {
+			camion.setStateInactif();
+		}
 		//si aucun camion en remplissage, met le camion en remplissage
 		//
-		if(camionEnTraitement == null) {
+		else if( this.state == Station.STATION_STATE_IDLE) {
 			setCamionEnTraitement(camion);
 		}
 		//sinon, ajoute le camion a la file d'attente
-		else {
+		else if( this.state == Station.STATION_STATE_WORKING) {
 			setCamionEnAttente(camion);
+		}
+		else {
+			throw new IllegalStateException("État de la station "+this.getId()+" inconnu : "+this.getState());
 		}
 	}
 
@@ -231,7 +255,12 @@ public abstract class Station {
 		if(this.getCamionEnTraitement() == null || this.getCamionEnTraitement().getState()!= Camion.ETAT_EN_TRAITEMENT) {
 			camionEnTraitement = null;
 			if(camionsEnAttente.size()!=0) {
+				
 				Camion c = camionsEnAttente.get(0);
+				if(c.getCurrentStation()==null) {
+					throw new IllegalStateException("Station "+this.getId()+" le camion ne peu pas avoir une currentstation nulle!");
+				}
+				
 				camionsEnAttente.remove(c);
 				setCamionEnTraitement(c);
 			}
@@ -247,7 +276,21 @@ public abstract class Station {
 	protected abstract void updateQteTraite(double quantite, RockType rockType);
 
 	//TODO rendre indépendant du nombre de pas de simulation.
-	abstract void computeNewChargeSpeed();
+	abstract void computeNewTraitementSpeed();
+
+	protected void setFailureMode(boolean failure) {
+		if(failure) {
+			if(this.state == Station.STATION_STATE_WORKING) {
+				this.currentWaitingPeriod = 0;
+			}
+			this.camionEnTraitement = null;
+			this.camionsEnAttente = new ArrayList<Camion>();
+			this.state = Station.STATION_STATE_PANNE;
+		}
+		else {
+			this.state = Station.STATION_STATE_IDLE;
+		}
+	}
 }
 
 

@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -12,22 +11,17 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.awt.font.TextAttribute;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -43,6 +37,10 @@ import javafx.util.Pair;
 
 public class SommaireFrame extends JFrame {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	//couleurs de police
 	//
 	private static Color darkGreen = new Color(45, 140, 45);
@@ -267,7 +265,7 @@ public class SommaireFrame extends JFrame {
 		//
 		tauxPelles = new ArrayList<Pair<Pelle, Double>>();
 		for(int i = 0 ; i < pelles.size(); i++){
-			double taux = 1.*pelles.get(i).getNbCamionsTraites()/mineSimulator.getTempsSimulationSeconds()*3600;
+			double taux = pelles.get(i).getTotalQuantity()/mineSimulator.getTempsSimulationSeconds()*3600;//1.*pelles.get(i).getNbCamionsTraites()/mineSimulator.getTempsSimulationSeconds()*3600;
 			Pair<Pelle, Double> pair = new Pair<Pelle, Double>(pelles.get(i), taux);
 			tauxPelles.add(pair);
 		}
@@ -276,7 +274,7 @@ public class SommaireFrame extends JFrame {
 		//
 		planPelles = new ArrayList<Pair<Pelle, Double>>();
 		for(int i = 0 ; i < pelles.size(); i++){
-			double plan = pelles.get(i).getPlanNbCamionsParHeure();
+			double plan = pelles.get(i).getPlanNbTonnesParHeure();
 			Pair<Pelle, Double> pair = new Pair<Pelle, Double>(pelles.get(i), plan);
 			planPelles.add(pair);
 		}
@@ -484,7 +482,7 @@ public class SommaireFrame extends JFrame {
 			gc.insets = new Insets(5, 0, 0, 0);
 			gc.gridx = 1;
 			gc.weightx = 0.0;
-			String tauxPlanText2 = ""+arrondiDeuxDecimales(tauxPlan)+"camions/h.";
+			String tauxPlanText2 = ""+arrondiDeuxDecimales(tauxPlan)+" tonnes/h.";
 			JLabel tauxPlanLabel2 = new JLabel(tauxPlanText2);
 			tauxPlanLabel2.setFont(fontNormal);
 			prodPellesPanel.add(tauxPlanLabel2, gc);
@@ -503,7 +501,7 @@ public class SommaireFrame extends JFrame {
 			gc.insets = new Insets(5, 0, 0, 0);
 			gc.gridx = 1;
 			gc.weightx = 0.0;
-			String tauxReelText2 = ""+arrondiDeuxDecimales(tauxReel)+"camions/h.";
+			String tauxReelText2 = ""+arrondiDeuxDecimales(tauxReel)+" tonnes/h.";
 			JLabel tauxReelLabel2 = new JLabel(tauxReelText2);
 			tauxReelLabel2.setFont(fontNormal);
 			prodPellesPanel.add(tauxReelLabel2, gc);
@@ -877,7 +875,6 @@ public class SommaireFrame extends JFrame {
 	}
 
 	protected void exportSommaireToFile(File file) {
-		//TODO
 		String outString = "";
 
 		//parametres de simulation
@@ -914,7 +911,6 @@ public class SommaireFrame extends JFrame {
 			fw.write(outString);
 			fw.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 

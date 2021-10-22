@@ -19,6 +19,14 @@ public class TravelTimePredictor {
 	public final static int DEFAULT_PREDICT_FUNCTION_NB_SAMLE = 4;
 	public final static double DEFAULT_PREDICT_FUNCTION_WEIGHT = 0.5;
 	public static String getMapKeyForODPair(Station origine, Station destination) {
+		
+		if(origine == null) {
+			throw new IllegalArgumentException("la station d'origine est nulle");
+		}
+		if(destination == null) {
+			throw new IllegalArgumentException("la station de destination est nulle");
+		}
+			
 		if( origine.getId().compareTo(destination.getId()) < 0 ){
 			return origine.getId()+":"+destination.getId();	
 		}
@@ -150,36 +158,42 @@ public class TravelTimePredictor {
 	private double predictTravelTimeAveragePrev(Station origine, Station destination) {
 
 		//retrouve l'historique des temps de parcours
-		String ODKey = getMapKeyForODPair(origine, destination);
+		try {
+			String ODKey = getMapKeyForODPair(origine, destination);
+			ArrayList<Double> historyForOD = this.historyMap.get(ODKey);
 
-		ArrayList<Double> historyForOD = this.historyMap.get(ODKey);
+
+			//si aucun historique, retourne -1
+			if(historyForOD == null || historyForOD.size() == 0) {
+
+				return -1;
+			}
+
+			int historySize = historyForOD.size();
+			int nbEchantillon = this.predictFunctionNumberSample;
 
 
-		//si aucun historique, retourne -1
-		if(historyForOD == null || historyForOD.size() == 0) {
+			//si historique trop petit, diminue le nombre de points
+			if(historySize < nbEchantillon) {
+				nbEchantillon = historySize;
+			}
 
-			return -1;
+			//calcule la moyenne des nbEchantillon derniers temps de parcours
+			//
+			double avgTime = 0;
+			for(int i = historySize-nbEchantillon; i < historySize ; i++ ) {
+				avgTime += historyForOD.get(i); 
+			}
+			avgTime = avgTime/nbEchantillon;
+
+			//System.out.println("retourne "+avgTime);
+			return avgTime;
 		}
-
-		int historySize = historyForOD.size();
-		int nbEchantillon = this.predictFunctionNumberSample;
-
-
-		//si historique trop petit, diminue le nombre de points
-		if(historySize < nbEchantillon) {
-			nbEchantillon = historySize;
+		catch (IllegalArgumentException e){
+			e.printStackTrace();
 		}
-
-		//calcule la moyenne des nbEchantillon derniers temps de parcours
-		//
-		double avgTime = 0;
-		for(int i = historySize-nbEchantillon; i < historySize ; i++ ) {
-			avgTime += historyForOD.get(i); 
-		}
-		avgTime = avgTime/nbEchantillon;
-
-		//System.out.println("retourne "+avgTime);
-		return avgTime;
+		return 0;
+		
 	}
 
 

@@ -1,9 +1,7 @@
 package ca.polymtl.SimulationMine.MineSimulator;
-import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
 
-import ca.polymtl.SimulationMine.decisionMaker.DecisionMaker;
 
 public class Pelle extends Station{
 	/*
@@ -37,12 +35,11 @@ public class Pelle extends Station{
 
 
 	//plan de travail
-	private double cibleCamionsParHeure;
+	private double cibleTonnesParHeure;
 
-	//plan de travail par defaut
-	private final double defaultCibleCamionsParHeure;
+	private double defaultCibleTonnesParHeure;
 
-
+	private double totalQuantity;
 	
 	
 	
@@ -56,11 +53,12 @@ public class Pelle extends Station{
 	/*
 	 * Constructeur
 	 */
-	public Pelle(int i, int j, String id, double cibleCamionsParHeure) {
+	public Pelle(int i, int j, String id, double cibleTonnesParHeure) {
 		super(i,j, id);
 		
-		defaultCibleCamionsParHeure = cibleCamionsParHeure;
-		this.cibleCamionsParHeure = cibleCamionsParHeure;
+		this.totalQuantity = 0;
+		this.cibleTonnesParHeure = cibleTonnesParHeure;
+		this.defaultCibleTonnesParHeure = cibleTonnesParHeure;
 		this.isDecharge = false;
 	}
 
@@ -74,16 +72,16 @@ public class Pelle extends Station{
 	 * @return Cible d'attente des camions à la pelle, selon le plan
 	 */
 	public double cibleAttenteCamionSeconds(){
-		//TODO
 		//Formule : attente = lambda/(mu (mu-lembda))
 		//
 		// Avec : 
 		// lambda = taux arrivée des camions (camions/h)
 		// mu    = taux de service de la pelle (camions/h)
 
-		double lambda = this.cibleCamionsParHeure;
+		double averageChargeParCamion = averageChargeParCamion();
+		double lambda = this.cibleTonnesParHeure/averageChargeParCamion;
 		//en nb camions par heure
-		double mu = Pelle.AVERAGE_CHARGE_SPEED/100*3600;
+		double mu = Pelle.AVERAGE_CHARGE_SPEED/averageChargeParCamion*3600;
 
 		//attente en heures
 		double attente = lambda/(mu*(mu-lambda));
@@ -98,26 +96,55 @@ public class Pelle extends Station{
 	 * @return La cible d'attente de la pelle selon le plan
 	 */
 	public double cibleAttentePelleSeconds(){
-		double averageChargeTimeSeconds = 100./this.currentChargeSpeed;
+		
+		double cibleAttente = 0;
+		
+		double averageChargeParCamion = averageChargeParCamion();
 
-		double tempsTravailParHeureEnSecondes = averageChargeTimeSeconds*cibleCamionsParHeure;
+		double cibleCamionsParHeure = cibleTonnesParHeure/averageChargeParCamion;
+		
+		double tempsTravailParHeureEnSecondes = cibleTonnesParHeure/AVERAGE_CHARGE_SPEED;
 
 		//si travaille plus d'une heure par heure, temps cible d'attente nul.
 		if(tempsTravailParHeureEnSecondes >=3600){
-			return 0;
+			cibleAttente = 0;
 		}
 		else{
-			return (3600-tempsTravailParHeureEnSecondes)/cibleCamionsParHeure;
+			cibleAttente = (3600-tempsTravailParHeureEnSecondes)/cibleCamionsParHeure;
 		}
+		
+		System.out.println("Pelle "+this.getId()+"cibleAttente "+cibleAttente);
+		return cibleAttente;
+	}
+
+	/**
+	 * Estime la charge moyenne d'un camion visitant la pelle selon la moyenne des N derniers camions à l'avoir visité. 
+	 * Si moins de N camions ont visité la pelle, prends la moyenne de tous les camions. 
+	 * Si aucun camion n'a visité la pelle, retourne 0.
+	 * @return
+	 */
+	private double averageChargeParCamion() {
+		double averageChargeParCamion = 0;
+		int nbDataPoint = Station.AVG_LOAD_FORMULA_N;
+		if(nbDataPoint >this.arrivalLog.size()) {
+			nbDataPoint = this.arrivalLog.size();
+		}
+		
+		for(int i = this.arrivalLog.size()-nbDataPoint; i < this.arrivalLog.size(); i++) {
+			averageChargeParCamion += this.arrivalLog.get(i).getChargeMax();
+		}
+		averageChargeParCamion = averageChargeParCamion/nbDataPoint;
+		System.out.println("charge moyenne : "+averageChargeParCamion);
+		return averageChargeParCamion;
 	}
 
 	/**
 	 * 
 	 * @return Selon le plan, nombre de camions par heure se rendant à la pelle.
 	 */
-	public double getPlanNbCamionsParHeure() {
+	public double getPlanNbTonnesParHeure() {
 
-		return this.cibleCamionsParHeure;
+		return this.cibleTonnesParHeure;
 	}
 
 	/**
@@ -129,7 +156,7 @@ public class Pelle extends Station{
 	}
 
 	//TODO rendre indépendant du nombre de pas de simulation.
-	protected void computeNewChargeSpeed() {
+	protected void computeNewTraitementSpeed() {
 		double lambda = 0.75;
 		double speedAdjust = SimulationMine.random.nextGaussian()*Pelle.ECART_TYPE_CHARGE_SPEED+Pelle.AVERAGE_CHARGE_SPEED;
 
@@ -157,7 +184,7 @@ public class Pelle extends Station{
 		
 	}
 
-	protected void setPlan(double newValue){
+	public void setPlan(double newValue){
 		System.out.println("je veux maintenant "+newValue);
 
 		// lambda = taux arrivée des camions (camions/h)
@@ -165,13 +192,13 @@ public class Pelle extends Station{
 
 		double lambda = newValue;
 		//en nb camions par heure
-		double mu = this.AVERAGE_CHARGE_SPEED/100*3600;
+		double mu = Pelle.AVERAGE_CHARGE_SPEED/100*3600;
 
-		if(lambda > mu){
-			JOptionPane.showMessageDialog(null, "Taux d'arrivée trop grand. Vous devez choisir une valeur inférieure à "+mu);
+		if(newValue < 0){
+			JOptionPane.showMessageDialog(null, "Vous devez choisir une valeur > 0");
 		}
 		else{
-			this.cibleCamionsParHeure = newValue;
+			this.cibleTonnesParHeure = newValue;
 		}
 
 	}
@@ -185,8 +212,15 @@ public class Pelle extends Station{
 
 	@Override
 	protected void updateQteTraite(double quantite, RockType rockType) {
+		System.out.println("ajoute "+quantite);
+		this.totalQuantity += quantite;
 		// Ne fait rien.
 		
+	}
+
+	public double getTotalQuantity() {
+		
+		return totalQuantity;
 	}
 
 	

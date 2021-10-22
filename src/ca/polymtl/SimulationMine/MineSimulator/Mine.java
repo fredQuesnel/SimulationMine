@@ -47,15 +47,14 @@ public class Mine {
 	public static double WIDTH = 10000;
 
 	public static double HEIGHT = 10000;
+	
+	public static long ONE_DAY_SEC = 24*3600;
 
 	/**
 	 * facteur mï¿½tï¿½o
 	 */
 	protected static double DEFAULT_METEO_FACTOR = 1;
-	//duree d'un pas de temps (secondes)
-	protected static double TIME_INCREMENT = 4; // secondes
 
-	protected static double TIME_INCREMENT_WARMUP = 60;//1 minute 
 
 
 
@@ -109,6 +108,7 @@ public class Mine {
 
 	//nombre de steps dans la simulation
 
+	private int dayNumber;
 	//temps
 	private double time;
 
@@ -143,19 +143,20 @@ public class Mine {
 
 	private int numberSmallCamions;
 
-	private MineSimulator mineSimulator;
+	private ArrayList<FailureScenario> failureScenarios;
+
+	//private MineSimulator mineSimulator;
 	//------------------------------------------
 	// constructeur qui construit une mine vide
 	//------------------------------------------
-	public Mine(MineSimulator mineSimulator) {
+	public Mine() {
 
-		this.mineSimulator = mineSimulator;
 		this.pelles = new ArrayList<Pelle>();
 		this.camions= new ArrayList<Camion>();
 
 		this.meteoFactor = Mine.DEFAULT_METEO_FACTOR;
 
-		
+
 
 		this.time = 0;
 
@@ -173,8 +174,8 @@ public class Mine {
 	 * @return La  pelle la plus prï¿½s des coordonnï¿½es relatives donnï¿½es.
 	 */
 	public Pelle closestPelle(double fractionX, double fractionY) {
-		double x = fractionX*this.WIDTH;
-		double y = fractionY*this.HEIGHT;
+		double x = fractionX*Mine.WIDTH;
+		double y = fractionY*Mine.HEIGHT;
 
 
 
@@ -294,7 +295,7 @@ public class Mine {
 	}
 
 
-	
+
 
 	/**
 	 * 
@@ -330,21 +331,6 @@ public class Mine {
 		return this.inWarmup;
 	}
 
-	private double calculeTempsAttenteMoyenPelle() {
-		double totalAttentePelles = 0;
-		int totalRemplissagePelles = 0;
-		for(int i = 0 ; i < pelles.size(); i++) {
-			totalAttentePelles += pelles.get(i).getWaitTime();
-			totalRemplissagePelles += pelles.get(i).getNbCamionsTraites();
-		}
-
-		double tempsAttenteMoyen = totalAttentePelles/totalRemplissagePelles;
-
-		if(totalRemplissagePelles == 0) {
-			tempsAttenteMoyen = 0;
-		}
-		return tempsAttenteMoyen;
-	}
 
 
 
@@ -356,8 +342,10 @@ public class Mine {
 		this.steriles = new ArrayList<Sterile>();
 		this.pelles = new ArrayList<Pelle>();
 		this.camions = new ArrayList<Camion>();
+		this.failureScenarios = new ArrayList<FailureScenario>();
 		this.numberLargeCamions = 0;
 		this.numberSmallCamions = 0;
+		this.dayNumber = 0;
 		this.dataSeriesHandles = null;
 
 	}
@@ -365,7 +353,13 @@ public class Mine {
 
 
 	protected void addTime(double time) {
+		double previousTime = this.time;
 		this.time+=time;
+		
+		if((int) this.time/Mine.ONE_DAY_SEC > previousTime/Mine.ONE_DAY_SEC ) {
+			this.dayNumber++;
+		}
+		
 	}
 
 
@@ -378,9 +372,13 @@ public class Mine {
 	protected void init(ExampleId exempleId, int nbSmallCamions, int nbLargeCamions) {
 		erasePrevious();
 
+		String failureScenariosFilename = "";
+
 		System.out.println("charge mine "+exempleId.getName());
-		
+
 		this.dataSeriesHandles = new ArrayList<String>();
+		this.failureScenarios = new ArrayList<FailureScenario>();
+		this.dayNumber = 0;
 
 		//retrouve l'objet ExampleId de l'exemple
 		ExampleId exId = null;
@@ -409,8 +407,16 @@ public class Mine {
 			scanner.nextLine();
 			int defaultLargeCamion = 0;
 			int defaultSmallCamion = 0;
+
+
 			while(scanner.hasNext()) {
-				if(	scanner.hasNext("default_camions_small")) {
+				if( scanner.hasNext("failure_scenarios")) {
+					scanner.next();
+					failureScenariosFilename = scanner.next(Pattern.compile("\".*\""));
+					failureScenariosFilename = failureScenariosFilename.substring(1,  failureScenariosFilename.length()-1);
+					System.out.println("failure scenarios "+failureScenariosFilename);
+				}
+				else if(	scanner.hasNext("default_camions_small")) {
 					scanner.next();
 					scanner.next(":");
 					defaultSmallCamion = scanner.nextInt(); 
@@ -451,17 +457,17 @@ public class Mine {
 					int posX = scanner.nextInt();
 					int posY = scanner.nextInt();
 					Sterile sterile = new Sterile(posX, posY, nom);
-					steriles.add(sterile);
+					steriles.add(sterile); 
 				}
 				else if(scanner.hasNext("display")) {
 					scanner.next();
 					String nomStation1  = scanner.next(Pattern.compile("\"\\S*\""));
 					String nomStation2  = scanner.next(Pattern.compile("\"\\S*\""));
-					
-					
+
+
 					nomStation1 = nomStation1.substring(1, nomStation1.length()-1);
 					nomStation2 = nomStation2.substring(1, nomStation2.length()-1);
-					
+
 					//retrouve les objets station
 					//
 					Station station1 = null;
@@ -493,14 +499,14 @@ public class Mine {
 							station2 = steriles.get(i);
 						}
 					}
-					
+
 					if(station1==null) {
 						throw new Exception("Station non dï¿½finie : "+nomStation1);
 					}
 					if(station2==null) {
 						throw new Exception("Station non dï¿½finie : "+nomStation2);
 					}
-					
+
 					dataSeriesHandles.add("reel:"+TravelTimePredictor.getMapKeyForODPair(station1, station2 ));
 					dataSeriesHandles.add("pred:"+TravelTimePredictor.getMapKeyForODPair(station1, station2 ));
 				}
@@ -510,21 +516,20 @@ public class Mine {
 
 
 			}
-			
-			
+
+
 			if(nbSmallCamions == -1) {
 				nbSmallCamions = defaultSmallCamion;
 			}
-			
+
 			if(nbLargeCamions == -1) {
 				nbLargeCamions = defaultLargeCamion;
 			}
-			
-			
+
+
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -542,14 +547,13 @@ public class Mine {
 			smallCamionImage = ImageIO.read(new File("images/camion_small.png"));
 			largeCamionImage = ImageIO.read(new File("images/camion_large.png"));
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
 		this.numberSmallCamions = nbSmallCamions;
 		this.numberLargeCamions = nbLargeCamions;
 		for(int i = 0 ; i < nbSmallCamions; i++) {
-			Camion camion = new Camion(steriles.get(0), this, mineSimulator, smallCamionImage) {
+			Camion camion = new Camion(steriles.get(0), this, smallCamionImage) {
 
 				/** Vitesse moyenne du camion	 */
 				public static final double VITESSE_MOYENNE = 9;
@@ -557,7 +561,7 @@ public class Mine {
 				private static final double ECART_TYPE_VITESSE = 0.6;//ancien 0.5
 				/** Charge maximum du camion.	 */
 				public static final double CHARGE_MAX = 60.;
-				
+
 				private static final double PREDICT_TIME_ADJUST_FACTOR = 1.; 
 
 				@Override
@@ -567,7 +571,6 @@ public class Mine {
 
 				@Override
 				public double getChargeMax() {
-					// TODO Auto-generated method stub
 					return CHARGE_MAX;
 				}
 
@@ -586,7 +589,7 @@ public class Mine {
 		}
 
 		for(int i = 0 ; i < nbLargeCamions; i++) {
-			Camion camion = new Camion(steriles.get(0), this, mineSimulator, largeCamionImage) {
+			Camion camion = new Camion(steriles.get(0), this, largeCamionImage) {
 
 				/** Vitesse moyenne du camion	 */
 				public static final double VITESSE_MOYENNE = 5;
@@ -603,7 +606,6 @@ public class Mine {
 
 				@Override
 				public double getChargeMax() {
-					// TODO Auto-generated method stub
 					return CHARGE_MAX;
 				}
 
@@ -611,7 +613,7 @@ public class Mine {
 				public double getPredictTimeAdjustFactor() {
 					return PREDICT_TIME_ADJUST_FACTOR;
 				}
-				
+
 				@Override
 				public double getStdSpeed() {
 					return ECART_TYPE_VITESSE;
@@ -622,18 +624,154 @@ public class Mine {
 			camions.add(camion);
 		}
 
-		//cree les handles des donnees
-		/*
+		//cree les "failureScenarios"
+		if(!failureScenariosFilename.equals("")) {
+			createFailureScenarios(failureScenariosFilename);
+		}
+	}
+
+	//load le fichier décrivant les scénarios de panne
+	//
+	private void createFailureScenarios(String failureScenariosFilename) {
 		
-		for(int i = 0 ; i < pelles.size(); i++) {
-			if(pelles.get(i).getId().equals("pelle1") || pelles.get(i).getId().equals("pelle3") ) {
-				dataSeriesHandles.add("reel:"+TravelTimePredictor.getMapKeyForODPair(steriles.get(0), pelles.get(i) ));
-				dataSeriesHandles.add("pred:"+TravelTimePredictor.getMapKeyForODPair(steriles.get(0), pelles.get(i) ));
+		//reset
+		this.failureScenarios = new ArrayList<FailureScenario>();
+		//Lis le fichier
+		//
+		try {
+			System.out.println("mines/"+failureScenariosFilename);
+
+			Scanner scanner = new Scanner(new File("mines/"+failureScenariosFilename));
+			//pour que le point délimite la pratie fractionnaire
+			scanner.useLocale(Locale.US);
+
+			String line;
+			//chaque ligne  représentee un scénario
+			while(scanner.hasNextLine()) {
+				line = scanner.nextLine();
+				Scanner lineScanner = new Scanner(line);
+				lineScanner.useLocale(Locale.US);
+				
+				FailureScenario fs = new FailureScenario();
+				
+				//lis chaque "failure" du scénario
+				while(lineScanner.hasNext("\".*\"")) {
+					String stationName = lineScanner.next("\".*\"");
+					stationName = stationName.substring(1, stationName.length()-1);
+					Station station = getStation(stationName); 
+					if( station == null) {
+						lineScanner.close();
+						throw new RuntimeException("La station "+stationName+" n'existe pas.");
+					}
+					String heureString = lineScanner.next(".+:.+");
+					int nbHours = Integer.parseInt(heureString.substring(0, heureString.indexOf(":")));
+					int nbMinutes = Integer.parseInt(heureString.substring(heureString.indexOf(":")+1));
+				
+					long beginTimeSec = nbHours*3600+nbMinutes*60;
+							
+					long endTimeSec = beginTimeSec + lineScanner.nextLong();
+					
+					fs.addStationFailureEvent(new StationFailureEvent(beginTimeSec, endTimeSec, station));
+					this.failureScenarios.add(fs);
+					System.out.println(stationName+" "+heureString+" "+endTimeSec);
+					
+					if(lineScanner.hasNext(",")) {
+						lineScanner.next(",");
+					}
+
+				}
+				lineScanner.close();
+
+			}
+
+			scanner.close();
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+
+
+
+
+	/**
+	 * 
+	 * @param stationId
+	 * @return station dont l'ID correspond à l'argument, ou null si une telle station n'existe pas.
+	 */
+	private Station getStation(String stationId) {
+		Station s = null;
+		//recherche dans les pelles
+		s = getPelle(stationId);
+		//sinon recherche dans les steriles
+		if(s == null) {
+			s= getSterile(stationId);
+		}
+
+		if(s == null) {
+			s = getConcentrator(stationId);
+		}
+
+		return s;
+	}
+
+
+
+	/**
+	 * 
+	 * @param stationId
+	 * @return Concentrateur dont l'ID correspond à celui fourni, ou null si un tel concentrateur n'existe pas.
+	 */
+	private Station getConcentrator(String stationId) {
+		for(int i = 0 ; i < this.concentrateurs.size(); i++) {
+			if(this.concentrateurs.get(i).getId().compareTo(stationId)==0) {
+				return this.concentrateurs.get(i);
 			}
 		}
-		*/
-
+		return null;
 	}
+
+
+
+	/**
+	 * 
+	 * @param stationId
+	 * @return sterile dont l'ID correspond à celui fourni, ou null si un tel sterile n'existe pas.
+	 */
+	private Station getSterile(String stationId) {
+		for(int i = 0 ; i < this.steriles.size(); i++) {
+			if(this.steriles.get(i).getId().compareTo(stationId)==0) {
+				return this.steriles.get(i);
+			}
+		}
+		return null;
+	}
+
+
+
+
+
+
+	/**
+	 * 
+	 * @param stationId
+	 * @return Pelle correspondant à l'ID fourni, ou null si une telle pelle n'existe pas.
+	 */
+	private Station getPelle(String stationId) {
+		for(int i = 0; i < this.getPelles().size(); i++) {
+			if(this.getPelles().get(i).getId().compareTo(stationId) == 0) {
+				return this.getPelles().get(i);
+			}
+		}
+		return null;
+	}
+
+
+
+
 
 
 	//reset toutes les stats de la mine et de ses objets
@@ -694,6 +832,30 @@ public class Mine {
 
 	protected void setMeteoFactor(double meteoFactor) {
 		this.meteoFactor = meteoFactor;
+	}
+
+
+
+
+
+
+	public int getDayNumber() {
+		return this.dayNumber;
+	}
+
+
+
+
+
+
+	public FailureScenario getRandomFailureScenario() {
+		
+		FailureScenario fs = null;
+		if(failureScenarios.size() > 0) {
+		int index = (int) (Math.random()*failureScenarios.size());
+		fs = failureScenarios.get(index);
+		}
+		return fs;
 	}
 
 

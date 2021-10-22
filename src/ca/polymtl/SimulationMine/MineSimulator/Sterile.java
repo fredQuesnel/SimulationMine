@@ -12,10 +12,10 @@ public class Sterile extends Station {
 	public Sterile(double i, double j, String id) {
 		super(i, j, id);
 		this.isDecharge = true;
-		totalQuantity = 0;
+		totalQuantity = 0; 
 	}
 	
-	
+	 
 
 	@Override
 	public double averageTraitementSpeed() {
@@ -26,23 +26,13 @@ public class Sterile extends Station {
 		return totalQuantity;
 	}
 
-	private void addLoad(double charge) {
-		totalQuantity+=charge;
-	}
 	
-
 	@Override
 	protected void resetStats() {
 		totalQuantity = 0;
 		
 	}
 
-	/*
-	 * Met un camion en remplissage
-	 */
-	protected void setCamionEnTraitement(Camion camion) {
-		super.setCamionEnTraitement(camion);
-	}
 
 
 
@@ -60,21 +50,17 @@ public class Sterile extends Station {
 			throw new IllegalArgumentException("On doit déverser du sterile au stérile. (s="+rockType.getPercentSulfur()+" , i="+rockType.getPercentIron()+") donné." );
 		}
 		this.totalQuantity+=quantite;
-		// TODO Auto-generated method stub
-		
 	}
 
 
 
 	@Override
-	void computeNewChargeSpeed() {
+	void computeNewTraitementSpeed() {
 		double lambda = 0.75;
 		double speedAdjust = SimulationMine.random.nextGaussian()*Sterile.ECART_TYPE_DECHARGE_SPEED+Sterile.AVERAGE_DECHARGE_SPEED;
 
 		this.currentChargeSpeed = lambda*this.currentChargeSpeed + (1-lambda)*speedAdjust;
 
-		// TODO Auto-generated method stub
-		
 	}
 	
 }

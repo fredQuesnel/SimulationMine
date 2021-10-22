@@ -1,22 +1,16 @@
 package ca.polymtl.SimulationMine.MineGui;
-import java.awt.AWTEvent;
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D.Double;
-import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -24,28 +18,26 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
-import javax.swing.Timer;
 
 import ca.polymtl.SimulationMine.MineSimulator.Camion;
 import ca.polymtl.SimulationMine.MineSimulator.Concentrateur;
 import ca.polymtl.SimulationMine.MineSimulator.Mine;
-import ca.polymtl.SimulationMine.MineSimulator.MineSimulationListener;
 import ca.polymtl.SimulationMine.MineSimulator.MineSimulator;
 import ca.polymtl.SimulationMine.MineSimulator.Pelle;
-import ca.polymtl.SimulationMine.MineSimulator.SimulationMine;
 import ca.polymtl.SimulationMine.MineSimulator.Station;
 import ca.polymtl.SimulationMine.MineSimulator.Sterile;
-import javafx.scene.control.ProgressBar;
 
 public class JMinePanel extends JPanel{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private static final int INFO_RECT_CONCENTRATEUR_WIDTH = 90;
 	private static final int INFO_RECT_STERILE_HEIGHT = 35;
 	private static int STATION_WIDTH = 50;
@@ -61,7 +53,8 @@ public class JMinePanel extends JPanel{
 	private static int CAMION_HEIGHT = 20;
 
 	private BufferedImage pelleImage;
-
+	private BufferedImage pellePanneImage;
+	
 	private BufferedImage sterileImage;
 	private BufferedImage concentrateurImage;
 
@@ -126,8 +119,6 @@ public class JMinePanel extends JPanel{
 
 		});
 
-		GridBagConstraints gc = new GridBagConstraints();
-
 		//cree la barre de progres
 		//
 		Dimension panelSize = this.getSize();
@@ -164,10 +155,9 @@ public class JMinePanel extends JPanel{
 
 		//image du camion
 		//
-		BufferedImage camionImage = null;
 		try {
-			camionImage = ImageIO.read(new File("images/camion.png"));
 			pelleImage = ImageIO.read(new File("images/pelle.png"));
+			pellePanneImage = ImageIO.read(new File("images/pelle_panne.png"));
 
 			sterileImage = ImageIO.read(new File("images/sterile.png"));
 			concentrateurImage = ImageIO.read(new File("images/concentrateur.png"));
@@ -235,7 +225,6 @@ public class JMinePanel extends JPanel{
 		Mine mine = parentFrame.getMine();
 
 		if(mine != null) {
-			System.out.println("je desine une mine");
 			super.paintComponent(g);
 
 			//background
@@ -287,7 +276,6 @@ public class JMinePanel extends JPanel{
 	}
 
 	public void updateMine() {
-		System.out.println("update");
 		revalidate();
 		repaint();	
 	}
@@ -340,14 +328,14 @@ public class JMinePanel extends JPanel{
 		g.setColor(new Color(255, 255, 255, 170));
 		int xrect =(int) point.getX()+STATION_WIDTH/2;
 		if(xrect+JMinePanel.INFO_RECT_CONCENTRATEUR_WIDTH > this.getWidth()){
-			xrect = this.getWidth()-this.INFO_RECT_CONCENTRATEUR_WIDTH;
+			xrect = this.getWidth()-JMinePanel.INFO_RECT_CONCENTRATEUR_WIDTH;
 		}
 		if(xrect < 0){
 			xrect = 0;
 		}
 		int yrect = (int) (point.getY()-STATION_HEIGHT);
 		if(yrect+JMinePanel.INFO_RECT_HEIGHT >= this.getHeight()){
-			yrect = this.getHeight()-this.INFO_RECT_HEIGHT;
+			yrect = this.getHeight()-JMinePanel.INFO_RECT_HEIGHT;
 		}
 		if(yrect < 0){
 			yrect = 0;
@@ -355,7 +343,7 @@ public class JMinePanel extends JPanel{
 
 		int paddingx = 2;
 
-		g.fillRect(xrect, yrect, this.INFO_RECT_CONCENTRATEUR_WIDTH, this.INFO_RECT_HEIGHT);
+		g.fillRect(xrect, yrect, JMinePanel.INFO_RECT_CONCENTRATEUR_WIDTH, JMinePanel.INFO_RECT_HEIGHT);
 
 		//ID de la pelle
 		g.setColor(Color.black);
@@ -375,7 +363,7 @@ public class JMinePanel extends JPanel{
 		g.drawString("attente :  "+nbCamions, xrect+paddingx, yrect +25 );
 
 
-		//Qualité du minerai
+		//Qualitï¿½ du minerai
 		//
 		double percentMinerai = concentrateur.getPercentIron();
 		double percentSouffre = concentrateur.getPercentSulfur();
@@ -402,7 +390,12 @@ public class JMinePanel extends JPanel{
 
 		Point point = convertPointToWindow(pelle.getLocation());
 		//g.drawOval((int) (point.getX()-STATION_WIDTH/2), (int) (point.getY()-STATION_HEIGHT/2), STATION_WIDTH, STATION_HEIGHT);
-		g.drawImage(pelleImage, (int) (point.getX()-STATION_WIDTH/2), (int) (point.getY()-STATION_HEIGHT/2), (int) (point.getX()+STATION_WIDTH/2), (int) (point.getY()+STATION_HEIGHT/2), 0, 0, pelleImage.getWidth(), pelleImage.getHeight(), null);
+		BufferedImage imageToDraw = pelleImage;
+		if(pelle.getState() == Station.STATION_STATE_PANNE) {
+			imageToDraw = this.pellePanneImage;
+		}
+		
+		g.drawImage(imageToDraw, (int) (point.getX()-STATION_WIDTH/2), (int) (point.getY()-STATION_HEIGHT/2), (int) (point.getX()+STATION_WIDTH/2), (int) (point.getY()+STATION_HEIGHT/2), 0, 0, pelleImage.getWidth(), pelleImage.getHeight(), null);
 
 		Font previousFont = g.getFont();
 		Font boldFont = g.getFont().deriveFont(Font.BOLD); 
@@ -414,14 +407,14 @@ public class JMinePanel extends JPanel{
 		g.setColor(new Color(255, 255, 255, 170));
 		int xrect =(int) point.getX()+STATION_WIDTH/2;
 		if(xrect+JMinePanel.INFO_RECT_WIDTH > this.getWidth()){
-			xrect = this.getWidth()-this.INFO_RECT_WIDTH;
+			xrect = this.getWidth()-JMinePanel.INFO_RECT_WIDTH;
 		}
 		if(xrect < 0){
 			xrect = 0;
 		}
 		int yrect = (int) (point.getY()-STATION_HEIGHT);
 		if(yrect+JMinePanel.INFO_RECT_HEIGHT >= this.getHeight()){
-			yrect = this.getHeight()-this.INFO_RECT_HEIGHT;
+			yrect = this.getHeight()-JMinePanel.INFO_RECT_HEIGHT;
 		}
 		if(yrect < 0){
 			yrect = 0;
@@ -429,7 +422,7 @@ public class JMinePanel extends JPanel{
 
 		int paddingx = 2;
 
-		g.fillRect(xrect, yrect, this.INFO_RECT_WIDTH, this.INFO_RECT_HEIGHT);
+		g.fillRect(xrect, yrect, JMinePanel.INFO_RECT_WIDTH, JMinePanel.INFO_RECT_HEIGHT);
 
 		//ID de la pelle
 		g.setColor(Color.black);
@@ -449,7 +442,7 @@ public class JMinePanel extends JPanel{
 		g.drawString("attente :  "+nbCamions, xrect+paddingx, yrect +25 );
 
 
-		//Qualité du minerai
+		//Qualitï¿½ du minerai
 		//
 		double percentMinerai = pelle.getRockType().getPercentIron();
 		double percentSouffre = pelle.getRockType().getPercentSulfur();
@@ -460,10 +453,10 @@ public class JMinePanel extends JPanel{
 
 		//plan
 		//
-		double nbCamionsParHeure = pelle.getPlanNbCamionsParHeure();
+		double nbCamionsParHeure = pelle.getPlanNbTonnesParHeure();
 		//g.drawString("Plan : ", xrect+paddingx, yrect +50);
 		g.setColor(new Color(0, 100, 0));
-		g.drawString(df.format(nbCamionsParHeure)+" cam./h", xrect+paddingx, yrect +64);
+		g.drawString(df.format(nbCamionsParHeure)+" t/h", xrect+paddingx, yrect +64);
 
 		//remet le font d'avant
 		g.setFont(previousFont);
@@ -471,7 +464,7 @@ public class JMinePanel extends JPanel{
 
 
 
-	//peint les chemins reliant le concentrateur  et le stérile aux pelles
+	//peint les chemins reliant le concentrateur  et le stï¿½rile aux pelles
 	private void paintRoutes(Graphics g, Mine mine) {
 		//Station concentrateur = mine.getConcentrateur();
 
@@ -511,30 +504,26 @@ public class JMinePanel extends JPanel{
 
 
 	private void paintStatsPanel(Graphics g, MineSimulator mineSimulator) {
-		int width = 430;
-		int height = 180;
+		int width = 330;
+		int height = 80;
 		g.setColor(Color.black);
 
 		Mine mine = mineSimulator.getMine();
 		//format des nombres
-		DecimalFormat df = new DecimalFormat("0.00");
-
-		double minCamionEff = mineSimulator.getMinCamionEfficiency();
-		String minCamionEffStr = df.format(minCamionEff);
-		double maxCamionEff = mineSimulator.getMaxCamionEfficiency();
-		String maxCamionEffStr = df.format(maxCamionEff);
-		double avgCamionEff = mineSimulator.getAverageCamionEfficiency();
-		String avgCamionEffStr = df.format(avgCamionEff);
-
-		double minPelleEff = mineSimulator.getMinPelleEfficiency();
-		String minPelleEffStr = df.format(minPelleEff);
-		double maxPelleEff = mineSimulator.getMaxPelleEfficiency();
-		String maxPelleEffStr = df.format(maxPelleEff);
-		double avgPelleEff = mineSimulator.getAveragePelleEfficiency();
-		String avgPelleEffStr = df.format(avgPelleEff);
-
+		
 		double time = mine.getTime()/3600;
-		String timeStr = df.format(time);
+		int nbHours = (int) time;
+		int nbMin = (int) ((time-nbHours)*60);
+		String timeStr = "";
+		if(nbMin == 0) {
+			timeStr = nbHours+":00";
+		}
+		else if (nbMin <10) {
+			timeStr = nbHours+":0"+nbMin;	
+		}
+		else {
+			timeStr = nbHours+":"+nbMin;	
+		}
 
 		g.setColor(new Color(255, 255, 255, 170));
 		g.fillRect(this.getWidth()-width-1, 0, width, height);
@@ -542,27 +531,15 @@ public class JMinePanel extends JPanel{
 		g.drawRect(this.getWidth()-width-1, 0, width, height);
 
 		Font bigFont = g.getFont().deriveFont((float) 20.0);
-		Font smallFont = g.getFont().deriveFont((float) 17.0);
 
 		g.setFont(bigFont);
-		g.drawString("Efficacité moyenne des camions : ", this.getWidth()-width+20, 30);
 
-		int alignXMinMaxAvg = this.getWidth()-width+290;
-		//g.setFont(smallFont);
-		//g.drawString("Min.  : "+minCamionEffStr,alignXMinMaxAvg , 30);
-		//g.drawString("Max. : "+maxCamionEffStr ,alignXMinMaxAvg , 50);
-		g.drawString(avgCamionEffStr+" %" ,alignXMinMaxAvg+65 , 30);
-
-		g.drawString("Efficacité des pelles : ", this.getWidth()-width+20, 60);
-
-		//g.setFont(smallFont);
-		g.drawString("Min.  : "+minPelleEffStr+" %",alignXMinMaxAvg , 60);
-		g.drawString("Max. : "+maxPelleEffStr+" %",alignXMinMaxAvg , 80);
-		g.drawString("Moy. : "+avgPelleEffStr+" %",alignXMinMaxAvg , 100);
-
-		g.drawString("Nombre de voyages : "+mineSimulator.getNumberOfRuns(), this.getWidth()-width+20, 130);
-		System.out.println(timeStr);
-		g.drawString("Temps écoulé : "+timeStr+" h", this.getWidth()-width+20, 160);
+		g.drawString("Temps Ã©coulÃ© : ", this.getWidth()-width+20, 30);
+		g.drawString(timeStr, this.getWidth()-width+240, 30);
+		g.drawString(" h", this.getWidth()-width+300, 30);
+		
+		g.drawString("Nombre de voyages : ", this.getWidth()-width+20, 60);
+		g.drawString(""+mineSimulator.getNumberOfRuns(), this.getWidth()-width+240, 60);
 
 
 		//DEBUG
@@ -602,14 +579,14 @@ public class JMinePanel extends JPanel{
 		g.setColor(new Color(255, 255, 255, 170));
 		int xrect =(int) point.getX()+STATION_WIDTH/2;
 		if(xrect+JMinePanel.INFO_RECT_WIDTH > this.getWidth()){
-			xrect = this.getWidth()-this.INFO_RECT_WIDTH;
+			xrect = this.getWidth()-JMinePanel.INFO_RECT_WIDTH;
 		}
 		if(xrect < 0){
 			xrect = 0;
 		}
 		int yrect = (int) (point.getY()-STATION_HEIGHT);
 		if(yrect+JMinePanel.INFO_RECT_STERILE_HEIGHT >= this.getHeight()){
-			yrect = this.getHeight()-this.INFO_RECT_STERILE_HEIGHT;
+			yrect = this.getHeight()-JMinePanel.INFO_RECT_STERILE_HEIGHT;
 		}
 		if(yrect < 0){
 			yrect = 0;
@@ -617,7 +594,7 @@ public class JMinePanel extends JPanel{
 
 		int paddingx = 2;
 
-		g.fillRect(xrect, yrect, this.INFO_RECT_WIDTH, this.INFO_RECT_STERILE_HEIGHT);
+		g.fillRect(xrect, yrect, JMinePanel.INFO_RECT_WIDTH, JMinePanel.INFO_RECT_STERILE_HEIGHT);
 
 		//ID de la pelle
 		g.setColor(Color.black);
@@ -668,10 +645,9 @@ public class JMinePanel extends JPanel{
 
 				@Override
 				public void actionPerformed(ActionEvent arg0) {
-					System.out.println("clic");
-					String strNbCamionsParHeure = JOptionPane.showInputDialog(closestPelle.getId()+" : Nombre de camions/heure?");
+					String strNbCamionsParHeure = JOptionPane.showInputDialog(closestPelle.getId()+" : Nombre de tonnes/heure?");
 
-					//Utilisation de Float car le package Double est défini pour des coordonneés 2D
+					//Utilisation de Float car le package Double est dï¿½fini pour des coordonneï¿½s 2D
 					double nbCamionsParHeure = Float.parseFloat(strNbCamionsParHeure);
 
 					parentFrame.notifyListenersPlanPelleChanged(closestPelle, nbCamionsParHeure);
