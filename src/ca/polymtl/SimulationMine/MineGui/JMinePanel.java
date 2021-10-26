@@ -511,18 +511,21 @@ public class JMinePanel extends JPanel{
 		Mine mine = mineSimulator.getMine();
 		//format des nombres
 		
-		double time = mine.getTime()/3600;
+		int nbDays = mine.getDayNumber();
+		
+		double time = mine.getTime()/3600 - nbDays*24;
+		
 		int nbHours = (int) time;
 		int nbMin = (int) ((time-nbHours)*60);
-		String timeStr = "";
+		String timeStr = "Jour "+(nbDays+1)+"   ";
 		if(nbMin == 0) {
-			timeStr = nbHours+":00";
+			timeStr += nbHours+":00";
 		}
 		else if (nbMin <10) {
-			timeStr = nbHours+":0"+nbMin;	
+			timeStr += nbHours+":0"+nbMin;	
 		}
 		else {
-			timeStr = nbHours+":"+nbMin;	
+			timeStr += nbHours+":"+nbMin;	
 		}
 
 		g.setColor(new Color(255, 255, 255, 170));
@@ -534,9 +537,9 @@ public class JMinePanel extends JPanel{
 
 		g.setFont(bigFont);
 
-		g.drawString("Temps écoulé : ", this.getWidth()-width+20, 30);
-		g.drawString(timeStr, this.getWidth()-width+240, 30);
-		g.drawString(" h", this.getWidth()-width+300, 30);
+		//g.drawString("Temps ecoule : ", this.getWidth()-width+20, 30);
+		g.drawString(timeStr, this.getWidth()-width+20, 30);
+		g.drawString(" h", this.getWidth()-width+140, 30);
 		
 		g.drawString("Nombre de voyages : ", this.getWidth()-width+20, 60);
 		g.drawString(""+mineSimulator.getNumberOfRuns(), this.getWidth()-width+240, 60);
