@@ -1,5 +1,6 @@
 package ca.polymtl.SimulationMine.decisionMaker;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.ListIterator;
 
@@ -23,6 +24,7 @@ public class DecisionMaker {
 	protected static final String OPTIMAL_SCORE_FUNCTION_STRING = "optimal_assign";
 	//protected static final String OPTIMAL_SCORE_FUNCTION_STRING = "attenteEspereeCamion";
 	public static final String ALEATOIRE_FUNCTION_STRING = "aleatoire";
+	private static final String OPTIMAL_SCORE_MIN_ATTENTE_PELLE_FUNCTION_STRING = "optimise_min_attente_pelle";
 	private static Mine dummyMine;
 
 	//mine
@@ -112,8 +114,8 @@ public class DecisionMaker {
 			p.setPlan(p.getPlanNbTonnesParHeure());
 		}
 	}
-	
-	
+
+
 	public String getScoreFunctionString() {
 
 		return this.scoreFunctionString;
@@ -124,15 +126,15 @@ public class DecisionMaker {
 	//
 	public Station giveObjectiveToCamion(Camion camion) {
 
-		
-		
+
+
 		if(camion.getCurrentStation()!=null && !camion.getCurrentStation().isDecharge) {
 			return selectReturnStation(camion, (Pelle) camion.getCurrentStation());
 		}
-		
+
 		@SuppressWarnings("unchecked")
 		ArrayList<Pelle> pelles = (ArrayList<Pelle>) mine.getPelles().clone();
-		
+
 		//enleve les pelles en panne
 		//
 		ListIterator<Pelle> iter = pelles.listIterator();
@@ -141,7 +143,7 @@ public class DecisionMaker {
 				iter.remove();
 			}
 		}
-		
+
 
 		//System.out.println("objectif : "+this.scoreFunctionString);
 
@@ -172,8 +174,6 @@ public class DecisionMaker {
 					e.printStackTrace();
 				}
 
-				//System.out.println("pelle "+i);
-				// System.out.println("pelle "+pelles.get(i).getId()+"  score :"+score);
 
 				if(score >= maxScore) {
 					maxScore = score;
@@ -222,9 +222,9 @@ public class DecisionMaker {
 
 
 	private double calculeTempsAvantDispo(Camion camion) {
-		
-		
-		
+
+
+
 		if(camion.getState() == Camion.ETAT_JUSTE_ARRIVE) {
 			throw new IllegalArgumentException("impossible d'évaluer le temps avant dispo pour un camion qui vient juste d'arriver");
 		}
@@ -237,9 +237,9 @@ public class DecisionMaker {
 		else if(camion.getState()== Camion.ETAT_EN_ROUTE && !camion.getObjective().isDecharge) {
 			throw new IllegalArgumentException("impossible d'évaluer le temps avant dispo pour un camion en route vers une pelle");
 		}
-	
-	
-		
+
+
+
 		//si le camion est inactif, il est disponible MAINTENANT
 		//
 		else if(camion.getState()== Camion.ETAT_INACTIF) {
@@ -251,8 +251,8 @@ public class DecisionMaker {
 			//temps avant d'arriver
 			double distance = camion.getLocation().distance(objective.getLocation());
 			double tempsDeplacement = distance/(camion.getSpeed()*mine.getMeteoFactor());
-	
-	
+
+
 			//temps avant que la station ne commence à traiter le camion
 			double tempsTraitementCurrent = 0;
 			if(camion.getObjective().getCamionEnTraitement()!= null) {
@@ -272,13 +272,13 @@ public class DecisionMaker {
 				}
 			}
 			double tempsFileAttente = tempsTraitementCurrent+qteATraiter/objective.averageTraitementSpeed();
-	
+
 			//temps avant que le camion ne commence a etre traite = max{tempsDeplacement, tempsFileAttente}
 			double tempsTotal = tempsFileAttente;
 			if(tempsDeplacement>tempsFileAttente) {
 				tempsTotal = tempsDeplacement;
 			}
-	
+
 			//on ajoute le temps de traitement
 			tempsTotal += camion.getCharge()/objective.averageTraitementSpeed();
 			return tempsTotal;
@@ -286,7 +286,7 @@ public class DecisionMaker {
 		//si le camion est en déchargement
 		else if(camion.getState() == Camion.ETAT_EN_TRAITEMENT && camion.getCurrentStation().isDecharge) {
 			return camion.getCharge()/camion.getObjective().averageTraitementSpeed();
-	
+
 		}
 		//si le camion est en attente à la station de déchargement
 		else if(camion.getState() == Camion.ETAT_ATTENTE && camion.getCurrentStation().isDecharge) {
@@ -295,7 +295,7 @@ public class DecisionMaker {
 			if(objective.getCamionEnTraitement() == null) {
 				throw new IllegalStateException("Impossible d'avoir un camion en attente mais pas de camion en traitement!");
 			}
-	
+
 			double temps = objective.getCamionEnTraitement().getCharge()/objective.averageTraitementSpeed();
 			double qteATraiter = 0;
 			for(int i = 0 ; i < objective.getCamionsEnAttente().size(); i ++) {
@@ -487,20 +487,25 @@ public class DecisionMaker {
 
 			//Fonction de cout
 			//
+			System.out.println("scores : ");
 			double[] costFunction = new double[camions.size()*pelles.size()+1];
 			int index = 0;
 			for(int i = 0 ; i < camions.size(); i++ ) {
 				for(int j = 0 ; j < pelles.size(); j++) {
+					
 					Camion camion = camions.get(i);
 					Pelle pelle = pelles.get(j);
 
+					
 					double score = 0;
 					try {
-						score = computeDecisionScore(camion, pelle, DecisionMaker.OPTIMAL_SCORE_FUNCTION_STRING);
+						//score = computeDecisionScore(camion, pelle, DecisionMaker.OPTIMAL_SCORE_FUNCTION_STRING);
+						score = computeDecisionScore(camion, pelle, DecisionMaker.OPTIMAL_SCORE_MIN_ATTENTE_PELLE_FUNCTION_STRING);
 					} catch (EvalError e) {
 						e.printStackTrace();
 					}
 
+					System.out.println("camion "+i+" "+pelle.getId()+" : "+score);
 					costFunction[index+1] = score;
 
 					index ++;
@@ -568,12 +573,12 @@ public class DecisionMaker {
 		//ou si le camion est déjà à un concentrateur ou un stérile, on calcule le temps avant qu'il arrive à la pelle
 		// - sinon, retourne 0 (dans le problème d'assignation, le score sera 0 pour toutes les pelles, donc c'est comme si on ne prenait pas en compte le camion).
 
-		
+
 		if( (camion.getState() == Camion.ETAT_EN_ROUTE && camion.getObjective().isDecharge == true) || //si le camion va se faire décharger
 				(camion.getState() == Camion.ETAT_EN_TRAITEMENT && camion.getCurrentStation().isDecharge == true) || //si le camion est en traitement
 				(camion.getState()== Camion.ETAT_ATTENTE && camion.getCurrentStation().isDecharge == true) //si le camion est en attente de se faire décharger
 				) {
-			
+
 			Station s = null;
 			if(camion.getState() == Camion.ETAT_EN_ROUTE) {
 				s = camion.getObjective();
@@ -582,22 +587,22 @@ public class DecisionMaker {
 				s = camion.getCurrentStation();
 			}
 			double tempsAvantDispo = calculeTempsAvantDispo(camion);
-			
+
 			double distanceEntreStationEtPelle = s.getLocation().distance(pelle.getLocation());
 			double tempsAvantArriveeAPelle = tempsAvantDispo + distanceEntreStationEtPelle/(camion.getAvgSpeed()*mine.getMeteoFactor());
-			
+
 			//temps avant que pelle soit disponible
 			//
 			double qteAvantDisponible = 0;
 			if(pelle.getCamionEnTraitement() != null) {
 				qteAvantDisponible += pelle.getCamionEnTraitement().getChargeMax()-pelle.getCamionEnTraitement().getCharge();
 			}
-			
+
 			//file d'attente
 			for(int i = 0 ; i< pelle.getCamionsEnAttente().size(); i++) {
 				qteAvantDisponible += pelle.getCamionsEnAttente().get(i).getChargeMax();
 			}
-			
+
 			//camions se dirigeant vers la pelle qui sont plus proche
 			//
 			for(int i = 0 ; i < mine.getCamions().size(); i++) {
@@ -606,16 +611,16 @@ public class DecisionMaker {
 					qteAvantDisponible += c.getChargeMax();
 				}
 			}
-			
+
 			double tempsAvantPelleDispo = qteAvantDisponible/pelle.averageTraitementSpeed();
-			
+
 			//attente esperee du camion
 			//
 			double attenteEspereeCamion = tempsAvantPelleDispo - tempsAvantArriveeAPelle;
 			if(attenteEspereeCamion < 0) {
 				attenteEspereeCamion = 0;
 			}
-			
+
 			double attenteEspereePelle = tempsAvantArriveeAPelle - tempsAvantPelleDispo;
 			if(pelle.getState() == Station.STATION_STATE_IDLE) {
 				attenteEspereePelle += pelle.getCurrentWaitingPeriod();
@@ -623,23 +628,22 @@ public class DecisionMaker {
 			if(attenteEspereePelle < 0) {
 				attenteEspereePelle = 0;
 			}
-			
-			
-			
+
+
+
 			double penaliteQuadAttentePelle = calculePenaliteQuadAttentePelle(attenteEspereePelle/3600., pelle.cibleAttentePelleSeconds()/3600.);
 
 			double penaliteQuadAttenteCamion = calculePenaliteQuadAttenteCamion(attenteEspereeCamion/3600.,0);// pelle.cibleAttenteCamionSeconds()/3600.);
-			
-			System.out.println(pelle.getId());
+
 			if(false) {
-				
+
 				System.out.println("attente esperee pelle  : "+attenteEspereePelle);
 				System.out.println("attente esperee camion : "+attenteEspereeCamion);
 				System.out.println("penalite pelle         : "+penaliteQuadAttentePelle);
 				System.out.println("penalite camion        : "+penaliteQuadAttenteCamion);
 				System.out.println("score                  : "+(penaliteQuadAttentePelle+penaliteQuadAttenteCamion));	
 			}
-			
+
 			return penaliteQuadAttentePelle+penaliteQuadAttenteCamion;
 		}
 		else {
@@ -681,23 +685,72 @@ public class DecisionMaker {
 	protected double calculeTempsEspereAvantTraitement(Camion camion, Station station) {
 		boolean debug = false;
 
-		//considere que le camion est libre
-		//si on veut que cette méthode fonctionne pour un camion dans un état quelconque, 
-		//il faut tenir en compte le temps pour aller se faire remplir, puis vider. Considérant qu'il peut
-		//y avoir plusieurs stations de vidage possible, on commence à devoir faire des choix, 
-		//estimer des quantités (par exemple le nombre de camions aux stations de remplissage/vidage, etc). 
-		//Bref, ça deviendrait vite compliqué.
-		//
-		if( camion.getState()!= Camion.ETAT_INACTIF) {
-			throw new IllegalStateException("Le camion doit etre inactif");
+
+		double tempsAvantArrivee = 0;
+
+		//le camion doit seulement se rendre à la station
+		if(camion.getState() == Camion.ETAT_INACTIF && camion.getCurrentStation()!= null) {
+			tempsAvantArrivee += camion.getLocation().distance(station.getLocation())/camion.getSpeed()/mine.getMeteoFactor();
 		}
-		
-		
-		
-		double distanceCamion = calculeDistanceEntreCamionEtStation(camion, station);
+		else if(camion.getState() == Camion.ETAT_EN_ROUTE && camion.getObjective().equals(station)) {
+			tempsAvantArrivee += camion.getLocation().distance(station.getLocation())/camion.getSpeed()/mine.getMeteoFactor();
+		}
+		//le camion doit se rendre à sa destination, attendre, puis se faire traiter, puis se rendre à la station
+		else if(camion.getState() == Camion.ETAT_EN_ROUTE && ! camion.getObjective().equals(station)) {
+			tempsAvantArrivee += calculeTempsEspereAvantTraitement(camion, camion.getObjective());
+			if(camion.getObjective().isDecharge) {
+				tempsAvantArrivee += camion.getCharge()/camion.getObjective().averageTraitementSpeed();	
+			}
+			else {
+				tempsAvantArrivee += (camion.getChargeMax() - camion.getCharge())/camion.getObjective().averageTraitementSpeed();
+			}
+			tempsAvantArrivee += camion.getLocation().distance(station.getLocation())/camion.getSpeed()/mine.getMeteoFactor();
+		}
+		//le camion doit finir de se faire traiter, puis se rendre
+		else if(camion.getState() == Camion.ETAT_EN_TRAITEMENT) {
+			if(camion.getCurrentStation().isDecharge) {
+				tempsAvantArrivee += camion.getCharge()/camion.getCurrentStation().averageTraitementSpeed();
+			}
+			else {
+				tempsAvantArrivee += (camion.getChargeMax()-camion.getCharge())/camion.getCurrentStation().averageTraitementSpeed();
+			}
+			tempsAvantArrivee += camion.getLocation().distance(station.getLocation())/camion.getSpeed()/mine.getMeteoFactor();
+		}
+		else if(camion.getState() == Camion.ETAT_ATTENTE) {
+			//temps pour traiter le camion en cours
+			//
+			Station currentStation = camion.getCurrentStation();
+			if(currentStation.isDecharge) {
+				tempsAvantArrivee += currentStation.getCamionEnTraitement().getCharge()/currentStation.averageTraitementSpeed();
+				for(int i = 0 ; i < currentStation.getCamionsEnAttente().size(); i++) {
+					if(currentStation.getCamionsEnAttente().get(i).equals(camion)) {
+						break;
+					}
+					else {
+						tempsAvantArrivee += currentStation.getCamionsEnAttente().get(i).getCharge()/currentStation.averageTraitementSpeed();
+					}
+				}
+			}
+			else {
+				tempsAvantArrivee += (currentStation.getCamionEnTraitement().getChargeMax() - currentStation.getCamionEnTraitement().getCharge())/currentStation.averageTraitementSpeed();
+				for(int i = 0 ; i < currentStation.getCamionsEnAttente().size(); i++) {
+					if(currentStation.getCamionsEnAttente().get(i).equals(camion)) {
+						break;
+					}
+					else {
+						tempsAvantArrivee += (currentStation.getCamionsEnAttente().get(i).getChargeMax()- currentStation.getCamionsEnAttente().get(i).getCharge())/currentStation.averageTraitementSpeed();
+					}
+				}
+
+			}
+			tempsAvantArrivee += camion.getLocation().distance(station.getLocation())/camion.getSpeed()/mine.getMeteoFactor();
+		}
+		else {
+			throw new IllegalStateException("Mauvais état pour le camion");
+		}
 
 
-		double tempsParcoursRestantCamionOpt = distanceCamion/(camion.getAvgSpeed()*mine.getMeteoFactor());
+		double tempsParcoursRestantCamionOpt = tempsAvantArrivee;
 		if(debug) {
 			System.out.println("\ndebut calculeTempsEspereAvantRemplissage");
 		}
@@ -840,6 +893,65 @@ public class DecisionMaker {
 	}
 
 
+	protected double calculeTempsAttenteEspereePelle(Camion camion, Pelle pelle) {
+		double tempsAttente = 0;
+
+		double tempsRestantAvantFinPelle = calculeTempsRestantAvantFinPelle(pelle);
+
+		double tempsCamionPelle = camion.getLocation().distance(pelle.getLocation())/camion.getAvgSpeed();
+		//liste des camions en route pour la pelle qui vont arriver avant le camion.
+		ArrayList<Camion> camionsEnRoute = new ArrayList<Camion>();
+		for(int i = 0 ; i < mine.getCamions().size(); i++) {
+			Camion c = mine.getCamions().get(i);
+			double tempsCPelle = c.getLocation().distance(pelle.getLocation())/c.getAvgSpeed();
+			if(c.getState()==Camion.ETAT_EN_ROUTE && c.getObjective().equals(pelle) && tempsCPelle < tempsCamionPelle) {
+				camionsEnRoute.add(c);
+			}
+		}
+
+		//trie les camions par ordre d'arrivée.
+		camionsEnRoute.sort(new Comparator<Camion>() {
+			@Override
+			public int compare(Camion c1, Camion c2) {
+				double tempsC1 = c1.getLocation().distance(pelle.getLocation())/c1.getAvgSpeed();
+				double tempsC2 = c2.getLocation().distance(pelle.getLocation())/c2.getAvgSpeed();
+
+				if(tempsC1-tempsC2 < 0 ) {
+					return -1;
+				}
+				return 1;
+			}
+		});
+
+		//ajoute en dernier notre camion
+		camionsEnRoute.add(camion);
+
+		//debug
+		/*System.out.println("DEBUG ORDRE");
+		for(int i = 0 ; i < camionsEnRoute.size(); i++ ) {
+			double temps = camionsEnRoute.get(i).getLocation().distance(pelle.getLocation())/camionsEnRoute.get(i).getAvgSpeed();
+			System.out.println("temps "+temps);
+		}
+		 */
+
+		//ajoute le temps necessaire pour chaque camion
+		//
+		for(int i = 0 ; i < camionsEnRoute.size(); i++) {
+			double tempsArrivee = camionsEnRoute.get(i).getLocation().distance(pelle.getLocation())/camionsEnRoute.get(i).getAvgSpeed();
+			//si arrive alors que la pelle travaille, il attends et on ajuste le nouveau temps avant que la pelle n'ait terminée
+			if(tempsArrivee <tempsRestantAvantFinPelle) {
+				tempsRestantAvantFinPelle += camionsEnRoute.get(i).getChargeMax()/pelle.averageTraitementSpeed();
+			}
+			//si arrive alors que la pelle attends, calcule le temps d'attente et ajuste le nouveau temps avant que la pelle n'ait terminée
+			else {
+				tempsAttente += tempsArrivee= tempsRestantAvantFinPelle;
+				tempsRestantAvantFinPelle += tempsArrivee + camionsEnRoute.get(i).getChargeMax()/pelle.averageTraitementSpeed();
+			}
+
+		}
+		return tempsAttente;
+	}
+
 	//fonction qui calcule le score associe a l'assignation d'un camion a une pelle
 	//
 	protected double computeDecisionScore(Camion camion, Pelle pelle, String scoreFunctionString) throws EvalError {
@@ -970,8 +1082,8 @@ public class DecisionMaker {
 		//attente esperee de la pelle (compte seulement le temps ou la pelle attend pour le camion courant, pas pour ceux deja en route!)
 		//peut etre négatif, signifiant que le camion ira en attente.
 		//
-		double attenteEspereePelle = tempsDeParcoursEspere - tempsEspereAvantDebutRemplissage;
-
+		double attenteEspereePelle = calculeTempsAttenteEspereePelle(camion, pelle);
+		//System.out.println("attente esperee "+pelle.getId()+" "+attenteEspereePelle);
 		//double penaliteQuadAttentePelle = calculePenaliteQuadAttentePelle(attenteEspereePelle, pelle.cibleAttentePelleSeconds());
 		//double penaliteQuadAttenteCamion = calculePenaliteQuadAttenteCamion(attenteEspereeCamion, pelle.cibleAttenteCamionSeconds());
 
@@ -1001,6 +1113,8 @@ public class DecisionMaker {
 		//interpreter.set("ecart_cible_quadratique", penaliteQuadAttentePelle);
 
 		interpreter.set("optimal_assign", optimalAssignCost);
+
+		interpreter.set("optimise_min_attente_pelle", attenteEspereePelle*attenteEspereePelle);
 
 		interpreter.eval("double score = "+ scoreFunctionString); 
 

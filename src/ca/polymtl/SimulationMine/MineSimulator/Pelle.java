@@ -113,7 +113,6 @@ public class Pelle extends Station{
 			cibleAttente = (3600-tempsTravailParHeureEnSecondes)/cibleCamionsParHeure;
 		}
 		
-		System.out.println("Pelle "+this.getId()+"cibleAttente "+cibleAttente);
 		return cibleAttente;
 	}
 
@@ -134,7 +133,6 @@ public class Pelle extends Station{
 			averageChargeParCamion += this.arrivalLog.get(i).getChargeMax();
 		}
 		averageChargeParCamion = averageChargeParCamion/nbDataPoint;
-		System.out.println("charge moyenne : "+averageChargeParCamion);
 		return averageChargeParCamion;
 	}
 
@@ -185,7 +183,6 @@ public class Pelle extends Station{
 	}
 
 	public void setPlan(double newValue){
-		System.out.println("je veux maintenant "+newValue);
 
 		// lambda = taux arrivée des camions (camions/h)
 		// mu    = taux de service de la pelle (camions/h)
@@ -212,7 +209,6 @@ public class Pelle extends Station{
 
 	@Override
 	protected void updateQteTraite(double quantite, RockType rockType) {
-		System.out.println("ajoute "+quantite);
 		this.totalQuantity += quantite;
 		// Ne fait rien.
 		

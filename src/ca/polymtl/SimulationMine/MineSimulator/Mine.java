@@ -556,7 +556,7 @@ public class Mine {
 			Camion camion = new Camion(steriles.get(0), this, smallCamionImage) {
 
 				/** Vitesse moyenne du camion	 */
-				public static final double VITESSE_MOYENNE = 9;
+				public static final double VITESSE_MOYENNE = 7.5;
 				/** �cart type sur la vitesse du camion	 */
 				private static final double ECART_TYPE_VITESSE = 0.6;//ancien 0.5
 				/** Charge maximum du camion.	 */
