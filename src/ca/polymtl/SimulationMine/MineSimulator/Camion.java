@@ -31,69 +31,88 @@ public abstract class Camion {
 	public static int ETAT_EN_TRAITEMENT = 4;
 	/** ï¿½tat indiquant un camion qui viens juste d'arriver ï¿½ sa destination.	 */
 	public static int ETAT_JUSTE_ARRIVE = 5;
-	/** ï¿½tat indiquant un camion en dï¿½chargement.	 */
-	//public static int ETAT_DECHARGE = 6;
-
-
 	
 	/*
 	 * Champs
 	 */
-	//mine dans laquelle est le camion
+	/**mine dans laquelle est le camion*/
 	Mine mine;
 	
 	//Etat du camion
 	//
+	/**Emplacement du camion*/
 	private Double location;
+	
+	/**Etat du camion (ETAT_INACTIF, ETAT_EN_ROUTE, ETAT_ATTENTE, ETAT_EN_TRAITEMENT, ou ETAT_JUSTE_ARRIVE)*/
 	private int state;
 
 
 	//si en voyagement
 	//
+	/**Vitesse courante du camion, sans prendre en compte la météo. Indéfini si le camion n'est pas en déplacement (ETAT_EN_ROUTE).*/
 	private double speed;
+	/**Temps de parcours prédit pour le trajet en cours. Indéfini si le camion n'est pas en déplacement (ETAT_EN_ROUTE).*/
 	private double predictedTravelTime;
+	/**Temps de parcours pour le trajet en cours. Indéfini si le camion n'est pas en déplacement (ETAT_EN_ROUTE).*/
 	private double currentTravelTime;
+	
+	/**Station de départ pour le trajet en cours. Indéfini si le camion n'est pas en déplacement (ETAT_EN_ROUTE).*/
 	private Station origine;
-	private Station objective;
+	
+	/**Destination du camion. Indéfini si le camion n'est pas en déplacement (ETAT_EN_ROUTE).*/
+	private Station destination;
+	
+	/**True si le camion se déplace vers l'est (la droite). Nécessaire pour savoir dans quelle direction dessiner le camion.*/ 
 	private boolean goingEast;
 
-	// Station (null si ï¿½ aucune station)
-	//
+	/** Station où se trouve le camion. Indéfini si le camion n'est pas à une station.*/
 	private Station currentStation;
 
-	// Type de roche dans le camion (ou de la pelle a laquelle le camion attend)
-	//
+	/** Type de roche dans le camion */
 	private RockType rockType;
 
-	//si en chargement
+	/** Quantité de roche dans le camion, en tonnes.*/
 	private double charge;
 
 	//statistiques de productivitï¿½
 	//
+	/**Temps total que le camion a passé à attendre*/
 	private double waitTime;
 
+	/** Nombre de "voyages" que le camion a effectué*/
 	private int numberOfRuns;
 
+	/**Temps d'attente du camion à chaque station visitée*/
 	private HashMap<Station, java.lang.Double> waitTimePerStation;
 
+	/**Nombre de visite à chaque station*/
 	private HashMap<Station, java.lang.Integer> nbVisitPerStation;
 	//infos sur l'iteration en cours
 	//
+	
+	/**Durée de l'itération en cours*/
 	private double iterStepSize;
+	/**Temps simulé dans l'itération en cours*/
 	private double iterCurrentTime;
+	/**true si l'itération est terminée pour le camion*/
 	private boolean iterFinished;
 
 
 	//images du camion
+	
+	/**Image du camion allant vers l'est (la droite)*/
 	private BufferedImage goingEastImage;
+	/**Image du camion allant vers l'ouest (la gauche)*/
 	private BufferedImage goingWestImage;
-	//private MineSimulator mineSimulator;
+
+	/**Temps passé à voyager vide*/
 	private double emptyTravelTime;
 
-	//constructeur
+	/**constructeur*/
 	//
 	public Camion(Station station, Mine mine, BufferedImage goingEastImage) {
 		
+		//Créé l'image du camion allant vest l'ouest.
 		this.goingEastImage = goingEastImage;
 		this.goingWestImage = goingEastImage;
 		if(goingEastImage != null) {
@@ -103,32 +122,32 @@ public abstract class Camion {
 			AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
 			this.goingWestImage = op.filter(this.goingWestImage, null);
 		}
-
-
+		//mine
 		this.mine = mine;
-
-		this.speed = 2;
+		
+		//le camion est inactif au départ
 		this.state = ETAT_INACTIF;
-		this.waitTime = 0;
-		this.emptyTravelTime = 0;
-		this.numberOfRuns = 0;
 		this.goingEast = true;
+		this.destination = null;
+		
+		//station courante
 		this.currentStation = station;
-		this.objective = station;
-
 		this.setLocation((int) station.getLocation().getX(), (int) station.getLocation().getY());
+		
+		//Initialise les champs de statistiques
 		resetStats();
 	}
+	
 	/**
 	 * 
-	 * @return Le temps total d'attente du camion ï¿½ la station
+	 * @return Le temps total d'attente du camion a la station
 	 */
 	public double getAttenteAtStation(Station station){
 		return this.waitTimePerStation.get(station).doubleValue();
 	}
+	
 	/**
-	 * 
-	 * @return La moyenne du temps d'attente du camion ï¿½ la station donnï¿½e
+	 * @return La moyenne du temps d'attente du camion a la station donnee
 	 */
 	public double getAverageWaitTimeSecondsForStation(Station station){
 		double waitTime =this.waitTimePerStation.get(station).doubleValue();
@@ -139,21 +158,21 @@ public abstract class Camion {
 		return waitTime/nbPeriodes;
 	}
 
+	/** @return moyenne du camion*/
 	public abstract double getAvgSpeed();
+
+	/** @return maximum du camion*/
+	public abstract double getChargeMax();
 	
 	/**
-	 * 
-	 * @return Si le camion est prï¿½sentement en charge, retourne le temps courant de chargement.
+	 * @return Charge dans le camion
 	 */
 	public double getCharge() {
 
 		return this.charge;
 	}
 
-	public abstract double getChargeMax();
-
 	/** 
-	 * 
 	 * @return Station courante du camion (indï¿½fini si le camion n'est pas ï¿½ une station)
 	 */
 	public Station getCurrentStation() {
@@ -167,16 +186,17 @@ public abstract class Camion {
 		return currentTravelTime;
 	}
 
+	/** @return Image du camion allant vers l'est*/
 	public BufferedImage getGoingEastImage() {
 		return goingEastImage;
 	}
 
+	/** @return Image du camion allant vers l'ouest*/
 	public BufferedImage getGoingWestImage() {
 		return goingWestImage;
 	}
 
 	/**
-	 * 
 	 * @return Emplacement du camion sous la forme d'un Point2D.double
 	 */
 	public Double getLocation() {
@@ -184,16 +204,14 @@ public abstract class Camion {
 	}
 
 	/**
-	 * 
-	 * @return Le nombre de fois oï¿½ le camion est allï¿½ ï¿½ la station
+	 * @return Le nombre de fois ou le camion est alle a la station
 	 */
 	public double getNbVisitAtStation(Station station){
 		return this.nbVisitPerStation.get(station).intValue();
 	}
 
 	/**
-	 * 
-	 * @return Le nombre de voyages (allï¿½-retours) que le camion a effectuï¿½ durant la simulation courante.
+	 * @return Le nombre de voyages (alle-retours) que le camion a effectue durant la simulation courante.
 	 */
 	public int getNumberOfRuns() {
 		return numberOfRuns;
@@ -202,8 +220,8 @@ public abstract class Camion {
 	 * 
 	 * @return Destination du camion, ou null si le camion n'est pas en dï¿½placement.
 	 */
-	public Station getObjective() {
-		return objective;
+	public Station getDestination() {
+		return destination;
 
 	}
 
@@ -221,18 +239,16 @@ public abstract class Camion {
 		return predictedTravelTime;
 	}
 
-
+	/** @return Facteur d'ajustement pour la prediction de temps de parcours */
 	public abstract double getPredictTimeAdjustFactor();
 
 	/**
-	 * 
-	 * @return Type de roche dans le camion (indï¿½fini si le camion est vide)
+	 * @return Type de roche dans le camion (indefini si le camion est vide)
 	 */
 	public RockType getRockType() {
 		return rockType;
 	}
 	/**
-	 * 
 	 * @return La vitesse du camion (m/s) sous forme d'un double
 	 */
 	public double getSpeed() {
@@ -240,27 +256,25 @@ public abstract class Camion {
 	}
 
 	/**
-	 * 
-	 * @return ï¿½tat du camion correspondant ï¿½ l'activitï¿½ en cours.
+	 * @return etat du camion correspondant a l'activite en cours.
 	 */
 	public int getState() {
 		return state;
 	}
 
+	/** Ecart type sur la vitesse du camion*/
 	public abstract double getStdSpeed();
 
 	/**
-	 * 
-	 * @return Le temps total (s) que le camion a passï¿½ en attente durant la simulation courante.
+	 * @return Le temps total (s) que le camion a passe en attente durant la simulation courante.
 	 */
 	public double getWaitTime() {
 		return waitTime;
 	}
 
 	/**
-	 * 
+	 * Utilise pour l'interface graphique.
 	 * @return true si la destination du camion est a l'est de son emplacement. 
-	 * Utilisï¿½ pour l'interface graphique.
 	 */
 	public boolean isGoingEast() {
 		return goingEast;
@@ -274,7 +288,7 @@ public abstract class Camion {
 
 		this.origine = this.currentStation;
 		this.currentStation = null;
-		this.objective = objective;
+		this.destination = objective;
 		this.goingEast = true;
 		if(objective.getLocation().getX() > this.location.getX()) {
 			this.goingEast = false;
@@ -282,23 +296,23 @@ public abstract class Camion {
 		this.speed = getRandomSpeed();
 		this.state = ETAT_EN_ROUTE;
 
-		
 		this.currentTravelTime = 0;
 
 	}
 	
+	/** Set la prediction pour le parcours courant.*/
 	public void setPredictedTravelTime(double predictedTravelTime) {
 		this.predictedTravelTime = predictedTravelTime;
 	}
 
-	//calcule le temps restant a la tache actuelle
+	/**calcule le temps restant a la tache actuelle*/
 	public double taskTimeRemaining() {
 		
 		if(this.getState() == Camion.ETAT_ATTENTE) {
 			return  java.lang.Double.MAX_VALUE;
 		}
 		else if(this.getState() == Camion.ETAT_EN_ROUTE) {
-			double distanceRestante = objective.getLocation().distance(this.location);
+			double distanceRestante = destination.getLocation().distance(this.location);
 
 			double speedWithMeteo = this.speed*mine.getMeteoFactor();
 			return distanceRestante/speedWithMeteo;
@@ -317,20 +331,17 @@ public abstract class Camion {
 		return java.lang.Double.MAX_VALUE;
 	}
 
-	//retourne une vitesse aleatoire 
-	//
+	/** @return une vitesse aleatoire*/ 
 	private double getRandomSpeed() {
 		return SimulationMine.random.nextGaussian()*getStdSpeed()+getAvgSpeed();
 	}
 
-	//set la position du camion
-	//
+	/** Set la position du camion*/
 	private void setLocation(double i, double j) {
 		this.location = new Double(i,j);
 	}
 
-	//avance le camion vers sa destination
-	//
+	/**avance le camion vers sa destination pour une durée déterminée. */
 	protected void advance(double temps) {
 		if(this.state != Camion.ETAT_EN_ROUTE) {
 			throw new IllegalStateException();
@@ -342,18 +353,18 @@ public abstract class Camion {
 		double timeIncrement = temps;//this.getRemainingTimeInTurn();
 		//Si la distance entre l'objectif et la position est inferieur a la distance parcourue dans l'incerment de temps
 		//positionne le camion a sa destination.
-		double distanceRestante = objective.getLocation().distance(this.location);
+		double distanceRestante = destination.getLocation().distance(this.location);
 
 		double speedWithMeteo = this.speed*mine.getMeteoFactor();
 
 		double distanceParcourue = timeIncrement*speedWithMeteo;
 
 		if(distanceParcourue >= distanceRestante) {
-			if(this.objective == null) {
+			if(this.destination == null) {
 				throw new IllegalStateException("objective == null");
 			}
-			this.currentStation = this.objective;
-			location.setLocation(objective.getLocation());
+			this.currentStation = this.destination;
+			location.setLocation(destination.getLocation());
 			this.state = ETAT_JUSTE_ARRIVE;
 			//retourne le temps restant dans le tour
 			this.iterCurrentTime+= distanceRestante/speedWithMeteo;
@@ -365,8 +376,8 @@ public abstract class Camion {
 
 		//sinon, calcule le nouveau point a partir de formule trigonometriques
 		else {
-			double deltaX = this.objective.getLocation().getX() - this.location.getX();
-			double deltaY = this.objective.getLocation().getY() - this.location.getY();
+			double deltaX = this.destination.getLocation().getX() - this.location.getX();
+			double deltaY = this.destination.getLocation().getY() - this.location.getY();
 
 
 			double theta = Math.atan2(deltaY, deltaX);
@@ -394,16 +405,15 @@ public abstract class Camion {
 
 	}
 
-	//fait attendre un camion qui est soit en file d'attente, soit en charge
-	//
+	/** Fait attendre un camion qui est soit en file d'attente, soit en charge */
 	protected void attend(double temps) {
 		//on peut attendre en etat "en charge" si la pelle a deja fini son tour quand le camion arrive.
 		if(this.state != Camion.ETAT_ATTENTE ) {
 			throw new IllegalStateException("Le camion doit etre en attente. Etat actuel : "+this.state);
 		}
 
-		if(temps > this.getRemainingTimeInTurn()+0.0001) {
-			throw new IllegalArgumentException("Le temps d'attente ne doit pas dï¿½passer le temps restant : "+temps+" > "+this.getRemainingTimeInTurn());
+		if(temps > this.getRemainingTimeInTurn()+0.00001) {
+			throw new IllegalArgumentException("Le temps d'attente ne doit pas depasser le temps restant : "+temps+" > "+this.getRemainingTimeInTurn());
 		}
 
 		this.waitTime+= temps;
@@ -418,8 +428,7 @@ public abstract class Camion {
 		this.waitTimePerStation.replace(currentStation, newWaitTime);
 	}
 
-	//charge le camion 
-	//
+	/**Charge le camion d'une certaine quantité pour un certain temps.*/ 
 	protected void charge(double quantite, double temps) {
 
 		//valide la demande de decharge
@@ -449,6 +458,7 @@ public abstract class Camion {
 
 	}
 
+	/** Décharge le camion d'une certaine quantité pour un certain temps.*/
 	protected void decharge(double quantiteDecharge, double tempsTraitement) {
 	
 		//valide la demande de decharge
@@ -473,31 +483,25 @@ public abstract class Camion {
 			iterCurrentTime = iterStepSize;
 			this.iterFinished = true;
 		}
-	
-	
 	}
 
-	//retourne le temps de l'iteration pour le camion
-	//
+	/**@return le temps de l'iteration pour le camion*/
 	protected double getIterCurrentTime() {
 		return this.iterCurrentTime;
 	}
 
-	//retourne le temps restant dans l'iteration courante
-	//
+	/**@return le temps restant dans l'iteration courante*/
 	protected double getRemainingTimeInTurn() {
 		return this.iterStepSize-this.iterCurrentTime;
 	}
 
-
-
-	//retourne true si l'iteration actuelle est terminee pour le camion (il a ï¿½puisï¿½ tout son temps)
+	/**@return true si l'iteration actuelle est terminee pour le camion (il a epuise tout son temps)*/
 	//
 	protected boolean iterFinished() {
 		return this.iterFinished;
 	}
 
-	//reset les statistiques de productivite du camion
+	/**Reset les statistiques de productivite du camion.*/
 	protected void resetStats() {
 		this.numberOfRuns = 0;
 		this.waitTime = 0;
@@ -525,72 +529,58 @@ public abstract class Camion {
 		for(int i = 0 ; i < mine.getSteriles().size(); i++) {
 			waitTimePerStation.put(mine.getSteriles().get(i), 0.);
 			nbVisitPerStation.put(mine.getSteriles().get(i), 0);
-
 		}
-
 	}
 
-
-
-	//met le camion en attente
-	//
+	/**Met le camion en attente*/
 	protected void setAttenteState() {
 		if(this.state != Camion.ETAT_JUSTE_ARRIVE) {
 			throw new IllegalStateException("Le camion doit etre en etat ETAT_JUSTE_ARRIVE pour etre mis en attente. Etat actuel : "+this.state);
-			
 		}
 		int newVisitNb = this.nbVisitPerStation.get(currentStation)+1;
 		
 		this.nbVisitPerStation.replace(currentStation, newVisitNb);
 		
 		this.state = Camion.ETAT_ATTENTE;
-
 	}
 
-	//prepare le camion pour le debut d'une iteration
-	//
+	/**Prepare le camion pour le debut d'une iteration*/
 	protected void setBeginIter(double stepSize) {
 		this.iterCurrentTime = 0;
 		this.iterStepSize = stepSize;
 		this.iterFinished = false;
 	}
 
-	//fait attendre le camion jusqu'ï¿½ la fin du tour
-	//
-	/*
-	protected void waitUntilEndIter() {
-		this.attend(this.getRemainingTimeInTurn());
-		this.iterFinished = true;
-	}
-	*/
-
-	//met le camion en traitement
+	/**Met le camion en traitement*/
 	protected void setEnTraitement() {
 		if(this.currentStation==null) {
 			throw new IllegalStateException("Ne peut pas etre mis en traitement si aucune station courante.");
 		}
 		this.state = Camion.ETAT_EN_TRAITEMENT;
-		
 	}
 
 	
-
+	/**Lorsque le camion a terminé de se faire traiter a un concentrateur ou un sterile, augmente le nombre de "voyages" qu'il a effectue.*/
 	protected void setNumberOfRuns(int numberOfRuns) {
 		this.numberOfRuns = numberOfRuns;
 	}
-
+	
+	/** Set le type de roches dans le camion*/
 	protected void setRockType(RockType rt) {
 		this.rockType = rt;
 	}
 
+	/** Set la vitesse du camion*/
 	protected void setSpeed(double speed) {
 		this.speed = speed;
 	}
 
-	//met le camion en etat inactif
+	/**Met le camion en etat inactif*/
 	protected void setStateInactif() {
 		this.state = Camion.ETAT_INACTIF;
 	}
+	
+	/** @return le temps de transport a vide du camion.*/
 	public double getEmptyTravelTime() {
 		return this.emptyTravelTime;
 	}

@@ -25,6 +25,9 @@ public class MineSimulator implements GuiListener {
 	//duree d'un pas de temps (secondes)
 	protected static double TIME_INCREMENT = 4; // secondes
 
+	/**nombre de pas d'increment avant le debut de l'affichage*/
+	protected static int NB_WARMUP_STEPS = 300;
+
 	protected static double TIME_INCREMENT_WARMUP = 60;//1 minute 
 
 	//engin de d�cision
@@ -1031,7 +1034,7 @@ public class MineSimulator implements GuiListener {
 		// Effectue les steps
 		//
 		mine.setInWarmup(true);
-		for(int i = 0 ; i < Mine.NB_WARMUP_STEPS; i++) {
+		for(int i = 0 ; i < MineSimulator.NB_WARMUP_STEPS; i++) {
 			step();
 		}
 

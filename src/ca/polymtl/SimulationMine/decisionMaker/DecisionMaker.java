@@ -234,7 +234,7 @@ public class DecisionMaker {
 		else if(camion.getState() == Camion.ETAT_ATTENTE&& !camion.getCurrentStation().isDecharge) {
 			throw new IllegalArgumentException("impossible d'évaluer le temps avant dispo pour un camion en attente à une pelle");
 		}
-		else if(camion.getState()== Camion.ETAT_EN_ROUTE && !camion.getObjective().isDecharge) {
+		else if(camion.getState()== Camion.ETAT_EN_ROUTE && !camion.getDestination().isDecharge) {
 			throw new IllegalArgumentException("impossible d'évaluer le temps avant dispo pour un camion en route vers une pelle");
 		}
 	
@@ -246,8 +246,8 @@ public class DecisionMaker {
 			return 0;
 		}
 		//si le camion est en route pour se faire décharger
-		else if(camion.getState() == Camion.ETAT_EN_ROUTE && camion.getObjective().isDecharge) {
-			Station objective = camion.getObjective();
+		else if(camion.getState() == Camion.ETAT_EN_ROUTE && camion.getDestination().isDecharge) {
+			Station objective = camion.getDestination();
 			//temps avant d'arriver
 			double distance = camion.getLocation().distance(objective.getLocation());
 			double tempsDeplacement = distance/(camion.getSpeed()*mine.getMeteoFactor());
@@ -255,7 +255,7 @@ public class DecisionMaker {
 	
 			//temps avant que la station ne commence à traiter le camion
 			double tempsTraitementCurrent = 0;
-			if(camion.getObjective().getCamionEnTraitement()!= null) {
+			if(camion.getDestination().getCamionEnTraitement()!= null) {
 				tempsTraitementCurrent = objective.getCamionEnTraitement().getCharge()/objective.averageTraitementSpeed();
 			}
 			double qteATraiter = 0;
@@ -263,7 +263,7 @@ public class DecisionMaker {
 			for(int i = 0 ; i < mine.getCamions().size(); i++) {
 				Camion c = mine.getCamions().get(i);
 				if(c.getState() == Camion.ETAT_EN_ROUTE && 
-						c.getObjective().equals(objective) && 
+						c.getDestination().equals(objective) && 
 						c.getLocation().distance(objective.getLocation())/c.getAvgSpeed() < distance/camion.getAvgSpeed()) {
 					qteATraiter+=c.getCharge();
 				}
@@ -285,7 +285,7 @@ public class DecisionMaker {
 		}
 		//si le camion est en déchargement
 		else if(camion.getState() == Camion.ETAT_EN_TRAITEMENT && camion.getCurrentStation().isDecharge) {
-			return camion.getCharge()/camion.getObjective().averageTraitementSpeed();
+			return camion.getCharge()/camion.getDestination().averageTraitementSpeed();
 	
 		}
 		//si le camion est en attente à la station de déchargement
@@ -338,7 +338,7 @@ public class DecisionMaker {
 				//si le camion se qualifie
 				//
 				Camion c = camionsClone.get(j);
-				if((c.getState() == Camion.ETAT_EN_ROUTE && c.getObjective().isDecharge) ||
+				if((c.getState() == Camion.ETAT_EN_ROUTE && c.getDestination().isDecharge) ||
 						(c.getState() == Camion.ETAT_ATTENTE && c.getCurrentStation().isDecharge)||
 						(c.getState() == Camion.ETAT_EN_TRAITEMENT) && c.getCurrentStation().isDecharge) {
 					double temps = calculeTempsAvantDispo(camionsClone.get(j));
@@ -554,8 +554,8 @@ public class DecisionMaker {
 		double distanceEntreCamionEtPelle = camion.getLocation().distance(station.getLocation());
 		//si le camion est deja en route vers une autre destination (sterile ou concentrateur) prend la distance jusqu'a la destination, 
 		//plus la distance entre la destination et la pelle
-		if(camion.getObjective() != null && !camion.getObjective().equals(station) ) {
-			distanceEntreCamionEtPelle =  camion.getLocation().distance(camion.getObjective().getLocation())+ camion.getObjective().getLocation().distance(station.getLocation());
+		if(camion.getDestination() != null && !camion.getDestination().equals(station) ) {
+			distanceEntreCamionEtPelle =  camion.getLocation().distance(camion.getDestination().getLocation())+ camion.getDestination().getLocation().distance(station.getLocation());
 
 		}
 		return distanceEntreCamionEtPelle;
@@ -569,14 +569,14 @@ public class DecisionMaker {
 		// - sinon, retourne 0 (dans le problème d'assignation, le score sera 0 pour toutes les pelles, donc c'est comme si on ne prenait pas en compte le camion).
 
 		
-		if( (camion.getState() == Camion.ETAT_EN_ROUTE && camion.getObjective().isDecharge == true) || //si le camion va se faire décharger
+		if( (camion.getState() == Camion.ETAT_EN_ROUTE && camion.getDestination().isDecharge == true) || //si le camion va se faire décharger
 				(camion.getState() == Camion.ETAT_EN_TRAITEMENT && camion.getCurrentStation().isDecharge == true) || //si le camion est en traitement
 				(camion.getState()== Camion.ETAT_ATTENTE && camion.getCurrentStation().isDecharge == true) //si le camion est en attente de se faire décharger
 				) {
 			
 			Station s = null;
 			if(camion.getState() == Camion.ETAT_EN_ROUTE) {
-				s = camion.getObjective();
+				s = camion.getDestination();
 			}
 			else {
 				s = camion.getCurrentStation();
@@ -602,7 +602,7 @@ public class DecisionMaker {
 			//
 			for(int i = 0 ; i < mine.getCamions().size(); i++) {
 				Camion c = mine.getCamions().get(i);
-				if(c.getState() == Camion.ETAT_EN_ROUTE && c.getObjective().equals(pelle) && c.getLocation().distance(pelle.getLocation()) < distanceEntreStationEtPelle) {
+				if(c.getState() == Camion.ETAT_EN_ROUTE && c.getDestination().equals(pelle) && c.getLocation().distance(pelle.getLocation()) < distanceEntreStationEtPelle) {
 					qteAvantDisponible += c.getChargeMax();
 				}
 			}
@@ -719,7 +719,7 @@ public class DecisionMaker {
 			for(int i = 0 ; i < camionsClone.size(); i++) {
 
 				Camion camionIter = camionsClone.get(i);
-				if(camionIter.getState() == Camion.ETAT_EN_ROUTE && camionIter.getObjective() == station) {
+				if(camionIter.getState() == Camion.ETAT_EN_ROUTE && camionIter.getDestination() == station) {
 					double distance = camionIter.getLocation().distance(station.getLocation());
 					double tempsParcoursRestant = distance/( camionIter.getAvgSpeed()*mine.getMeteoFactor());
 					//2e condition : on ne considere pas les camions qui arrivent apres le camion a optimiser
@@ -848,13 +848,13 @@ public class DecisionMaker {
 		boolean objectiveIsSterile = false;
 
 		for(int i = 0 ; i < mine.getConcentrateurs().size(); i++) {
-			if(camion.getObjective() == mine.getConcentrateurs().get(i)) {
+			if(camion.getDestination() == mine.getConcentrateurs().get(i)) {
 				objectiveIsConcentrator = true;
 				break;
 			}
 		}
 		for(int i = 0 ; i < mine.getSteriles().size(); i++) {
-			if(camion.getObjective() == mine.getSteriles().get(i)) {
+			if(camion.getDestination() == mine.getSteriles().get(i)) {
 				objectiveIsSterile= true;
 				break;
 			}
@@ -933,7 +933,7 @@ public class DecisionMaker {
 		//nombre de camions presentement en route pour la pelle
 		int nbCamionsEnRoutePourLaPelle = 0;
 		for(int i = 0 ; i < camions.size(); i++) {
-			if(camions.get(i).getState() == Camion.ETAT_EN_ROUTE && camions.get(i).getObjective() == pelle) {
+			if(camions.get(i).getState() == Camion.ETAT_EN_ROUTE && camions.get(i).getDestination() == pelle) {
 				nbCamionsEnRoutePourLaPelle++;
 			}
 		}
