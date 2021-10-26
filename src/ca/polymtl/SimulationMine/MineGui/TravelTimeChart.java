@@ -74,7 +74,7 @@ public class TravelTimeChart extends JFrame implements MineSimulationListener{
 		}
 
 		//clé d'origine/destination
-		String ODKey = TravelTimePredictor.getMapKeyForODPair(camion.getOrigine(), camion.getObjective());
+		String ODKey = TravelTimePredictor.getMapKeyForODPair(camion.getOrigine(), camion.getDestination());
 
 		if(camion.getPredictedTravelTime() >0) {			
 			addDataPoint("pred:"+ODKey, time, camion.getPredictedTravelTime()/camion.getPredictTimeAdjustFactor());

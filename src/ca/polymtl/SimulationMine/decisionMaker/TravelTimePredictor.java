@@ -83,7 +83,7 @@ public class TravelTimePredictor {
 		}
 
 		//clé d'origine/destination
-		String ODKey = getMapKeyForODPair(camion.getOrigine(), camion.getObjective());
+		String ODKey = getMapKeyForODPair(camion.getOrigine(), camion.getDestination());
 		
 		double adjustedRealTravelTime= camion.getCurrentTravelTime()/camion.getPredictTimeAdjustFactor();
 		double adjustedPredictedTravelTime = camion.getPredictedTravelTime()/camion.getPredictTimeAdjustFactor();

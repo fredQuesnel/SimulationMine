@@ -101,7 +101,7 @@ public class CustomDecisionMaker extends DecisionMaker {
 		//nombre de camions presentement en route pour la pelle
 		nbCamionsEnRoutePourLaPelle = 0;
 		for(int i = 0 ; i < camions.size(); i++) {
-			if(camions.get(i).getState() == Camion.ETAT_EN_ROUTE && camions.get(i).getObjective() == pelle) {
+			if(camions.get(i).getState() == Camion.ETAT_EN_ROUTE && camions.get(i).getDestination() == pelle) {
 				nbCamionsEnRoutePourLaPelle++;
 			}
 		}
