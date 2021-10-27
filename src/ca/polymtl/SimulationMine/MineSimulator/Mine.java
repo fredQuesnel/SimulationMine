@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 
 import ca.polymtl.SimulationMine.decisionMaker.TravelTimePredictor;
+import javafx.util.Pair;
 
 
 public class Mine {
@@ -125,6 +126,8 @@ public class Mine {
 
 	/** Nombre de "petits" camions (60 t)*/
 	private int numberSmallCamions;
+
+	private ArrayList<Pair<Station, Station>> routes;
 
 	
 	/** Cree la liste des configurations de mine. Les configurations sont les fichier dans le dossier "mines" qui ont l'extension ".mine"
@@ -525,6 +528,7 @@ public class Mine {
 
 			}
 
+			createRoutes();
 			//determine si on utilise le nombre de camions par defaut
 			//
 			if(nbSmallCamions == -1) {
@@ -643,6 +647,28 @@ public class Mine {
 			createFailureScenarios(failureScenariosFilename);
 		}
 	}
+
+	/**
+	 * Cree les routes. Il y a une route entre :
+	 *  - Chaque concentrateur et chaque pelle.
+	 *  - Chaque sterile et chaque pelle.
+	 */
+	private void createRoutes() {
+		routes = new ArrayList<Pair<Station, Station>>();
+		
+		for(int i = 0 ; i < concentrateurs.size(); i++) {
+			for(int j = 0 ; j < pelles.size(); j++) {
+				routes.add(new Pair<Station, Station>(concentrateurs.get(i), pelles.get(j)));
+			}
+		}
+		for(int i = 0 ; i < steriles.size(); i++) {
+			for(int j = 0 ; j < pelles.size(); j++) {
+				routes.add(new Pair<Station, Station>(steriles.get(i), pelles.get(j)));
+				
+			}
+		}		
+	}
+
 
 	/**
 	 * Cree les scenarios de panne a partir d'un fichier.
@@ -853,6 +879,25 @@ public class Mine {
 		fs = failureScenarios.get(index);
 		}
 		return fs;
+	}
+
+
+	/**
+	 *	Détermine si il y a une route entre la station 1 et la station 2. 
+	 * @param station1
+	 * @param station2
+	 * @return true si il y a une route entre la station1 et la station2, false sinon.
+	 */
+	public boolean routeEntre(Station station1, Station station2) {
+		
+		for(int i = 0 ; i < routes.size(); i++) {
+			if(routes.get(i).getKey().equals(station1) && routes.get(i).getValue().equals(station2) ||
+					routes.get(i).getKey().equals(station2) && routes.get(i).getValue().equals(station1)	) {
+				return true;
+			}
+			
+		}
+		return false;
 	}
 
 

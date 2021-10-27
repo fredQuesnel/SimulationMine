@@ -244,9 +244,9 @@ public class CustomDecisionMaker extends DecisionMaker {
 		//System.out.println("attente esperee camion "+attenteEspereeCamion);
 		//convertis en secondes pour éviter instabilités
 		//
-		double penaliteQuadAttentePelle = super.calculePenaliteQuadAttentePelle(attenteEspereePelle/3600., pelle.cibleAttentePelleSeconds()/3600.);
+		double penaliteQuadAttentePelle = (attenteEspereePelle/3600. - pelle.cibleAttentePelleSeconds()/3600.) *(attenteEspereePelle/3600. - pelle.cibleAttentePelleSeconds()/3600.);
 
-		double penaliteQuadAttenteCamion = super.calculePenaliteQuadAttenteCamion(attenteEspereeCamion/3600.,0);// pelle.cibleAttenteCamionSeconds()/3600.);
+		double penaliteQuadAttenteCamion = (attenteEspereeCamion/3600.)*(attenteEspereeCamion/3600.);
 
 		
 		/* Lire la documentation pour voir comment accéder aux autres caractéristiques des pelles et des camions
