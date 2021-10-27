@@ -110,7 +110,9 @@ public class DecisionMaker {
 		Station returnStation = null;
 		//si remplis de sterile, choisis parmis les steriles
 		if(pelle.getRockType().getPercentIron() == 0 && pelle.getRockType().getPercentSulfur() ==0) {
-			returnStation = mine.getSteriles().get((int) Math.random()*mine.getSteriles().size());
+			int index = (int) (Math.random()*mine.getSteriles().size());
+			System.out.println(mine.getSteriles().size()+" steriles. index "+index);
+			returnStation = mine.getSteriles().get(index);
 		}
 		//sinon, choisis parmis les concentrateurs
 		else {
@@ -278,7 +280,7 @@ public class DecisionMaker {
 	 * @return temps d'attente espere
 	 */
 	protected double calculeTempsAttenteEspereePelle(Camion camion, Pelle pelle) {
-		boolean debug = true;
+		boolean debug = false;
 		
 		double tempsAttente = 0;
 
@@ -759,15 +761,18 @@ public class DecisionMaker {
 
 		if(scoreFunctionString.equals(DecisionMaker.OPTIMAL_SCORE_MIN_ATTENTE_PELLE_FUNCTION_STRING)){
 			double attenteEspereePelle = calculeTempsAttenteEspereePelle(camion, pelle);
+			//if(attenteEspereePelle < 0) attenteEspereePelle = 0;
 			double tempsEspereAvantDebutRemplissage = calculeTempsEspereAvantTraitement(camion, pelle);
 			double distanceEntreCamionEtPelle = calculeDistanceEntreCamionEtStation(camion, pelle);
 
 			double tempsDeParcoursEspere = distanceEntreCamionEtPelle/( camion.getAvgSpeed()*mine.getMeteoFactor());
 			double attenteEspereeCamion = tempsEspereAvantDebutRemplissage - tempsDeParcoursEspere;
-			if(attenteEspereeCamion < 0) {
-				attenteEspereeCamion = 0;
-			}
-			return attenteEspereePelle*Math.abs(attenteEspereePelle)+ attenteEspereeCamion*Math.abs(attenteEspereeCamion)*0.8;
+			//if(attenteEspereeCamion < 0) {
+			//	attenteEspereeCamion = 0;
+			//}
+			return attenteEspereePelle*Math.abs(attenteEspereePelle)+ attenteEspereeCamion*Math.abs(attenteEspereeCamion);
+			//return Math.sqrt(attenteEspereeCamion)+Math.sqrt(attenteEspereePelle);
+			//return attenteEspereePelle;
 		}
 		
 		//score max
@@ -1053,7 +1058,7 @@ public class DecisionMaker {
 	 */
 	private HashMap<Camion, Pelle> resoutProblemeAssignation(ArrayList<Camion> camions, ArrayList<Pelle> pelles	) {
 
-		boolean debug = true;
+		boolean debug = false;
 
 
 

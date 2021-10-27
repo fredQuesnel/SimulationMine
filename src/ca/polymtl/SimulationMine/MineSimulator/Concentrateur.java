@@ -3,7 +3,7 @@ package ca.polymtl.SimulationMine.MineSimulator;
 public class Concentrateur extends Station {
 
 	/** Vitesse moyenne de remplissage (en tonnes secondes)*/
-	public final static double AVERAGE_DECHARGE_SPEED = 1;//1./2.;
+	public final static double AVERAGE_DECHARGE_SPEED = 1.3;//1./2.;
 
 	/** Écart type sur la vitesse de remplissage*/
 	public final static double ECART_TYPE_DECHARGE_SPEED = 1./30.;
