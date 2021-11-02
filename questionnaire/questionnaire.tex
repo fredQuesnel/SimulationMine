@@ -3,162 +3,7 @@
 
 \listfiles
 
-%\usepackage{setspace}
-%\doublespacing
-\usepackage{pdfcomment}
-%usepackage{hyperref}
-\hypersetup{hidelinks}
-
-%%  Accepte les caractères accentués dans le document (UTF-8).
-\usepackage[utf8]{inputenc}
-%\usepackage[french]{babel}
-\usepackage[T1]{fontenc}
-
-\usepackage[bb=boondox]{mathalfa}
-
-
-
-
-%change les references aux equations
-%\let\oldref\ref
-%\renewcommand{\ref}[1]{\in@{eq:}{#1} \ifin@ (\oldref{#1}) \else \oldref{#1} \fi}
-
-%commentaires
-\usepackage{verbatim}
-
-%double espacement
-\usepackage{setspace}
-% \doublespacing
-
-%notes sur le pdf
-
-
-%------------------------------
-%packages pour tableaux
-\usepackage[table,xcdraw]{xcolor}
-\usepackage{rotating}
-
-%-----------------------------
-
-%packages pour figures
-%\usepackage{fancybox}
-\usepackage{epsfig}
-\usepackage{graphicx}
-
-
-%------------------------------------------------
-%Bibliographie
-
-%ancienne
-%\usepackage[round]{natbib}
-%\usepackage{numcompress}
-%\bibliographystyle{model4-names}
-
-% Natbib setup for author-year style
-\usepackage{natbib}
-\bibpunct[, ]{(}{)}{,}{a}{}{,}%
-\def\bibfont{\small}%
-\def\bibsep{\smallskipamount}%
-\def\bibhang{24pt}%
-\def\newblock{\ }%
-\def\BIBand{and}%
-\bibliographystyle{informs2014trsc}
-
-%\usepackage[strings]{underscore}
-%\bibliographystyle{plainnat}
-%------------------------------------------------
-
-%-----------------------------------------
-%TIKZ
-\usepackage{tikz}
-\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
-\usetikzlibrary{patterns}
-\usetikzlibrary{calc, graphs}
-
-
-\tikzset{hide on/.code={\only<#1>{\color{fg!20}}}}
-\tikzset{
-	invisible/.style={opacity=0},
-	visible on/.style={alt=#1{}{invisible}},
-	alt/.code args={<#1>#2#3}{%
-		\alt<#1>{\pgfkeysalso{#2}}{\pgfkeysalso{#3}} % \pgfkeysalso doesn't change the path
-	},
-} 
-\tikzset{
-	depnode/.style={circle, minimum size=0.3cm, draw, thin},
-	arrnode/.style={circle, minimum size=0.3cm, draw, thin, fill=black},
-	waitnode/.style={circle, minimum size=0.3cm, draw, thin, pattern = north east lines},
-	sourcesinknode/.style={circle, draw, minimum size=0.3cm, line width=0.1cm},
-	wait/.style={->, >=triangle 45, thin},
-	nullarc/.style={->, >=open triangle 45, thin},
-	flight/.style={->, >=stealth, thin},
-	deadhead/.style={->, >=stealth, thin, bend left=10, dashed},
-	connect/.style={->, >=open diamond, thin},
-	rest/.style={->, >=diamond, thin},
-	begend/.style={->, >=stealth, thick, dotted}
-}
-%-------------------------------------------
-
-
-%packages de math
-\usepackage{amssymb}
-\usepackage{amsmath}
-
-\usepackage{caption}
-
-%packages divers
-\usepackage{enumerate}
-\usepackage[top=1in, bottom=1in, left=1in, right=1in]{geometry}
-
-%packagespour tableaux
-\usepackage{multirow}
-%\renewcommand{\arraystretch}{0.6}
-
-%packages et commande pour décrire les algorithmes
-%\usepackage{algorithm}
-%\usepackage{algorithmicx}
-%\usepackage{algpseudocode}
-
-%packages pour bibliographie
-
-%% Vancouver numbered
-%\usepackage{numcompress}\bibliographystyle{model3-num-names}
-%\usepackage{natbib}
-%\usepackage{bibentry}
-
-%couleur
-\usepackage{color}
-
-
-
-%commandes personnalisées
-
-%mettre parentheses automatiquement aux references
-\let\oldref\ref
-\makeatletter
-\newcommand\myref[1]{\oldref{#1}}
-\makeatother
-%les accolades supplémentaires sont pour que tout soit inclus dans les commandes comme les exposants (on peut faire $x^\ref{...}$)
-\renewcommand{\ref}[1]{{\myref{#1}}}
-\renewcommand{\eqref}[1]{{(\myref{#1})}}
-
-\renewcommand*{\thesubsection}{Question \arabic{section}.\arabic{subsection}}
-
-\newcommand{\red}[1]{{\color{red}[#1]}}
-\newcommand{\new}[1]{{\bfseries#1}}
-\usepackage[breakable]{tcolorbox}
-\newcommand{\nouveau}[2][]{
-	\begin{center}
-		\begin{tcolorbox}[left=0pt, right=0pt, boxsep=5pt, width=1.03\textwidth, colframe=red!75!black,title={\textbf{\Large Nouveau! #1}},coltitle=black, colbacktitle=white, colback=white, breakable]
-			#2
-			
-		\end{tcolorbox} 
-	\end{center}
-}
-
-\newcommand{\note}[1]{\red{#1}}
-
-
+\input{packages}
 
 %\renewcommand{\baselinestretch}{1.5} 
 
@@ -174,6 +19,10 @@
 	\maketitle
 	
 	\setcounter{section}{-1}
+	
+	%========================================================================================
+	% Section 0
+	%========================================================================================
 	\section{Avant de commencer...}
 	Ce TP concerne l'optimisation des opérations d'une mine à ciel ouvert. Il est basé sur un vrai projet de recherche mené par un professeur de Polytechnique. Dans ce TP, vous étudirez un modèle simplifié de mine à ciel ouvert à l'aide d'un simulateur. Une présentation décrivant le fonctionnement de la mine et du simulateur se trouve sur Moodle. Il est fortement recommandé de relire ce document avant de commencer. Pour toute question concernant le simulateur ou cet énoncé, ou encore pour signaler un bogue du simulateur, n'hésitez pas à contacter à Frédéric Quesnel. 
 	
@@ -181,9 +30,12 @@
 	Il est encouragé d'inclure des tableaux ou des graphiques pertinents à vos réponses. Toutefois, le coeur de l'évaluation portera sur votre analyse et vos conclusions. 
 	
 	
-	%---------------------------------------------------------------------------------------------------------
-	\section{Prédiction des temps de parcours}
+	%========================================================================================
+	% Section 0
+	%========================================================================================
 	
+	\section{Prédiction des temps de parcours}
+
 	Le temps de parcours d’un camion sur un chemin varie de manière stochastique, et peut être influencé par divers facteurs tels que l’état de la route ou la météo. Il est important d'être en mesure d'estimer correctement ces temps de parcours afin de bien planifier les opérations. Dans cette section, vous étudierez trois formules qui peuvent être utilisées pour estimer les temps de parcours. 
 	
 	Lorsqu'un camion débute un trajet, la formule de prédiction estime son temps de parcours. Il s'agit du \textit{temps de parcours prédit}. Lorsque le camion arrive à sa destination, son \textit{temps de parcours observé} est enregistré. Dams le simulateur, le graphe \textit{Temps de parcours observés et prédits} affiche les temps observés et prédits des camions sur deux chemins spécifiques (la légende indique de quels chemins il s'agit).
@@ -287,10 +139,16 @@
 	
 	\textbf{Indice :} Vous pouvez utiliser une équation de récurrence.
 	
-	%---------------------------------------------------------------------------------------------------------
-	\section{Affectation des camions un par un}
+	
+
+	%===========================================================================
+	% Affectation des camions pour maximiser la production
+	%===========================================================================
+	\section{Affectation des camions pour maximiser la production}
 	\label{sec:score}
-	Lorsqu'un camion arrive au concentrateur ou à la pile de stérile, il se décharge instantanément et devient disponible. On doit alors lui assigner une nouvelle destination. Le but de cette section est de déterminer une règle qui assigne au camion sa prochaine destination (pelle). L'assignation se fait de la manière suivante : un score est calculé pour l'assignation du camion à chaque pelle. La pelle avec le \textbf{plus petit} score est choisie (en cas d'égalité, la pelle avec le plus petit numéro est choisie).
+	
+	Lorsqu'un camion viens de se faire décharger, il devient disponible et on doit lui assigner une nouvelle destination. Le but de cette section est de développer des stratégies pour choisir où affecter un camion disponible. 
+	
 	
 	\subsection*{Protocole expérimental : }
 	
@@ -311,14 +169,21 @@
 	
 	\subsection{} 
 	
-	Vous désirez optimiser la production totale (minerai + stérile), sans tenir compte du plan de travail des pelles. 
+	Nous souhaitons maximiser la production total (minerai + stérile). Pour cette question, vous devrez entrer une formule dans le champs \textit{fonction de score} de l'interface graphique. Cette formule calcule un score pour chaque pelle, correspondant à l'utilité d'affecter le camion disponible à la pelle. Le logiciel assigne le camion à la pelle ayant le plus petit score. En cas d'égalité, la pelle avec le plus petit numéro est choisi.
 	
-	Par défaut, l'assignation se fait à partir de la fonction écrite dans le champ \textit{fonction de score} de l'interface graphique. Vous devez élaborer une fonction de score à l'aide des variables fournies dans la section \ref{sec:vars}, ainsi que des opérations élémentaires (+, -, *, /, \%). Les exposants peuvent également être utilisés à l'aide de la fonction Java {\verb Math.pow([base], [exopsant])}. Par exemple, entrer la formule "n1" envoie toujours un camion disponible à la pelle ayant le moins de camions en attente.
+	Dans votre fonction de score, vous pouvez utiliser les variables fournies dans la section \ref{sec:vars}, ainsi que les opérations éléentaires (+, -, *, /, \%). Les exposants peuvent également être utilisés à l'aide de la fonction Java (\verb!Math.pow([base], [exopsant]!). Par exemple, entrer la formule "n1" envoie toujours un camion disponible à la pelle ayant le moins de camions en attente.
+	
+	Dans votre réponse, 
+	\begin{itemize}
+		\item Expliquez le raisonnement derrière votre fonction de score.
+		\item Comparez la production obtenue avec votre formule d'assignation avec celle d'une assignation aléatoire.
+	\end{itemize}
 	
 	
+	\subsection{}
 	
-	Expliquez votre choix de fonction de score. Observez-vous une hausse de productivité (par rapport à une assignation aléatoire)? Si oui, de combien? 
-	
+	Un collègue propose de résoudre un problème d'affectation. Est-ce une bonne idée? Pourquoi?
+
 	
 	
 	\begin{comment}
@@ -341,7 +206,7 @@
 		\item Le concentrateur doit avoir au plus 1.9\% de soufre, et entre 26\% et 27\% de fer.
 	\end{itemize}
 	
-	Vous devez créer une fonction de score permettant d'arriver à cet objectif en modifiant les fonctions (\verb computeDecisionScore $\;$et \verb computeCustomDecisionScore) dans le fichier \verb CustomDecisionMaker.java. La fonction \verb!computeCustomDecisionScore! vous donne accès à l'ensemble des camions, aux pelles, et à la mine en général (la documentation de ces classes est fournie avec le code). Vous pouvez également utiliser les variables définies au début du fichier. 
+	Vous devez créer une fonction de score permettant d'arriver à cet objectif en modifiant les fonctions (\verb!computeDecisionScore!  et \verb!computeCustomDecisionScore!) dans le fichier \verb!CustomDecisionMaker.java!. La fonction \verb!computeCustomDecisionScore! vous donne accès à l'ensemble des camions, aux pelles, et à la mine en général (la documentation de ces classes est fournie avec le code). Vous pouvez également utiliser les variables définies au début du fichier. 
 	
 	\begin{itemize}
 		\item Décrivez brièvement votre fonction et expliquez le raisonnement derrière celle-ci.

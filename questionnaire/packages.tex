@@ -1,0 +1,161 @@
+
+%\usepackage{setspace}
+%\doublespacing
+\usepackage{pdfcomment}
+%usepackage{hyperref}
+\hypersetup{hidelinks}
+
+%%  Accepte les caractères accentués dans le document (UTF-8).
+\usepackage[utf8]{inputenc}
+%\usepackage[french]{babel}
+\usepackage[T1]{fontenc}
+
+\usepackage[bb=boondox]{mathalfa}
+
+
+
+
+
+
+%change les references aux equations
+%\let\oldref\ref
+%\renewcommand{\ref}[1]{\in@{eq:}{#1} \ifin@ (\oldref{#1}) \else \oldref{#1} \fi}
+
+%commentaires
+\usepackage{verbatim}
+
+%double espacement
+\usepackage{setspace}
+% \doublespacing
+
+%notes sur le pdf
+
+
+%------------------------------
+%packages pour tableaux
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{rotating}
+
+
+%-----------------------------
+
+%packages pour figures
+%\usepackage{fancybox}
+\usepackage{epsfig}
+\usepackage{graphicx}
+
+
+%------------------------------------------------
+%Bibliographie
+
+%ancienne
+%\usepackage[round]{natbib}
+%\usepackage{numcompress}
+%\bibliographystyle{model4-names}
+
+% Natbib setup for author-year style
+\usepackage{natbib}
+\bibpunct[, ]{(}{)}{,}{a}{}{,}%
+\def\bibfont{\small}%
+\def\bibsep{\smallskipamount}%
+\def\bibhang{24pt}%
+\def\newblock{\ }%
+\def\BIBand{and}%
+\bibliographystyle{informs2014trsc}
+
+
+%\usepackage[strings]{underscore}
+%\bibliographystyle{plainnat}
+%------------------------------------------------
+
+%-----------------------------------------
+%TIKZ
+\usepackage{tikz}
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
+\usetikzlibrary{patterns}
+\usetikzlibrary{calc, graphs}
+
+
+\tikzset{hide on/.code={\only<#1>{\color{fg!20}}}}
+\tikzset{
+	invisible/.style={opacity=0},
+	visible on/.style={alt=#1{}{invisible}},
+	alt/.code args={<#1>#2#3}{%
+		\alt<#1>{\pgfkeysalso{#2}}{\pgfkeysalso{#3}} % \pgfkeysalso doesn't change the path
+	},
+} 
+\tikzset{
+	depnode/.style={circle, minimum size=0.3cm, draw, thin},
+	arrnode/.style={circle, minimum size=0.3cm, draw, thin, fill=black},
+	waitnode/.style={circle, minimum size=0.3cm, draw, thin, pattern = north east lines},
+	sourcesinknode/.style={circle, draw, minimum size=0.3cm, line width=0.1cm},
+	wait/.style={->, >=triangle 45, thin},
+	nullarc/.style={->, >=open triangle 45, thin},
+	flight/.style={->, >=stealth, thin},
+	deadhead/.style={->, >=stealth, thin, bend left=10, dashed},
+	connect/.style={->, >=open diamond, thin},
+	rest/.style={->, >=diamond, thin},
+	begend/.style={->, >=stealth, thick, dotted}
+}
+%-------------------------------------------
+
+
+%packages de math
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+\usepackage{caption}
+
+%packages divers
+\usepackage{enumerate}
+\usepackage[top=1in, bottom=1in, left=1in, right=1in]{geometry}
+
+%packagespour tableaux
+\usepackage{multirow}
+%\renewcommand{\arraystretch}{0.6}
+
+%packages et commande pour décrire les algorithmes
+%\usepackage{algorithm}
+%\usepackage{algorithmicx}
+%\usepackage{algpseudocode}
+
+%packages pour bibliographie
+
+%% Vancouver numbered
+%\usepackage{numcompress}\bibliographystyle{model3-num-names}
+%\usepackage{natbib}
+%\usepackage{bibentry}
+
+%couleur
+\usepackage{color}
+
+
+
+%commandes personnalisées
+
+%mettre parentheses automatiquement aux references
+\let\oldref\ref
+\makeatletter
+\newcommand\myref[1]{\oldref{#1}}
+\makeatother
+%les accolades supplémentaires sont pour que tout soit inclus dans les commandes comme les exposants (on peut faire $x^\ref{...}$)
+\renewcommand{\ref}[1]{{\myref{#1}}}
+\renewcommand{\eqref}[1]{{(\myref{#1})}}
+
+\renewcommand*{\thesubsection}{Question \arabic{section}.\arabic{subsection}}
+
+
+
+\newcommand{\red}[1]{{\color{red}[#1]}}
+\newcommand{\new}[1]{{\bfseries#1}}
+\usepackage[breakable]{tcolorbox}
+\newcommand{\nouveau}[2][]{
+	\begin{center}
+		\begin{tcolorbox}[left=0pt, right=0pt, boxsep=5pt, width=1.03\textwidth, colframe=red!75!black,title={\textbf{\Large Nouveau! #1}},coltitle=black, colbacktitle=white, colback=white, breakable]
+			#2
+			
+		\end{tcolorbox} 
+	\end{center}
+}
+
+\newcommand{\note}[1]{\red{#1}}
