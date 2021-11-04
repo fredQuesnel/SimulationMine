@@ -8,6 +8,7 @@ import java.util.ListIterator;
 
 import javax.swing.Timer;
 
+import ca.polymtl.SimulationMine.Config;
 import ca.polymtl.SimulationMine.MineGui.GuiEvent;
 import ca.polymtl.SimulationMine.MineGui.GuiListener;
 import ca.polymtl.SimulationMine.MineGui.SommaireFrame;
@@ -65,7 +66,7 @@ public class MineSimulator implements GuiListener {
 
 
 	//constructeur
-	public MineSimulator() {
+	public MineSimulator(Config config) {
 		//cree le module en charge de l'IA des camions
 
 

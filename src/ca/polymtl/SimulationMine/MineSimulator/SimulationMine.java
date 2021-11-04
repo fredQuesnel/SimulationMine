@@ -8,6 +8,7 @@ import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import ca.polymtl.SimulationMine.Config;
 import ca.polymtl.SimulationMine.MineGui.JMineFrame;
 import ca.polymtl.SimulationMine.MineGui.TravelTimeChart;
 
@@ -38,12 +39,14 @@ public class SimulationMine {
 			e.printStackTrace();
 		}
 		
+		Config config = new Config();
+		
 		random = new Random();
 
 		random.setSeed(1962996941790320022L);
 		
 		
-		MineSimulator mineSimulator = new MineSimulator();
+		MineSimulator mineSimulator = new MineSimulator(config);
 
 		//test du sommaire
 		//SommaireFrame sf = new SommaireFrame(new MineSimulator());
