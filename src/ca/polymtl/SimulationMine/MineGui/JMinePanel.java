@@ -40,6 +40,8 @@ public class JMinePanel extends JPanel{
 	private static final long serialVersionUID = 1L;
 	private static final int INFO_RECT_CONCENTRATEUR_WIDTH = 90;
 	private static final int INFO_RECT_STERILE_HEIGHT = 35;
+	private static final Color COLOR_IRON = new Color(150, 0, 0);
+	private static final Color COLOR_SULFUR = new Color(255, 100, 0);
 	private static int STATION_WIDTH = 50;
 	private static int STATION_HEIGHT = 50;
 
@@ -54,7 +56,7 @@ public class JMinePanel extends JPanel{
 
 	private BufferedImage pelleImage;
 	private BufferedImage pellePanneImage;
-	
+
 	private BufferedImage sterileImage;
 	private BufferedImage concentrateurImage;
 
@@ -394,7 +396,7 @@ public class JMinePanel extends JPanel{
 		if(pelle.getState() == Station.STATION_STATE_PANNE) {
 			imageToDraw = this.pellePanneImage;
 		}
-		
+
 		g.drawImage(imageToDraw, (int) (point.getX()-STATION_WIDTH/2), (int) (point.getY()-STATION_HEIGHT/2), (int) (point.getX()+STATION_WIDTH/2), (int) (point.getY()+STATION_HEIGHT/2), 0, 0, pelleImage.getWidth(), pelleImage.getHeight(), null);
 
 		Font previousFont = g.getFont();
@@ -446,9 +448,9 @@ public class JMinePanel extends JPanel{
 		//
 		double percentMinerai = pelle.getRockType().getPercentIron();
 		double percentSouffre = pelle.getRockType().getPercentSulfur();
-		g.setColor(new Color(150, 0, 0));
+		g.setColor(COLOR_IRON);
 		g.drawString("Fe: "+df.format(percentMinerai)+"%",  xrect+paddingx, yrect +38 );
-		g.setColor(new Color(255, 100, 0));
+		g.setColor(COLOR_SULFUR);
 		g.drawString("S  : "+df.format(percentSouffre)+"%",  xrect+paddingx, yrect +51 );
 
 		//plan
@@ -505,16 +507,16 @@ public class JMinePanel extends JPanel{
 
 	private void paintStatsPanel(Graphics g, MineSimulator mineSimulator) {
 		int width = 330;
-		int height = 80;
+		int height = 120;
 		g.setColor(Color.black);
 
 		Mine mine = mineSimulator.getMine();
 		//format des nombres
-		
+
 		int nbDays = mine.getDayNumber();
-		
+
 		double time = mine.getTime()/3600 - nbDays*24;
-		
+
 		int nbHours = (int) time;
 		int nbMin = (int) ((time-nbHours)*60);
 		String timeStr = "Jour "+(nbDays+1)+"   ";
@@ -539,12 +541,50 @@ public class JMinePanel extends JPanel{
 
 		//g.drawString("Temps ecoule : ", this.getWidth()-width+20, 30);
 		g.drawString(timeStr, this.getWidth()-width+20, 30);
-		g.drawString(" h", this.getWidth()-width+140, 30);
+
+		//Quantite concentrateur
+		//
+		double totalConcentrateur = 0;
+		double percentSulfur = 0;
+		double percentIron = 0;
+		for(Concentrateur c : mine.getConcentrateurs()) {
+			totalConcentrateur += c.getTotalQuantity();
+			percentSulfur += c.getQuantitySulfur();
+			percentIron+=c.getQuantityIron();
+		}
+		if(totalConcentrateur == 0) {
+			percentIron = 0;
+			percentSulfur = 0;
+		}
+		else {
+			percentIron = percentIron/totalConcentrateur*100;
+			percentSulfur = percentSulfur/totalConcentrateur*100;
+		}
+
+
+		String strTotalConcentrateur = String.format("%.0f\n", totalConcentrateur);
+		String strPercentSulfur = String.format("%.1f\n", percentSulfur);
+		String strPercentIron = String.format("%.1f\n", percentIron);
 		
-		g.drawString("Nombre de voyages : ", this.getWidth()-width+20, 60);
-		g.drawString(""+mineSimulator.getNumberOfRuns(), this.getWidth()-width+240, 60);
-
-
+		
+		g.drawString("Concentrateurs : ", this.getWidth()-width+20, 55);
+		g.drawString(strTotalConcentrateur+" tonnes", this.getWidth()-width+180, 55);
+		g.setColor(COLOR_IRON);
+		g.drawString("Fe :"+strPercentIron+"%", this.getWidth()-width+60, 80);
+		g.setColor(COLOR_SULFUR);
+		g.drawString("S :"+strPercentSulfur+"%", this.getWidth()-width+160, 80);
+		
+		//Stériles
+		//
+		double totalSterile = 0;
+		for(Sterile s : mine.getSteriles()) {
+			totalSterile+=s.getTotalQuantity();
+		}
+		String strTotalSterile = String.format("%.0f\n", totalConcentrateur);
+		
+		g.setColor(Color.black);
+		g.drawString("Stériles : "+strTotalSterile+" tonnes", this.getWidth()-width+20, 105);
+		
 		//DEBUG
 		// temps d'attente de tous les camions
 		/*
