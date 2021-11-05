@@ -443,8 +443,19 @@ public class JControlPanel extends JPanel{
 			comboBox.addItem(exampleIds.get(i));
 		}
 
+		int selectedIndex = -1;
+		for(int i = 0 ; i < Mine.exampleIds.size(); i++) {
+			ExampleId exId = Mine.exampleIds.get(i);
+			if(exId.getId().compareTo(parentFrame.getConfig().getDefaultMineId()) == 0 ) {
+				selectedIndex = i;
+			}
+		}
+		if(selectedIndex == -1) {
+			throw new IllegalStateException("JControlPanel::createMineConfigDrowdown Je ne trouve pas la mine avec l'id "+parentFrame.getConfig().getDefaultMineId());
+		}
+		
 		//item sélectionné
-		comboBox.setSelectedIndex(parentFrame.getMine().getExemple()-1);
+		comboBox.setSelectedIndex(selectedIndex);
 
 		mineComboBox = comboBox;
 		return comboBox;
@@ -625,7 +636,14 @@ public class JControlPanel extends JPanel{
 		//
 		this.scoreFunctionTextField = new JTextField();
 		//this.scoreFunctionString = parentFrame.getMinePanel().getMine().getScoreFunctionString();
-		scoreFunctionTextField.setText( DecisionMaker.ALEATOIRE_FUNCTION_STRING );
+		
+		String scoreFunction = parentFrame.getConfig().getDefaultScoreFunction();
+		
+		if( ! DecisionMaker.isFunctionStringValid(scoreFunction) ) {
+			throw new IllegalArgumentException("la fonction de score par defaut n'est pas valide : "+scoreFunction);
+		}
+		
+		scoreFunctionTextField.setText( scoreFunction );
 		
 		//listener
 		// Valide l'input lorsqu'une nouvelle valeur est entrée

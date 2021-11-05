@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+
+import ca.polymtl.SimulationMine.Config;
 import ca.polymtl.SimulationMine.MineSimulator.Camion;
 import ca.polymtl.SimulationMine.MineSimulator.Mine;
 import ca.polymtl.SimulationMine.MineSimulator.Mine.ExampleId;
@@ -36,14 +38,18 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 	/** Objet controlant la simulation*/
 	private MineSimulator mineSimulator;
 
+	private Config config;
+
 
 	/** Constructeur
 	 * 
 	 * Initialise les Panels
+	 * @param config 
 	 */
-	public JMineFrame(MineSimulator mineSimulator) {
+	public JMineFrame(MineSimulator mineSimulator, Config config) {
 		
 		this.mineSimulator = mineSimulator;
+		this.config = config;
 
 		listenerList = new ArrayList<GuiListener>();
 		JPanel mainPanel = new JPanel();
@@ -313,6 +319,13 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 		for(int i = 0 ; i < listenerList.size(); i++) {
 			listenerList.get(i).stopOnAssignStateChanged(selected);
 		}
+	}
+
+
+
+
+	public Config getConfig() {
+		return config;
 	}
 
 

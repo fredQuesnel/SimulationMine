@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 
+import ca.polymtl.SimulationMine.Config;
 import ca.polymtl.SimulationMine.decisionMaker.TravelTimePredictor;
 import javafx.util.Pair;
 
@@ -27,14 +28,14 @@ public class Mine {
 	public static class ExampleId{
 		
 		/**Numero d'identifiant*/
-		private int id;
+		private String id;
 		/** Nom utilise dans le GUI*/
 		private String name;
 		/** Nom de fichier decrivant la mine*/
 		private String fileName;
 		
 		/** Constructeur. Initialise les champs*/
-		public ExampleId(int id, String name, String fileName){
+		public ExampleId(String id, String name, String fileName){
 			this.id = id;
 			this.name = name;
 			this.fileName = fileName;
@@ -50,7 +51,7 @@ public class Mine {
 		 * 
 		 * @return Identifiant
 		 */
-		public int getId() {
+		public String getId() {
 			return id;
 		}
 		/**
@@ -129,6 +130,8 @@ public class Mine {
 
 	private ArrayList<Pair<Station, Station>> routes;
 
+	private Config config;
+
 	
 	/** Cree la liste des configurations de mine. Les configurations sont les fichier dans le dossier "mines" qui ont l'extension ".mine"
 	 * 
@@ -148,14 +151,23 @@ public class Mine {
 				System.out.println(mineFiles[i]);
 				try {
 					Scanner scanner = new Scanner(new File("mines/"+mineFiles[i]));
+					
 					scanner.next("id");
 					scanner.next(":");			
 					String id = scanner.findInLine(Pattern.compile("\"(.+)\""));
+					
 					//enleve les double guillemets
 					id = id.substring(1, id.length()-1);
-					System.out.println(id);
+					System.out.println("ID : "+id);
+					
+					scanner.next("name");
+					scanner.next(":");			
+					String name = scanner.findInLine(Pattern.compile("\"(.+)\""));
+					//enleve les double guillemets
+					name = name.substring(1, name.length()-1);
+					System.out.println(name);
 	
-					exampleIds.add(new ExampleId(currentIndex, id, mineFiles[i]));
+					exampleIds.add(new ExampleId(id, name, mineFiles[i]));
 					currentIndex++;
 	
 				} catch (FileNotFoundException e) {
@@ -174,8 +186,9 @@ public class Mine {
 	//------------------------------------------
 	/** constructeur qui construit une mine vide*/
 	//------------------------------------------
-	public Mine() {
+	public Mine(Config config) {
 
+		this.config = config;
 		this.pelles = new ArrayList<Pelle>();
 		this.camions= new ArrayList<Camion>();
 
@@ -252,7 +265,7 @@ public class Mine {
 	 * 
 	 * @return Numero de la mine active.
 	 */
-	public int getExemple() {
+	public String getExemple() {
 		return this.currentExampleId.getId();
 	}
 
@@ -557,8 +570,9 @@ public class Mine {
 		//Cree les camions
 		//
 		try {
-			smallCamionImage = ImageIO.read(new File("images/camion_small.png"));
-			largeCamionImage = ImageIO.read(new File("images/camion_large.png"));
+			String theme = config.getTheme();
+			smallCamionImage = ImageIO.read(new File("images/"+theme+"/camion_small.png"));
+			largeCamionImage = ImageIO.read(new File("images/"+theme+"/camion_large.png"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

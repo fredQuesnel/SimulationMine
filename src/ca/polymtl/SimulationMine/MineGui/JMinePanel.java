@@ -154,19 +154,23 @@ public class JMinePanel extends JPanel{
 
 		this.setBackground(Color.white);
 		this.parentFrame = frame;
+		
+		String themeFolder = parentFrame.getConfig().getTheme();
 
-		//image du camion
+		//images des pelles et stations
 		//
 		try {
-			pelleImage = ImageIO.read(new File("images/pelle.png"));
-			pellePanneImage = ImageIO.read(new File("images/pelle_panne.png"));
+			//System.out.println("images/"+themeFolder+"/pelle.png");
+			pelleImage = ImageIO.read(new File("images/"+themeFolder+"/pelle.png"));
+			pellePanneImage = ImageIO.read(new File("images/"+themeFolder+"/pelle_panne.png"));
 
-			sterileImage = ImageIO.read(new File("images/sterile.png"));
-			concentrateurImage = ImageIO.read(new File("images/concentrateur.png"));
+			sterileImage = ImageIO.read(new File("images/"+themeFolder+"/sterile.png"));
+			concentrateurImage = ImageIO.read(new File("images/"+themeFolder+"/concentrateur.png"));
 
-			backgroundImage = ImageIO.read(new File("images/background.png"));
+			backgroundImage = ImageIO.read(new File("images/"+themeFolder+"/background.png"));
 		} catch (IOException e) {
-
+			throw new IllegalStateException(e.getMessage());
+			
 		}
 
 

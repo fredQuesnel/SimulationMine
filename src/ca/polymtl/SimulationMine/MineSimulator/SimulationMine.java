@@ -56,7 +56,7 @@ public class SimulationMine {
 
 		
 
-		mineFrame = new JMineFrame(mineSimulator);
+		mineFrame = new JMineFrame(mineSimulator, config);
 
 		mineFrame.setSize(new Dimension(1100, 800));
 		mineFrame.setVisible(true);

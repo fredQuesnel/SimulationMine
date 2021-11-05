@@ -64,19 +64,36 @@ public class MineSimulator implements GuiListener {
 	private ArrayList<StationFailureEvent> ongoingFailureEvents;
 	private ArrayList<StationFailureEvent> completedFailureEvents;
 
+	/**Parametres de configuration*/
+	private Config config;
+
 
 	//constructeur
 	public MineSimulator(Config config) {
 		//cree le module en charge de l'IA des camions
 
-
+		this.config = config;
 		//instantie la liste des listeners
 		listeners = new ArrayList<MineSimulationListener>();
 
-		//Crï¿½ï¿½ la mine et l'initialise
+		//Cree la mine et l'initialise
 		//
-		mine = new Mine();
-		mine.init(Mine.exampleIds.get(0));
+		mine = new Mine(config);
+		
+		//retrouve l'exampleId desire.
+		ExampleId exIdChosen = null;
+		for(ExampleId exId : Mine.exampleIds) {
+			if(exId.getId().compareTo( config.getDefaultMineId() )==0) {
+				exIdChosen = exId;
+				break;
+			}
+		}
+		
+		if(exIdChosen == null) {
+			throw new IllegalArgumentException("Aucune mine avec l'ID par défaut : "+config.getDefaultMineId());
+		}
+		
+		mine.init(exIdChosen);
 
 
 
