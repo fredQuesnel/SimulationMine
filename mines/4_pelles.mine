@@ -1,4 +1,5 @@
-id : "4 pelles"
+id : "4pelles"
+name : "4 pelles"
 default_camions_small : 14
 default_camions_large : 10
 

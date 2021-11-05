@@ -1,4 +1,5 @@
-id : "10 pelles sans pannes"
+id : "10pellessanspannes"
+name : "10 pelles sans pannes"
 default_camions_small : 0
 default_camions_large : 30
 
