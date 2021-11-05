@@ -40,6 +40,7 @@ import ca.polymtl.SimulationMine.MineSimulator.Mine.ExampleId;
 import ca.polymtl.SimulationMine.MineSimulator.SimulationMine;
 import ca.polymtl.SimulationMine.decisionMaker.DecisionMaker;
 import ca.polymtl.SimulationMine.decisionMaker.TravelTimePredictor;
+import javafx.util.Pair;
 
 /**
  * Panneau de controle de la simulation. Permet de charger ou recharger une simulation, controller ses paramètres, ...
@@ -117,6 +118,7 @@ public class JControlPanel extends JPanel{
 	private static final Color LIGHT_BLUE = new Color(207, 236, 255);
 
 	private static final Color COLOR_WRONG_INPUT = new Color(255, 146, 146);
+
 	//Images
 	//
 	/**Image de soleil*/
@@ -164,7 +166,7 @@ public class JControlPanel extends JPanel{
 	//prediction du temps de parcours
 	//
 	/**Liste déroulante pour la formule d'estimation de temps de parcours*/
-	private JComboBox<String> predictComboBox;
+	private JComboBox<Pair<Integer, String>> predictComboBox;
 	/**Label pour la paramètre n*/
 	private JLabel nLabel;
 	/**champs pour le paramètre n*/
@@ -297,6 +299,7 @@ public class JControlPanel extends JPanel{
 		checkBox.setOpaque(false);
 		checkBox.setText("pause a chaque fin de voyage");
 		
+		checkBox.setSelected(parentFrame.getConfig().isDefaultPauseFinVoyage());
 		//notifie les listeners lorsque cochée/décochée
 		checkBox.addActionListener(new ActionListener() {
 
@@ -323,8 +326,8 @@ public class JControlPanel extends JPanel{
 		lambdaTextField.setPreferredSize(new Dimension(50, 20));
 		
 		//valeur par défaut
-		lambdaTextField.setText(""+TravelTimePredictor.DEFAULT_PREDICT_FUNCTION_WEIGHT);
-		currentLambdaValue = TravelTimePredictor.DEFAULT_PREDICT_FUNCTION_WEIGHT;
+		lambdaTextField.setText(""+parentFrame.getConfig().getDefaultTimePredictLambda());
+		currentLambdaValue = parentFrame.getConfig().getDefaultTimePredictLambda();
 
 		//listener
 		//valide l'input lorsque la valeur change
@@ -476,8 +479,8 @@ public class JControlPanel extends JPanel{
 		
 		//valeur par défaut
 		//
-		nTextField.setText(""+TravelTimePredictor.DEFAULT_PREDICT_FUNCTION_NB_SAMLE);
-		currentNValue = TravelTimePredictor.DEFAULT_PREDICT_FUNCTION_NB_SAMLE;
+		nTextField.setText(""+parentFrame.getConfig().getDefaultTimePredictN());
+		currentNValue = parentFrame.getConfig().getDefaultTimePredictN();
 
 		//listener
 		//valide la valeur et notifie les listeners
@@ -736,12 +739,37 @@ public class JControlPanel extends JPanel{
 	private void createPredictComboBox() {
 
 		//Mine mine = parentFrame.getMine();
-		predictComboBox = new JComboBox<String>();
-		predictComboBox.addItem("Moyenne des observations précédentes");
-		predictComboBox.addItem("Combinaison convexe");
-		predictComboBox.addItem("Erreur précédente");
+		predictComboBox = new JComboBox<Pair<Integer, String>>();
+		
+		ArrayList<Pair<Integer, String>> travelTimePredicrFunctionNames = TravelTimePredictor.travelTimePredictFunctionNames();
+		
+		
+		for(Pair<Integer, String> function : travelTimePredicrFunctionNames ) {
+			predictComboBox.addItem(function);
+		}
+		
+		int selectedFunction = parentFrame.getConfig().getDefaultTimePredictFormula();
+		int selectedIndex = -1;
+		for(int i = 0 ; i < predictComboBox.getItemCount(); i++) {
+			if(predictComboBox.getItemAt(i).getKey() == selectedFunction) {
+				selectedIndex = i;
+				break;
+			}
+		}
+		
+		if(selectedIndex == -1) {
+			throw new IllegalStateException("JControlPanel::createPredictComboBox Impossible de trouver la fonction de prediction de numero"+selectedFunction);
+		}
+		
+		predictComboBox.setSelectedIndex(selectedIndex);
+		
+		predictComboBox.setRenderer(new ListCellRenderer<Pair<Integer, String>>(){
 
-		predictComboBox.setSelectedIndex(parentFrame.getMineSimulator().getTravelTimePredictor().getfPredictFunction()-1);
+			@Override
+			public JLabel getListCellRendererComponent(JList<? extends Pair<Integer, String>> list,
+					Pair<Integer, String> value, int index, boolean isSelected, boolean cellHasFocus) {
+				return new JLabel(value.getValue());
+			}});
 
 		this.setPredictFunctionTextFieldsAccordingToSelectedFunction();
 
@@ -1149,8 +1177,15 @@ public class JControlPanel extends JPanel{
 		final JSlider speedSlider = new JSlider();
 		speedSlider.setOpaque(false);
 		speedSlider.setMaximum(51);
-		speedSlider.setValue(26);
 		speedSlider.setMinimum(1);
+		
+		int defaultValue = parentFrame.getConfig().getDefaultSimultaionSpeed();
+		if(defaultValue < speedSlider.getMinimum() || defaultValue > speedSlider.getMaximum()) {
+			throw new IllegalStateException("La vitesse de simulation doit etre entre "+speedSlider.getMinimum()+" et "+speedSlider.getMaximum()+". "+defaultValue+" fourni.");
+		}
+		speedSlider.setValue(defaultValue);
+		
+		
 		speedSlider.setOrientation(JSlider.HORIZONTAL);
 		speedSlider.setMinimumSize(new Dimension(SLIDER_WIDTH_PX, 20));
 		speedSlider.setMaximumSize(new Dimension(SLIDER_WIDTH_PX, 20));
@@ -1234,7 +1269,14 @@ public class JControlPanel extends JPanel{
 		temperatureSlider.setOpaque(false);
 		temperatureSlider.setMaximum(100);
 		temperatureSlider.setMinimum(50);
-		temperatureSlider.setValue(100);
+		
+		
+		int defaultValue = parentFrame.getConfig().getDefaultMeteo();
+		if(defaultValue < temperatureSlider.getMinimum() || defaultValue > temperatureSlider.getMaximum()) {
+			throw new IllegalStateException("JControlPanel::createTemperatureSliderComponent la valeur par defaut doit etre entre "+temperatureSlider.getMinimum()+" et "+temperatureSlider.getMaximum()+". "+defaultValue+"fourni.");
+		}
+		
+		temperatureSlider.setValue(defaultValue);
 		temperatureSlider.setMaximumSize(new Dimension(100000, 20));
 		temperatureSlider.setPreferredSize(new Dimension(SLIDER_WIDTH_PX, 20));
 		
@@ -1353,13 +1395,13 @@ public class JControlPanel extends JPanel{
 	 * 
 	 */
 	private void loadImages() {
-
+		String theme = parentFrame.getConfig().getTheme();
 		//Image de flocon
 		//
 		BufferedImage floconImageLarge = null;
 
 		try {
-			floconImageLarge = ImageIO.read(new File("images/snowflake.png"));
+			floconImageLarge = ImageIO.read(new File("images/"+theme+"/snowflake.png"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -1376,8 +1418,9 @@ public class JControlPanel extends JPanel{
 		//Image de soleil
 		//
 		BufferedImage soleilImageLarge = null;
+		
 		try {
-			soleilImageLarge = ImageIO.read(new File("images/sun.png"));
+			soleilImageLarge = ImageIO.read(new File("images/"+theme+"/sun.png"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -1396,8 +1439,8 @@ public class JControlPanel extends JPanel{
 		BufferedImage largeCamionImageLarge = null;
 
 		try {
-			smallCamionImageLarge = ImageIO.read(new File("images/camion_small_fois.png"));
-			largeCamionImageLarge = ImageIO.read(new File("images/camion_large_fois.png"));
+			smallCamionImageLarge = ImageIO.read(new File("images/"+theme+"/camion_small_fois.png"));
+			largeCamionImageLarge = ImageIO.read(new File("images/"+theme+"/camion_large_fois.png"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -1430,7 +1473,7 @@ public class JControlPanel extends JPanel{
 		BufferedImage horlogeImageLarge = null;
 
 		try {
-			horlogeImageLarge = ImageIO.read(new File("images/clock2.png"));
+			horlogeImageLarge = ImageIO.read(new File("images/"+theme+"/clock2.png"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -1475,7 +1518,9 @@ public class JControlPanel extends JPanel{
 	 */
 	protected void setPredictFunctionTextFieldsAccordingToSelectedFunction() {
 
-		int newPredictFunctionIndex = this.predictComboBox.getSelectedIndex()+1;
+		@SuppressWarnings("unchecked")
+		int newPredictFunctionIndex = ((Pair<Integer, String>) this.predictComboBox.getSelectedItem()).getKey();
+				
 		//active/desactive les champs des parametres de la fonction de prediction en fonction de la fonctin choisie
 		if(newPredictFunctionIndex == TravelTimePredictor.PREDICT_FUNCTION_AVG_PREV) {
 			nLabel.setVisible(true);

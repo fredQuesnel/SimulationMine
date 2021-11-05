@@ -105,7 +105,7 @@ public class MineSimulator implements GuiListener {
 
 
 		//cree le predicteur de temps de parcours
-		this.travelTimePredictor = new TravelTimePredictor(mine);
+		this.travelTimePredictor = new TravelTimePredictor(mine, config);
 
 		//Cr�� l'engin de d�cision
 		//
@@ -127,14 +127,14 @@ public class MineSimulator implements GuiListener {
 		this.max_steps = (int) (SimulationMine.DEFAULT_SIMULATION_TIME_SECONDS/MineSimulator.TIME_INCREMENT);
 
 		//par defaut, on ne stop pas a chaque fois qu'un camion arrive au st�rile/concentrateur
-		this.stopOnAssign = false;
+		this.stopOnAssign = config.isDefaultPauseFinVoyage();
 
 		//ajoute le timer de la simulation
 		//
 		this.timer = createTimer();
 		//delai par d�faut (millisecondes) entre 2 it�rations
 		//
-		this.setNbIterPerStep(26);
+		this.setNbIterPerStep(config.getDefaultSimultaionSpeed());
 
 	}
 

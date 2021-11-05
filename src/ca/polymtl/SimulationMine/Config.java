@@ -30,11 +30,11 @@ public class Config {
 		this.theme="espace";
 		this.defaultMineId="10pellessanspannes";
 		this.defaultScoreFunction="aleatoire";
-		this.defaultTimePredictFormula=0;
+		this.defaultTimePredictFormula=1;
 		this.defaultTimePredictN=4;
 		this.defaultTimePredictLambda=0.5;
-		this.defaultMeteo=50;
-		this.defaultSimultaionSpeed=50;
+		this.defaultMeteo=100;
+		this.defaultSimultaionSpeed=26;
 		this.defaultPauseFinVoyage=false;
 	}
 

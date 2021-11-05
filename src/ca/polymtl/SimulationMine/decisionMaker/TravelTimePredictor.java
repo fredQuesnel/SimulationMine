@@ -3,10 +3,12 @@ package ca.polymtl.SimulationMine.decisionMaker;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import ca.polymtl.SimulationMine.Config;
 import ca.polymtl.SimulationMine.MineSimulator.Camion;
 import ca.polymtl.SimulationMine.MineSimulator.Mine;
 import ca.polymtl.SimulationMine.MineSimulator.Pelle;
 import ca.polymtl.SimulationMine.MineSimulator.Station;
+import javafx.util.Pair;
 
 public class TravelTimePredictor {
 
@@ -15,9 +17,7 @@ public class TravelTimePredictor {
 	public static final int PREDICT_FUNCTION_AVG_PREV = 1;
 	public static int PREDICT_FUNCTION_WEIGTED = 2;
 	public static int PREDICT_FUNCTION_WEIGTED_ERROR = 3;
-	public final static int DEFAULT_PREDICT_FUNCTION = PREDICT_FUNCTION_AVG_PREV;
-	public final static int DEFAULT_PREDICT_FUNCTION_NB_SAMLE = 4;
-	public final static double DEFAULT_PREDICT_FUNCTION_WEIGHT = 0.5;
+
 	public static String getMapKeyForODPair(Station origine, Station destination) {
 		
 		if(origine == null) {
@@ -56,13 +56,13 @@ public class TravelTimePredictor {
 	/*
 	 * Constructeur
 	 */
-	public TravelTimePredictor(Mine mine) {
+	public TravelTimePredictor(Mine mine, Config config) {
 
 		this.mine = mine;
-		this.fPredictFunction = TravelTimePredictor.DEFAULT_PREDICT_FUNCTION;
+		this.fPredictFunction = config.getDefaultTimePredictFormula();
 
-		this.predictFunctionNumberSample = TravelTimePredictor.DEFAULT_PREDICT_FUNCTION_NB_SAMLE;
-		this.predictFunctionWeight = TravelTimePredictor.DEFAULT_PREDICT_FUNCTION_WEIGHT;
+		this.predictFunctionNumberSample = config.getDefaultTimePredictN();
+		this.predictFunctionWeight = config.getDefaultTimePredictLambda();
 
 		//historique
 		this.historyMap = new HashMap<String, ArrayList<Double>>();
@@ -157,6 +157,7 @@ public class TravelTimePredictor {
 	//option "moyenne des observations precedentes" dans le logiciel
 	private double predictTravelTimeAveragePrev(Station origine, Station destination) {
 
+		System.out.println("N : "+predictFunctionNumberSample);
 		//retrouve l'historique des temps de parcours
 		try {
 			String ODKey = getMapKeyForODPair(origine, destination);
@@ -350,6 +351,19 @@ public class TravelTimePredictor {
 			return premierTerme*deuxiemeTerme;
 		}
 
+	}
+
+
+
+	public static ArrayList<Pair<Integer, String>> travelTimePredictFunctionNames() {
+		ArrayList<Pair<Integer, String>> names = new ArrayList<Pair<Integer, String>>();
+		
+		names.add(new Pair<Integer, String>(PREDICT_FUNCTION_AVG_PREV, "Moyenne des observations précédentes"));
+		names.add(new Pair<Integer, String>(PREDICT_FUNCTION_WEIGTED, "Combinaison convexe"));
+		names.add(new Pair<Integer, String>(PREDICT_FUNCTION_WEIGTED_ERROR , "Erreur précédente"));
+		
+		// TODO Auto-generated method stub
+		return names;
 	}
 
 
