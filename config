@@ -1,0 +1,8 @@
+theme : "espace"
+default_mine_id : "10pellessanspannes"
+default_score_function : "aleatoire"
+default_time_predict_formula : 1
+default_time_predict_n : 4
+default_time_predict_lambda : 0.5
+default_simulation_speed : 26
+default_pause_fin_voyage : 0
