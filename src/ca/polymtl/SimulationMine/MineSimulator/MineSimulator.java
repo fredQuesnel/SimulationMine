@@ -477,10 +477,8 @@ public class MineSimulator implements GuiListener {
 		int nbSmallCamions = mine.getNumberSmallCamions();
 		int nbLargeCamions = mine.getNumberLargeCamions();
 		chargeMine(exempleId, nbSmallCamions, nbLargeCamions, this.max_steps*MineSimulator.TIME_INCREMENT);
-		/*
-
-		 */
-
+		this.travelTimePredictor.resetStats();
+		
 	}
 
 
@@ -1031,7 +1029,7 @@ public class MineSimulator implements GuiListener {
 			//s.setCamionEnTraitement(s.camionsEnAttente.get(0));
 			Station objective = decisionMaker.giveObjectiveToCamion(c);
 			c.setObjective(objective);
-			c.setPredictedTravelTime(this.travelTimePredictor.predictTravelTime(c.getOrigine(), s, c));
+			c.setPredictedTravelTime(this.travelTimePredictor.predictTravelTime(c.getOrigine(), objective, c));
 			if(!modeCharge) {
 				this.justAssigned = true;
 			}
