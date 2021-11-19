@@ -76,18 +76,25 @@ public class TravelTimePredictor {
 	// Cela inclus le temps réel de parcours et le temps prédit
 	//
 	public void enregistreHistoriqueTempsParcours(Camion camion) {
+		
 		//lance une exceptions si le camion n'est pas dans l'étata just arrived
 		//
 		if(camion.getState() != Camion.ETAT_JUSTE_ARRIVE) {
 			throw new IllegalStateException("le camion doit etre dans l'état Camion.STATE_JUST_ARRIVED");
 		}
 
+		
 		//clé d'origine/destination
 		String ODKey = getMapKeyForODPair(camion.getOrigine(), camion.getDestination());
 		
 		double adjustedRealTravelTime= camion.getCurrentTravelTime()/camion.getPredictTimeAdjustFactor();
 		double adjustedPredictedTravelTime = camion.getPredictedTravelTime()/camion.getPredictTimeAdjustFactor();
 
+		
+
+		System.out.println("enregistre temps parcours : "+ODKey+" "+adjustedRealTravelTime);
+		
+		
 		//enregistre le temps reel de transport
 		//
 		//cree l'element du hash au besoin
@@ -127,6 +134,7 @@ public class TravelTimePredictor {
 			throw new IllegalStateException("la fonction de prédiction n'est pas bien définie!");
 		}
 		
+		System.out.println("predicted travel time "+(predictedTime*c.getPredictTimeAdjustFactor()));
 		return predictedTime*c.getPredictTimeAdjustFactor();
 
 	}
@@ -157,13 +165,12 @@ public class TravelTimePredictor {
 	//option "moyenne des observations precedentes" dans le logiciel
 	private double predictTravelTimeAveragePrev(Station origine, Station destination) {
 
-		System.out.println("N : "+predictFunctionNumberSample);
 		//retrouve l'historique des temps de parcours
 		try {
 			String ODKey = getMapKeyForODPair(origine, destination);
 			ArrayList<Double> historyForOD = this.historyMap.get(ODKey);
 
-
+			System.out.println("key : "+ODKey);
 			//si aucun historique, retourne -1
 			if(historyForOD == null || historyForOD.size() == 0) {
 
@@ -178,6 +185,7 @@ public class TravelTimePredictor {
 			if(historySize < nbEchantillon) {
 				nbEchantillon = historySize;
 			}
+			System.out.println(ODKey+" nb echantillons :"+nbEchantillon);
 
 			//calcule la moyenne des nbEchantillon derniers temps de parcours
 			//
@@ -364,6 +372,13 @@ public class TravelTimePredictor {
 		
 		// TODO Auto-generated method stub
 		return names;
+	}
+
+
+
+	public void resetStats() {
+		this.historyMap.clear();
+		this.predictionMap.clear();
 	}
 
 
