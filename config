@@ -6,3 +6,4 @@ default_time_predict_n : 4
 default_time_predict_lambda : 0.5
 default_simulation_speed : 26
 default_pause_fin_voyage : 0
+default_meteo : 100

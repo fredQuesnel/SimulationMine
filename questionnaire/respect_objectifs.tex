@@ -1,0 +1,87 @@
+ %---------------------------------------------------------------------------------------------------------
+\section{Affectation des camions pour atteindre des objectifs de production}
+\label{sec:objectifs}
+
+Dans la réalité, maximiser la production totale n'est pas toujours souhaitable. En effet, extraire du stérile ne rapporte pas d'argent à court terme. De plus, il faut que le minerai amené au concentrateur soit d'assez bonne qualité : il doit contenir une quantité suffisante de fer, mais pas trop d'impuretés (ici le soufre). Dans cette section, nous allons développer des stratégies pour maximiser la production sous ces contraintes.
+
+
+\vspace{10pt}
+\noindent \textbf{\Large \textbf{Objectif et contraintes de production} } 
+
+\noindent Soit :
+
+\begin{itemize}
+	\item $x_c$ : Quantité livrée aux concentrateurs.
+	\item $x_s$ : Quantité livrée aux stériles.
+	\item $y_{fe}$ : Taux de fer (\%) dans le minerai aux concentrateurs.
+	\item $y_{s}$ : Taux de soufre (\%) dans le minerai aux concentrateurs.
+\end{itemize}
+
+
+\begin{itemize}
+	\item \textbf{Objectif : } Maximiser $x_c + 0.2 x_s$.
+	\item \textbf{Contrainte sur la quantité de stérile : } 
+	
+	\[x_s \leq 0.25 (x_c+x_s)\]
+	
+	\item \textbf{Taux de fer : } Entre 26\% et 27\%.
+	\[ 26 \leq y_{fe} \leq 27\% \]
+	
+	\item \textbf{Taux de soufre : } 
+	
+	\[y_s \leq 1.9\]
+\end{itemize}
+
+\vspace{10pt}
+\noindent \textbf{\Large \textbf{Protocole expérimental }} 
+\begin{itemize}
+	\item Mine : 10 pelles
+	\item Nombre de camions de 60 tonnes : 20
+	\item Nombre de camions de 100 tonnes : 0
+	\item Temps de simulation : 24h
+\end{itemize}
+
+
+%----------------------------------------
+%avec code 
+\subsection{Stratégies de décision complexes}
+\label{max_cont:code}
+Comme pour la question \ref{max_prod:code}, modifiez les fonctions  \verb!computeDecisionScore! et \verb!computeCustomDecisionScore! pour maximiser l'objectif tout en respectant les contraintes. Vous pouvez utiliser les fonctions \verb!selectReturnStation! et \verb!customSelectReturnStation! que vous avez écrit dans la section \ref{max_prod:code}, ou les modifier si vous le jugez nécessaire.
+
+\vspace{10pt} 
+\noindent\textbf{Dans votre réponse,}  
+
+\begin{itemize}
+	\item Décrivez brièvement vos algorithmes. 
+	\item Comparez la production obtenue avec vos résultats de la question \ref{max_prod:code}.
+\end{itemize}
+
+
+
+%----------------------------------------
+%avec plan + problème d'affectation
+\subsection{Plan + problème d'affectation}
+
+Tel que présenté dans les diapositives sur Moodle, on peut également définir un \textit{plan d'opération} qui permettra de respecter les contraintes. On peut ensuite affecter les camions en tenant compte des prochains camions qui seront disponibles en résolvant un problème d'affectation qui tente de respecter le plan le plus possible. Vous pouvez activer cette option en entrant la commande \red{"optimise\_plan"} dans le champ \textit{fonction de score}.
+
+\vspace{10pt}
+\noindent\textbf{Dans votre réponse,}  
+
+\begin{itemize}
+	\item Comparez la production obtenue à l'aide du problème d'affectation avec vos résultats de la question \ref{max_cont:code}.
+	\item Dans quelle mesure le problème d'affectation arrive-t-il à suivre le plan? Qu'est-ce qui peut expliquer les écarts observés? \red{Un peu vague comme question?}
+\end{itemize}
+
+
+
+%--------------------------------------------
+\subsection{} 
+
+
+Assignez les camions un par un en utilisant la même fonction objectif que dans le problème d'affectation ($c_{ij} = \left(E(AC)-AC\right)^2 + \left(E(AP)-AP\right)^2$, voir présentation sur Moodle). Pour ce faire, entrez la commande \red{"optimal\_assign"} dans le champ \textit{fonction de score}. 
+
+\noindent Vous devriez constater que cette stratégie fonctionne très mal. Expliquez pourquoi.
+
+\noindent\textbf{Indice : }Dans votre explication, il est suggéré d'utiliser un petit exemple théorique avec deux pelles et deux camions.
+
+
