@@ -12,7 +12,8 @@ public class Config {
 	/**Nom de la mine a charger*/
 	private String defaultMineId;
 	/**Fonction de score */
-	private String defaultScoreFunction;
+	private String defaultScoreFunctionSmallCamions;
+	private String defaultScoreFunctionLargeCamions;
 	/**Formule de prediction de temps de parcours*/
 	private int defaultTimePredictFormula;
 	/** Valeur de N dans la formule de prediction de temps de parcours*/
@@ -25,7 +26,6 @@ public class Config {
 	private int defaultSimultaionSpeed;
 	/**Pause a la fin de voyage*/
 	private boolean defaultPauseFinVoyage;
-
 	/**
 	 * Constructeur
 	 */
@@ -37,7 +37,8 @@ public class Config {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+		System.out.println("petits camions : "+this.getDefaultScoreFunctionSmallCamions());
+		System.out.println("gros camions : "+this.getDefaultScoreFunctionLargeCamions());
 	}
 
 	private void readConfigFile() throws IOException {
@@ -61,10 +62,16 @@ public class Config {
 				String defaultMineId = sc.next(stringPattern);
 				this.defaultMineId = defaultMineId.substring(1, defaultMineId.length()-1);
 				break;
-			case "default_score_function":
-				String defaultScoreFunction = sc.next(stringPattern);
-				this.defaultScoreFunction = defaultScoreFunction.substring(1, defaultScoreFunction.length()-1);
+			case "default_score_function_small_camions":
+				String defaultScoreFunctionSmallCamions = sc.next(stringPattern);
+				this.defaultScoreFunctionSmallCamions = defaultScoreFunctionSmallCamions.substring(1, defaultScoreFunctionSmallCamions.length()-1);
 				break;
+			case "default_score_function_large_camions":
+				String defaultScoreFunctionLargeCamions = sc.next(stringPattern);
+				this.defaultScoreFunctionLargeCamions = defaultScoreFunctionLargeCamions.substring(1, defaultScoreFunctionLargeCamions.length()-1);
+				break;
+				
+				
 			case "default_time_predict_formula":
 				this.defaultTimePredictFormula = sc.nextInt();
 				break;
@@ -110,8 +117,12 @@ public String getDefaultMineId() {
 	return defaultMineId;
 }
 
-public String getDefaultScoreFunction() {
-	return defaultScoreFunction;
+public String getDefaultScoreFunctionSmallCamions() {
+	return defaultScoreFunctionSmallCamions;
+}
+
+public String getDefaultScoreFunctionLargeCamions() {
+	return defaultScoreFunctionLargeCamions;
 }
 
 public int getDefaultTimePredictFormula() {

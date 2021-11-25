@@ -1,4 +1,6 @@
 package ca.polymtl.SimulationMine.MineSimulator;
+
+
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D.Double;
 import java.awt.image.AffineTransformOp;
@@ -19,6 +21,9 @@ public abstract class Camion {
 	 * Constantes
 	 */
 
+	public static int TYPE_SMALL = 1;
+	public static int TYPE_LARGE = 2;
+	
 	//etats possibles
 	//
 	/** ï¿½tat indiquant un camion auquel aucune activitï¿½ n'est assignï¿½e.	 */
@@ -37,6 +42,18 @@ public abstract class Camion {
 	 */
 	/**mine dans laquelle est le camion*/
 	Mine mine;
+	
+	//Caractéristiques du camion
+	protected int type;
+	/** Vitesse moyenne du camion	 */
+	protected double avgSpeed;
+	/** ï¿½cart type sur la vitesse du camion	 */
+	protected double stdSpeed;
+	/** Charge maximum du camion.	 */
+	protected double chargeMax;
+	/** Facteur d'ajustement pour la prediction des temps de parcours*/
+	protected double predictTimeAdjustFactor; 
+	
 	
 	//Etat du camion
 	//
@@ -112,6 +129,7 @@ public abstract class Camion {
 	//
 	public Camion(Station station, Mine mine, BufferedImage goingEastImage) {
 		
+		
 		//Créé l'image du camion allant vest l'ouest.
 		this.goingEastImage = goingEastImage;
 		this.goingWestImage = goingEastImage;
@@ -158,11 +176,38 @@ public abstract class Camion {
 		return waitTime/nbPeriodes;
 	}
 
-	/** @return moyenne du camion*/
-	public abstract double getAvgSpeed();
+	/**
+	 * 
+	 * @return Vitesse moyenne du camion
+	 */
+	public double getAvgSpeed() {
+		return avgSpeed;
+	}
 
-	/** @return maximum du camion*/
-	public abstract double getChargeMax();
+	/**
+	 * 
+	 * @return Charge max du camion
+	 */
+	public double getChargeMax() {
+		return chargeMax;
+	}
+
+	/**
+	 * 
+	 * @return Facteur d'ajustement pour prediction de temps de parcours
+	 */
+	public double getPredictTimeAdjustFactor() {
+		return predictTimeAdjustFactor;
+	}
+
+	/**
+	 * 
+	 * @return Ecart type sur la vitesse du camion
+	 */
+	public double getStdSpeed() {
+		return stdSpeed;
+	}
+
 	
 	/**
 	 * @return Charge dans le camion
@@ -239,8 +284,7 @@ public abstract class Camion {
 		return predictedTravelTime;
 	}
 
-	/** @return Facteur d'ajustement pour la prediction de temps de parcours */
-	public abstract double getPredictTimeAdjustFactor();
+	
 
 	/**
 	 * @return Type de roche dans le camion (indefini si le camion est vide)
@@ -262,8 +306,7 @@ public abstract class Camion {
 		return state;
 	}
 
-	/** Ecart type sur la vitesse du camion*/
-	public abstract double getStdSpeed();
+
 
 	/**
 	 * @return Le temps total (s) que le camion a passe en attente durant la simulation courante.
@@ -583,6 +626,10 @@ public abstract class Camion {
 	/** @return le temps de transport a vide du camion.*/
 	public double getEmptyTravelTime() {
 		return this.emptyTravelTime;
+	}
+
+	public int getType() {
+		return type;
 	}
 
 

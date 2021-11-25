@@ -3,6 +3,7 @@ package ca.polymtl.SimulationMine.decisionMaker;
 import java.util.ArrayList;
 
 import bsh.EvalError;
+import ca.polymtl.SimulationMine.Config;
 import ca.polymtl.SimulationMine.MineSimulator.Camion;
 import ca.polymtl.SimulationMine.MineSimulator.Concentrateur;
 import ca.polymtl.SimulationMine.MineSimulator.Mine;
@@ -56,8 +57,8 @@ public class CustomDecisionMaker extends DecisionMaker {
 	@SuppressWarnings("unused")
 	private double attenteEspereePelle;
 
-	public CustomDecisionMaker(Mine mine) {
-		super(mine);
+	public CustomDecisionMaker(Mine mine, Config config) {
+		super(mine, config);
 	}
 
 

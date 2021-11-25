@@ -104,7 +104,9 @@ public interface GuiListener extends AWTEventListener {
 	 * La fonction de score est modifiée.
 	 * @param scoreFunction : nouvelle fonction de score.
 	 */
-	public void scoreFunctionChanged(String scoreFunction);
+	public void scoreFunctionSmallCamionsChanged(String scoreFunction);
+
+	public void scoreFunctionLargeCamionsChanged(String scoreFunction);
 
 	/**
 	 * On change la vitesse de simulation

@@ -6,6 +6,7 @@ import java.util.ListIterator;
 
 import bsh.EvalError;
 import bsh.Interpreter;
+import ca.polymtl.SimulationMine.Config;
 import ca.polymtl.SimulationMine.MineSimulator.Camion;
 import ca.polymtl.SimulationMine.MineSimulator.Mine;
 import ca.polymtl.SimulationMine.MineSimulator.Pelle;
@@ -36,7 +37,8 @@ public class DecisionMaker {
 	// Par defaut : Assignation aleatoire des camions
 	protected static final String DEFAULT_SCORE_FUNCTION_STRING = "aleatoire";
 	//Mine bidon (sert a tester si une fonction de score fournie par l'utilisateur est valide) 
-	private static Mine dummyMine;
+	
+	private static Config config;
 
 	//mine
 	protected static Mine mine;
@@ -61,7 +63,7 @@ public class DecisionMaker {
 	 */
 	public static boolean isFunctionStringValid(String function) {
 
-		Camion camion = new Camion(dummyMine.getSteriles().get(0), dummyMine,  null) {
+		Camion camion = new Camion(mine.getSteriles().get(0), mine,  null) {
 
 			@Override
 			public double getAvgSpeed() {
@@ -84,14 +86,14 @@ public class DecisionMaker {
 			}
 
 		};
-		Pelle pelle = dummyMine.getPelles().get(0);
+		Pelle pelle = mine.getPelles().get(0);
 
 		
 
 		if(function.equals(DecisionMaker.OPTIMIZE_FUNCTION_STRING)) return true;
 
 		try {
-			DecisionMaker dm = new DecisionMaker(dummyMine);
+			DecisionMaker dm = new DecisionMaker(mine, config);
 			dm.computeDecisionScore(camion,pelle, function);
 		} catch (EvalError e) {
 			return false;
@@ -126,25 +128,28 @@ public class DecisionMaker {
 	// Champs
 	//==========================================
 	
-	/**Fonction de score pour la simulation*/
-	private String scoreFunctionString;
+	/**Fonction de score pour les petits camions pour la simulation*/
+	private String scoreFunctionSmallCamionsString;
+	/**Fonction de score pour les gros camions pour la simulation*/
+	private String scoreFunctionLargeCamionsString;
 
 	/**Solveur*/
 	private LpSolve solver;
 
-
 	/**
 	 * Constructeur
 	 * @param mine
+	 * @param config 
 	 */
 	@SuppressWarnings("static-access")
-	public DecisionMaker(Mine mine) {
+	public DecisionMaker(Mine mine, Config config) {
 		this.mine = mine;
 
-		this.scoreFunctionString = DEFAULT_SCORE_FUNCTION_STRING;
-		//this.cibleTempsAttentePelle = 0;
-
-		dummyMine = mine;
+		this.scoreFunctionSmallCamionsString = config.getDefaultScoreFunctionSmallCamions();
+		this.scoreFunctionLargeCamionsString = config.getDefaultScoreFunctionLargeCamions();
+		
+		this.config = config;
+		mine = mine;
 	}
 
 	/**
@@ -948,15 +953,6 @@ public class DecisionMaker {
 		
 	} 
 
-	/**
-	 * 
-	 * @return retourne la chaine de caracteres correspondant a la fonction de score courante.
-	 */
-	public String getScoreFunctionString() {
-		return this.scoreFunctionString;
-	}
-
-
 	//donne un nouvel objectif a un camion sans but
 	//
 	/**
@@ -966,6 +962,22 @@ public class DecisionMaker {
 	 */
 	public Station giveObjectiveToCamion(Camion camion) {
 
+		// Choisis la fonction de score a utiliser
+		//
+		String scoreFunction = "";
+		if(camion.getType() == Camion.TYPE_SMALL) {
+			
+			scoreFunction = this.scoreFunctionSmallCamionsString;
+		}
+		else if(camion.getType() == Camion.TYPE_LARGE) {
+			System.out.println("gros camion");
+			scoreFunction = this.scoreFunctionLargeCamionsString;
+		}
+		else {
+			throw new IllegalStateException("DecisionMaker::giveObjectiveToCamion : Type de camion inconnu : "+camion.getType());
+		}
+		
+		
 		if(camion.getCurrentStation()!=null && !camion.getCurrentStation().isDecharge) {
 			return selectReturnStation(camion, (Pelle) camion.getCurrentStation());
 		}
@@ -984,7 +996,7 @@ public class DecisionMaker {
 
 		//System.out.println("objectif : "+this.scoreFunctionString);
 
-		if(this.scoreFunctionString.equals(OPTIMIZE_FUNCTION_STRING)) {
+		if(scoreFunction.equals(OPTIMIZE_FUNCTION_STRING)) {
 			Pelle optimalPelle = giveOptimalObjectiveToCamion(camion, pelles);
 			return optimalPelle;
 			//camion.setObjective(optimalPelle);
@@ -1001,7 +1013,7 @@ public class DecisionMaker {
 				double score = 0;
 
 				try {
-					score = computeDecisionScore(camion, pelles.get(i), this.scoreFunctionString);
+					score = computeDecisionScore(camion, pelles.get(i), scoreFunction);
 				} catch (EvalError e) {
 					e.printStackTrace();
 				}
@@ -1196,11 +1208,21 @@ public class DecisionMaker {
 	}
 
 	/**
-	 * Set la fonction de score
+	 * Set la fonction de score pour les petits camions
 	 * @param text
 	 */
-	public void setScoreFunctionString(String text) {
-		this.scoreFunctionString = text;
+	public void setScoreFunctionSmallCamionsString(String text) {
+		this.scoreFunctionSmallCamionsString = text;
+
+	}
+	
+
+	/**
+	 * Set la fonction de score pour les gros camions
+	 * @param text
+	 */
+	public void setScoreFunctionLargeCamionsString(String text) {
+		this.scoreFunctionLargeCamionsString = text;
 
 	}
 

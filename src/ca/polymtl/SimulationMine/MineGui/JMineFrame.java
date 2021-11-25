@@ -299,15 +299,24 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 
 
 
-	public void notifyListenersScoreFunctionChanged(String scoreFunction) {
+	public void notifyListenersScoreFunctionSmallCamionsChanged(String scoreFunction) {
 		for(int i = 0 ; i < listenerList.size(); i++) {
-			listenerList.get(i).scoreFunctionChanged(scoreFunction);
+			listenerList.get(i).scoreFunctionSmallCamionsChanged(scoreFunction);
 		}	
 		
 	}
 
 
 	
+
+	public void notifyListenersScoreFunctionLargeCamionsChanged(String scoreFunction) {
+		for(int i = 0 ; i < listenerList.size(); i++) {
+			listenerList.get(i).scoreFunctionLargeCamionsChanged(scoreFunction);
+		}	
+	}
+
+
+
 
 	public void notifyListenersSimulationSpeedChanged(int speed) {
 		for(int i = 0 ; i < listenerList.size(); i++) {

@@ -56,7 +56,7 @@ public class JControlPanel extends JPanel{
 	 *
 	 */
 	private class PlayPauseButton extends JButton{
-		
+
 		private static final long serialVersionUID = 1L;
 		//états possibles
 		/** état "play"*/
@@ -77,7 +77,7 @@ public class JControlPanel extends JPanel{
 
 
 		}
-		
+
 		/**
 		 * 
 		 * @return état courant
@@ -85,7 +85,7 @@ public class JControlPanel extends JPanel{
 		public int getState() {
 			return this.state;
 		}
-		
+
 		/**
 		 * Change l'état de pause à play ou vice versa
 		 */
@@ -125,10 +125,16 @@ public class JControlPanel extends JPanel{
 	private BufferedImage soleilImage;
 	/**Image de flocon*/
 	private BufferedImage floconImage;
+	
 	/**Image de petit camion*/
 	private BufferedImage camionSmallImage;
 	/**Image de gros camion*/
 	private BufferedImage camionLargeImage;
+	
+	/**Image de petit camion suivi du symbole fois (x)*/
+	private BufferedImage camionSmallFoisImage;
+	/**Image de gros camion suivi du symbole fois (x)*/
+	private BufferedImage camionLargeFoisImage;
 
 	//----------------------------------
 	//champs
@@ -161,8 +167,11 @@ public class JControlPanel extends JPanel{
 
 	//optimisation
 	//
-	/**champs contenant la fonction de score*/
-	private JTextField scoreFunctionTextField;
+	/**champs contenant la fonction de score pour les petits camions*/
+	private JTextField scoreFunctionSmallCamionsTextField;
+	/**champs contenant la fonction de score pour les gros camions*/
+	private JTextField scoreFunctionLargeCamionsTextField;
+
 	//prediction du temps de parcours
 	//
 	/**Liste déroulante pour la formule d'estimation de temps de parcours*/
@@ -266,7 +275,7 @@ public class JControlPanel extends JPanel{
 	 */
 	private Component createAutoCompleteButton() {
 		this.completeButton = new JButton("Completer Auto.");
-		
+
 		//notifie les listeners lorsqu'appuyé
 		completeButton.addActionListener(new ActionListener() {
 
@@ -282,7 +291,7 @@ public class JControlPanel extends JPanel{
 		completeButton.setMinimumSize(new Dimension(140, 10));
 		completeButton.setPreferredSize(new Dimension(140, 20));
 		completeButton.setMaximumSize(new Dimension(140, 40));
-		
+
 		return completeButton;
 	}
 
@@ -298,7 +307,7 @@ public class JControlPanel extends JPanel{
 		final JCheckBox checkBox = new JCheckBox();
 		checkBox.setOpaque(false);
 		checkBox.setText("pause a chaque fin de voyage");
-		
+
 		checkBox.setSelected(parentFrame.getConfig().isDefaultPauseFinVoyage());
 		//notifie les listeners lorsque cochée/décochée
 		checkBox.addActionListener(new ActionListener() {
@@ -309,7 +318,7 @@ public class JControlPanel extends JPanel{
 			}
 
 		});
-		
+
 		return checkBox;
 	}
 
@@ -319,12 +328,12 @@ public class JControlPanel extends JPanel{
 	 */
 	private Component createLambdaTextField() {
 		lambdaTextField = new JTextField();
-		
+
 		//dimensions
 		lambdaTextField.setMaximumSize(new Dimension(50, 50));
 		lambdaTextField.setMinimumSize(new Dimension(50, 20));
 		lambdaTextField.setPreferredSize(new Dimension(50, 20));
-		
+
 		//valeur par défaut
 		lambdaTextField.setText(""+parentFrame.getConfig().getDefaultTimePredictLambda());
 		currentLambdaValue = parentFrame.getConfig().getDefaultTimePredictLambda();
@@ -369,12 +378,12 @@ public class JControlPanel extends JPanel{
 	 * @return le bouton "Charger"
 	 */
 	private JButton createLoadButton() {
-		
+
 		JButton loadButton = new JButton();
-		
+
 		//texte du bouton
 		loadButton.setText("Charger");
-		
+
 		//dimensions
 		//
 		loadButton.setMinimumSize(new Dimension(100, 10));
@@ -415,7 +424,7 @@ public class JControlPanel extends JPanel{
 
 		return loadButton;
 	}
-	
+
 	/**
 	 * Créé le dropdown pour choisir la mine
 	 */
@@ -435,7 +444,7 @@ public class JControlPanel extends JPanel{
 			}
 
 		});
-		
+
 		//dimensions
 		comboBox.setMaximumSize(new Dimension(1000, 30));
 
@@ -456,7 +465,7 @@ public class JControlPanel extends JPanel{
 		if(selectedIndex == -1) {
 			throw new IllegalStateException("JControlPanel::createMineConfigDrowdown Je ne trouve pas la mine avec l'id "+parentFrame.getConfig().getDefaultMineId());
 		}
-		
+
 		//item sélectionné
 		comboBox.setSelectedIndex(selectedIndex);
 
@@ -470,13 +479,13 @@ public class JControlPanel extends JPanel{
 	 */
 	private Component createNTextField() {
 		nTextField = new JTextField();
-		
+
 		//dimensions
 		//
 		nTextField.setMaximumSize(new Dimension(50, 50));
 		nTextField.setMinimumSize(new Dimension(50, 20));
 		nTextField.setPreferredSize(new Dimension(50, 20));
-		
+
 		//valeur par défaut
 		//
 		nTextField.setText(""+parentFrame.getConfig().getDefaultTimePredictN());
@@ -523,18 +532,18 @@ public class JControlPanel extends JPanel{
 
 		//Créé le champs
 		this.nbLargeCamionsTextField = new JTextField();
-		
+
 		//valeur par défaut
 		//
 		this.selectedNumberOfLargeCamions = parentFrame.getMine().getNumberLargeCamions();
 		nbLargeCamionsTextField.setText(""+selectedNumberOfLargeCamions);
-		
+
 		//Dimensions
 		//
 		nbLargeCamionsTextField.setMaximumSize(new Dimension(50, 50));
 		nbLargeCamionsTextField.setMinimumSize(new Dimension(50, 20));
 		nbLargeCamionsTextField.setPreferredSize(new Dimension(50, 20));
-		
+
 		//Lorsqu'on entre une nouvelle valeur, valide l'input
 		//
 		nbLargeCamionsTextField.addFocusListener(new FocusListener() {
@@ -570,7 +579,7 @@ public class JControlPanel extends JPanel{
 
 		//cree le champs
 		this.nbSmallCamionsTextField = new JTextField();
-		
+
 		//valeur par défaut = nombre de petits camions dans la mine
 		//
 		this.selectedNumberOfSmallCamions = parentFrame.getMine().getNumberSmallCamions();
@@ -580,7 +589,7 @@ public class JControlPanel extends JPanel{
 		nbSmallCamionsTextField.setMaximumSize(new Dimension(50, 50));
 		nbSmallCamionsTextField.setMinimumSize(new Dimension(50, 20));
 		nbSmallCamionsTextField.setPreferredSize(new Dimension(50, 20));
-		
+
 		//lorsqu'on entre une valeur et qu'on quitte le focus, valide la valeur et colore en rouge si valeur invalide
 		nbSmallCamionsTextField.addFocusListener(new FocusListener() {
 
@@ -612,7 +621,7 @@ public class JControlPanel extends JPanel{
 
 		});
 	}
-	
+
 	/**
 	 * Panneau avec fonction de score. Il comprend : 
 	 * 1) Nom du champs "Fonction de score"
@@ -631,65 +640,120 @@ public class JControlPanel extends JPanel{
 		//-------------------------------
 		//Créé les éléments
 		//-------------------------------
-		
+
 		//label
-		JLabel scoreLabel = new JLabel("  Fonction de score :  ");
-		
+		JLabel scoreLabel = new JLabel("  Fonctions de score :  ");
+
 		//textfield
 		//
-		this.scoreFunctionTextField = new JTextField();
-		//this.scoreFunctionString = parentFrame.getMinePanel().getMine().getScoreFunctionString();
-		
-		String scoreFunction = parentFrame.getConfig().getDefaultScoreFunction();
-		
-		if( ! DecisionMaker.isFunctionStringValid(scoreFunction) ) {
-			throw new IllegalArgumentException("la fonction de score par defaut n'est pas valide : "+scoreFunction);
-		}
-		
-		scoreFunctionTextField.setText( scoreFunction );
-		
-		//listener
-		// Valide l'input lorsqu'une nouvelle valeur est entrée
-		//
-		scoreFunctionTextField.addFocusListener(new FocusListener() {
+		this.scoreFunctionSmallCamionsTextField = createScoreFunctionTextFieldSmallCamions(); 
 
-			@Override
-			public void focusGained(FocusEvent arg0) {
-				// ne fait rien
+		this.scoreFunctionLargeCamionsTextField = createScoreFunctionTextFieldLargeCamions();
 
-			}
-
-			@Override
-			public void focusLost(FocusEvent arg0) {
-
-				//valide l'input
-				String optStrategy = scoreFunctionTextField.getText();
-				if(DecisionMaker.isFunctionStringValid(optStrategy)) {
-					scoreFunctionTextField.setBackground(Color.white);
-
-					parentFrame.notifyListenersScoreFunctionChanged(scoreFunctionTextField.getText());
-				}
-				else{
-					scoreFunctionTextField.setBackground(COLOR_WRONG_INPUT);
-				}
-
-
-
-			}
-
-		});
-		
 		//----------------------------------------
 		// Ajoute les éléments
 		//----------------------------------------
 		//label
 		optStrategyPanel.add(scoreLabel);
 		//champs
-		optStrategyPanel.add(scoreFunctionTextField);
+		optStrategyPanel.add(new JLabel(new ImageIcon(camionSmallImage)));
+		optStrategyPanel.add(scoreFunctionSmallCamionsTextField);
+		optStrategyPanel.add(new JLabel(new ImageIcon(camionLargeImage)));
+		optStrategyPanel.add(scoreFunctionLargeCamionsTextField);
 
 
 
 		return optStrategyPanel;
+	}
+	/**
+	 * 
+	 * @return champs de texte pour la fonction de score des gros camions
+	 */
+	private JTextField createScoreFunctionTextFieldLargeCamions() {
+
+		JTextField tf = new JTextField();
+
+		//this.scoreFunctionString = parentFrame.getMinePanel().getMine().getScoreFunctionString();
+
+		String scoreFunctionLargeCamions = parentFrame.getConfig().getDefaultScoreFunctionLargeCamions();
+
+		if( ! DecisionMaker.isFunctionStringValid(scoreFunctionLargeCamions) ) {
+			throw new IllegalArgumentException("la fonction de score par defaut n'est pas valide : "+scoreFunctionLargeCamions);
+		}
+
+		tf.setText( scoreFunctionLargeCamions );
+
+		//listener
+		// Valide l'input lorsqu'une nouvelle valeur est entrée
+		//
+		tf.addFocusListener(new FocusListener() {
+
+			@Override
+			public void focusGained(FocusEvent arg0) {
+				// ne fait rien
+			}
+
+			@Override
+			public void focusLost(FocusEvent arg0) {
+
+				//valide l'input
+				String optStrategy = tf.getText();
+				if(DecisionMaker.isFunctionStringValid(optStrategy)) {
+					tf.setBackground(Color.white);
+
+					parentFrame.notifyListenersScoreFunctionLargeCamionsChanged(tf.getText());
+				}
+				else{
+					tf.setBackground(COLOR_WRONG_INPUT);
+				}
+			}
+		});
+		return tf;
+	}
+	/**
+	 * 
+	 * @return champs de texte pour la fonction de score des petits camions
+	 */
+	private JTextField createScoreFunctionTextFieldSmallCamions() {
+
+		JTextField tf = new JTextField();
+
+		//this.scoreFunctionString = parentFrame.getMinePanel().getMine().getScoreFunctionString();
+
+		String scoreFunctionSmallCamions = parentFrame.getConfig().getDefaultScoreFunctionSmallCamions();
+
+		if( ! DecisionMaker.isFunctionStringValid(scoreFunctionSmallCamions) ) {
+			throw new IllegalArgumentException("la fonction de score par defaut n'est pas valide : "+scoreFunctionSmallCamions);
+		}
+
+		tf.setText( scoreFunctionSmallCamions );
+
+		//listener
+		// Valide l'input lorsqu'une nouvelle valeur est entrée
+		//
+		tf.addFocusListener(new FocusListener() {
+
+			@Override
+			public void focusGained(FocusEvent arg0) {
+				// ne fait rien
+			}
+
+			@Override
+			public void focusLost(FocusEvent arg0) {
+
+				//valide l'input
+				String optStrategy = tf.getText();
+				if(DecisionMaker.isFunctionStringValid(optStrategy)) {
+					tf.setBackground(Color.white);
+
+					parentFrame.notifyListenersScoreFunctionSmallCamionsChanged(tf.getText());
+				}
+				else{
+					tf.setBackground(COLOR_WRONG_INPUT);
+				}
+			}
+		});
+		return tf;
 	}
 
 	/**
@@ -697,10 +761,10 @@ public class JControlPanel extends JPanel{
 	 * @return bouton play/pause
 	 */
 	private JButton createPlayPauseButton() {
-		
+
 		//bouton
 		this.playPauseButton = new PlayPauseButton();
-		
+
 		//ajoute le listener
 		//notifie les listeners du bouton
 		playPauseButton.addActionListener(new ActionListener() {
@@ -709,11 +773,11 @@ public class JControlPanel extends JPanel{
 				//playPauseButton.toogle();
 
 				if(playPauseButton.getState() == PlayPauseButton.STATE_PAUSE) {
-					scoreFunctionTextField.setEditable(true);
+					scoreFunctionSmallCamionsTextField.setEditable(true);
 					parentFrame.notifyListenersPlayButtonPressed();
 				}
 				else {
-					scoreFunctionTextField.setEditable(false);
+					scoreFunctionSmallCamionsTextField.setEditable(false);
 					parentFrame.notifyListenersPauseButtonPressed();
 
 				}
@@ -732,6 +796,8 @@ public class JControlPanel extends JPanel{
 
 		return playPauseButton;
 	}
+	
+	
 
 	/**
 	 * Créé le dropdown pour les formules de prédiction
@@ -740,14 +806,14 @@ public class JControlPanel extends JPanel{
 
 		//Mine mine = parentFrame.getMine();
 		predictComboBox = new JComboBox<Pair<Integer, String>>();
-		
+
 		ArrayList<Pair<Integer, String>> travelTimePredicrFunctionNames = TravelTimePredictor.travelTimePredictFunctionNames();
-		
-		
+
+
 		for(Pair<Integer, String> function : travelTimePredicrFunctionNames ) {
 			predictComboBox.addItem(function);
 		}
-		
+
 		int selectedFunction = parentFrame.getConfig().getDefaultTimePredictFormula();
 		int selectedIndex = -1;
 		for(int i = 0 ; i < predictComboBox.getItemCount(); i++) {
@@ -756,13 +822,13 @@ public class JControlPanel extends JPanel{
 				break;
 			}
 		}
-		
+
 		if(selectedIndex == -1) {
 			throw new IllegalStateException("JControlPanel::createPredictComboBox Impossible de trouver la fonction de prediction de numero"+selectedFunction);
 		}
-		
+
 		predictComboBox.setSelectedIndex(selectedIndex);
-		
+
 		predictComboBox.setRenderer(new ListCellRenderer<Pair<Integer, String>>(){
 
 			@Override
@@ -802,7 +868,7 @@ public class JControlPanel extends JPanel{
 		//
 		JPanel predictTimePanel = new JPanel();
 		predictTimePanel.setOpaque(false);
-		
+
 
 		//-----------------------------------------
 		//Créé les éléments
@@ -811,7 +877,7 @@ public class JControlPanel extends JPanel{
 		//label "Formule"
 		//
 		JLabel formuleLabel = new JLabel("Formule");
-		
+
 
 		//label et textField pour n
 		//
@@ -823,10 +889,10 @@ public class JControlPanel extends JPanel{
 
 		//champs de texte pour n
 		createNTextField();
-		
+
 		//champs de teste pour lambda
 		createLambdaTextField();
-		
+
 		//dropdown pour formule de prédiction
 		createPredictComboBox();
 
@@ -834,7 +900,7 @@ public class JControlPanel extends JPanel{
 		//ajoute les éléments
 		//--------------------------------------
 		predictTimePanel.setLayout(new BoxLayout(predictTimePanel, BoxLayout.X_AXIS));
-		
+
 		//label "formule"
 		predictTimePanel.add(formuleLabel);
 
@@ -874,7 +940,7 @@ public class JControlPanel extends JPanel{
 		});
 
 		resetButton.setText("reset");
-		
+
 		//dimensions du bouton
 		//
 		resetButton.setMinimumSize(new Dimension(100, 10));
@@ -1047,11 +1113,11 @@ public class JControlPanel extends JPanel{
 		JComboBox<ExampleId> mineConfigBox = createMineConfigDrowdown();
 
 		//nombre de petit camions
-		JLabel nbCamionsSmallLabel = new JLabel(new ImageIcon(camionSmallImage));
+		JLabel nbCamionsSmallLabel = new JLabel(new ImageIcon(camionSmallFoisImage));
 		createNumberCamionsSmallTextField();
 
 		//nombre de gros camions
-		JLabel nbCamionsLargeLabel = new JLabel(new ImageIcon(camionLargeImage));
+		JLabel nbCamionsLargeLabel = new JLabel(new ImageIcon(camionLargeFoisImage));
 		createNumberCamionsLargeTextField();
 
 		//temps de simulation
@@ -1069,7 +1135,7 @@ public class JControlPanel extends JPanel{
 
 		//-----------------------------------------
 		//Première ligne :
-		
+
 		//dropdown de sélection de mine
 		//
 		gc.fill = GridBagConstraints.HORIZONTAL;
@@ -1082,7 +1148,7 @@ public class JControlPanel extends JPanel{
 
 		//-----------------------------------------
 		//Deuxième ligne :
-				
+
 		// image petits camions
 		//
 		gc.gridx = 0;
@@ -1118,7 +1184,7 @@ public class JControlPanel extends JPanel{
 
 		//-----------------------------------------
 		//Troisième ligne :
-		
+
 		// Image temps de simulation
 		//
 		gc.gridx = 0;
@@ -1137,7 +1203,7 @@ public class JControlPanel extends JPanel{
 
 		//-----------------------------------------
 		//Quatrième ligne :
-				
+
 		//Bouton charger
 		//
 		gc.gridx = 0;
@@ -1157,13 +1223,13 @@ public class JControlPanel extends JPanel{
 	 * @return JPanel correspondant à la zone de slider de vitesse
 	 */
 	private JPanel createSpeedComponent() {
-		
+
 		//cree le panel
 		//
 		JPanel speedPanel = new JPanel();
 		speedPanel.setOpaque(false);
-		
-		
+
+
 		//-----------------------------------
 		//Créé les éléments
 		//-----------------------------------
@@ -1178,14 +1244,14 @@ public class JControlPanel extends JPanel{
 		speedSlider.setOpaque(false);
 		speedSlider.setMaximum(51);
 		speedSlider.setMinimum(1);
-		
+
 		int defaultValue = parentFrame.getConfig().getDefaultSimultaionSpeed();
 		if(defaultValue < speedSlider.getMinimum() || defaultValue > speedSlider.getMaximum()) {
 			throw new IllegalStateException("La vitesse de simulation doit etre entre "+speedSlider.getMinimum()+" et "+speedSlider.getMaximum()+". "+defaultValue+" fourni.");
 		}
 		speedSlider.setValue(defaultValue);
-		
-		
+
+
 		speedSlider.setOrientation(JSlider.HORIZONTAL);
 		speedSlider.setMinimumSize(new Dimension(SLIDER_WIDTH_PX, 20));
 		speedSlider.setMaximumSize(new Dimension(SLIDER_WIDTH_PX, 20));
@@ -1199,7 +1265,7 @@ public class JControlPanel extends JPanel{
 			}
 
 		});
-		
+
 		// checkbox
 		//
 		JCheckBox checkbox = createCheckBox();
@@ -1207,11 +1273,11 @@ public class JControlPanel extends JPanel{
 		//-----------------------------------
 		// Ajoute les éléments
 		//-----------------------------------
-		
+
 		//type de layout
 		speedPanel.setLayout(new GridBagLayout());
 		GridBagConstraints gc = new GridBagConstraints();
-		
+
 		//Titre du slider
 		//
 		gc.gridx = 0;
@@ -1257,29 +1323,29 @@ public class JControlPanel extends JPanel{
 		//-------------------------
 		//Créé les éléments
 		//-------------------------
-		
+
 		//Titre du slider
 		//
 		JLabel meteoLabel = new JLabel("Météo");
 		meteoLabel.setHorizontalAlignment(JLabel.CENTER);
-		
+
 		//slider
 		//
 		final JSlider temperatureSlider = new JSlider();
 		temperatureSlider.setOpaque(false);
 		temperatureSlider.setMaximum(100);
 		temperatureSlider.setMinimum(50);
-		
-		
+
+
 		int defaultValue = parentFrame.getConfig().getDefaultMeteo();
 		if(defaultValue < temperatureSlider.getMinimum() || defaultValue > temperatureSlider.getMaximum()) {
 			throw new IllegalStateException("JControlPanel::createTemperatureSliderComponent la valeur par defaut doit etre entre "+temperatureSlider.getMinimum()+" et "+temperatureSlider.getMaximum()+". "+defaultValue+"fourni.");
 		}
-		
+
 		temperatureSlider.setValue(defaultValue);
 		temperatureSlider.setMaximumSize(new Dimension(100000, 20));
 		temperatureSlider.setPreferredSize(new Dimension(SLIDER_WIDTH_PX, 20));
-		
+
 
 		//listener change le facteur de meteo de la mine
 		temperatureSlider.addChangeListener(new ChangeListener() {
@@ -1290,26 +1356,26 @@ public class JControlPanel extends JPanel{
 			}
 
 		});
-		
+
 		//Image de flocon
 		//
 		JLabel floconLabel = new JLabel(new ImageIcon(floconImage));
-		
+
 		//Image de soleil
 		//
 		JLabel soleilLabel = new JLabel(new ImageIcon(soleilImage));
-		
+
 		//------------------------------------
 		//Ajoute les éléments
 		//------------------------------------
-				
+
 		//gridBagLayout parce qu'on veut centrer!
 		temperatureSliderPanel.setLayout(new GridBagLayout());
 		GridBagConstraints gc = new GridBagConstraints();
 
 		//---------------------------------------
 		// Rangée 1
-		
+
 		//titre du slider
 		//
 		gc.gridx = 1;
@@ -1321,7 +1387,7 @@ public class JControlPanel extends JPanel{
 
 		//---------------------------------------
 		//Rangée 2
-		
+
 		//Image de flocon
 		//
 		gc.gridy++;
@@ -1329,7 +1395,7 @@ public class JControlPanel extends JPanel{
 		gc.gridheight = 2;
 		gc.weightx = 0;
 		temperatureSliderPanel.add(floconLabel, gc);
-		
+
 		gc.gridx=1;
 		gc.gridheight = 2;
 		gc.weightx = 0;
@@ -1418,7 +1484,7 @@ public class JControlPanel extends JPanel{
 		//Image de soleil
 		//
 		BufferedImage soleilImageLarge = null;
-		
+
 		try {
 			soleilImageLarge = ImageIO.read(new File("images/"+theme+"/sun.png"));
 		} catch (IOException e) {
@@ -1432,21 +1498,27 @@ public class JControlPanel extends JPanel{
 		g2.drawImage(soleilImageLarge, 0, 0, 25, 25, null);
 		g2.dispose();
 
-		//Image de camion
+		//Images de camion
 		//
+
 
 		BufferedImage smallCamionImageLarge = null;
 		BufferedImage largeCamionImageLarge = null;
+		BufferedImage smallCamionFoisImageLarge = null;
+		BufferedImage largeCamionFoisImageLarge = null;
 
 		try {
-			smallCamionImageLarge = ImageIO.read(new File("images/"+theme+"/camion_small_fois.png"));
-			largeCamionImageLarge = ImageIO.read(new File("images/"+theme+"/camion_large_fois.png"));
+			smallCamionImageLarge = ImageIO.read(new File("images/"+theme+"/camion_small.png"));
+			largeCamionImageLarge = ImageIO.read(new File("images/"+theme+"/camion_large.png"));
+			smallCamionFoisImageLarge = ImageIO.read(new File("images/"+theme+"/camion_small_fois.png"));
+			largeCamionFoisImageLarge = ImageIO.read(new File("images/"+theme+"/camion_large_fois.png"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
-		int camionX = 65;
-		int camionY = 30;
+		int camionX = 40;
+		int camionY = 25;
+		
 		camionSmallImage = new BufferedImage(camionX, camionY, BufferedImage.TYPE_INT_ARGB);
 		g2 = camionSmallImage.createGraphics();
 
@@ -1454,16 +1526,37 @@ public class JControlPanel extends JPanel{
 		g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 		g2.drawImage(smallCamionImageLarge, 0, 0, camionX, camionY, null);
 		g2.dispose();
-
-
-
+		
 		camionLargeImage = new BufferedImage(camionX, camionY, BufferedImage.TYPE_INT_ARGB);
 		g2 = camionLargeImage.createGraphics();
 
 
-
 		g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 		g2.drawImage(largeCamionImageLarge, 0, 0, camionX, camionY, null);
+		g2.dispose();
+		
+		
+
+		camionX = 65;
+		camionY = 30;
+
+		camionSmallFoisImage = new BufferedImage(camionX, camionY, BufferedImage.TYPE_INT_ARGB);
+		g2 = camionSmallFoisImage.createGraphics();
+
+
+		g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+		g2.drawImage(smallCamionFoisImageLarge, 0, 0, camionX, camionY, null);
+		g2.dispose();
+
+
+
+		camionLargeFoisImage = new BufferedImage(camionX, camionY, BufferedImage.TYPE_INT_ARGB);
+		g2 = camionLargeFoisImage.createGraphics();
+
+
+
+		g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+		g2.drawImage(largeCamionFoisImageLarge, 0, 0, camionX, camionY, null);
 		g2.dispose();
 
 
@@ -1501,10 +1594,10 @@ public class JControlPanel extends JPanel{
 		this.playPauseButton.toogle();
 
 		if(playPauseButton.getState() == PlayPauseButton.STATE_PAUSE) {
-			scoreFunctionTextField.setEditable(true);
+			scoreFunctionSmallCamionsTextField.setEditable(true);
 		}
 		else {
-			scoreFunctionTextField.setEditable(false);
+			scoreFunctionSmallCamionsTextField.setEditable(false);
 		}
 
 	}
@@ -1520,7 +1613,7 @@ public class JControlPanel extends JPanel{
 
 		@SuppressWarnings("unchecked")
 		int newPredictFunctionIndex = ((Pair<Integer, String>) this.predictComboBox.getSelectedItem()).getKey();
-				
+
 		//active/desactive les champs des parametres de la fonction de prediction en fonction de la fonctin choisie
 		if(newPredictFunctionIndex == TravelTimePredictor.PREDICT_FUNCTION_AVG_PREV) {
 			nLabel.setVisible(true);

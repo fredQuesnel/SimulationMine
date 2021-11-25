@@ -1,4 +1,4 @@
-\contentsline {section}{\numberline {0}Avant de commencer...}{1}{section.0}%
+\contentsline {section}{\numberline {0}Avant de commencer...}{2}{section.0}%
 \contentsline {section}{\numberline {1}Prédiction des temps de parcours}{2}{section.1}%
 \contentsline {subsection}{\numberline {Question 1.1}Caractéristiques d'une "Bonne" fonction de prédiction }{3}{subsection.1.1}%
 \contentsline {subsection}{\numberline {Question 1.2}Étude des formules}{3}{subsection.1.2}%
@@ -12,5 +12,10 @@
 \contentsline {subsection}{\numberline {Question 3.1}Stratégies de décision complexes}{8}{subsection.3.1}%
 \contentsline {subsection}{\numberline {Question 3.2}Plan + problème d'affectation}{8}{subsection.3.2}%
 \contentsline {subsection}{\numberline {Question 3.3}}{8}{subsection.3.3}%
-\contentsline {section}{\numberline {4}Optimisation des coûts de production}{10}{section.4}%
-\contentsline {section}{\numberline {5}Liste des variables}{10}{section.5}%
+\contentsline {section}{\numberline {4}Modification du plan d'opération}{8}{section.4}%
+\contentsline {subsection}{\numberline {Question 4.1}Estimation de production}{9}{subsection.4.1}%
+\contentsline {subsection}{\numberline {Question 4.2}Modification manuelle du plan}{9}{subsection.4.2}%
+\contentsline {subsection}{\numberline {Question 4.3}Optimisation du plan}{9}{subsection.4.3}%
+\contentsline {subsection}{\numberline {Question 4.4}Ajustement dynamique du plan}{10}{subsection.4.4}%
+\contentsline {section}{\numberline {5}Optimisation des coûts de production}{10}{section.5}%
+\contentsline {section}{\numberline {6}Liste des variables}{10}{section.6}%

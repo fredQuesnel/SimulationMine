@@ -582,76 +582,14 @@ public class Mine {
 		//Cree les petits camions
 		//
 		for(int i = 0 ; i < nbSmallCamions; i++) {
-			Camion camion = new Camion(steriles.get(0), this, smallCamionImage) {
-
-				/** Vitesse moyenne du camion	 */
-				public static final double VITESSE_MOYENNE = 7.5;
-				/** �cart type sur la vitesse du camion	 */
-				private static final double ECART_TYPE_VITESSE = 0.6;//ancien 0.5
-				/** Charge maximum du camion.	 */
-				public static final double CHARGE_MAX = 60.;
-
-				private static final double PREDICT_TIME_ADJUST_FACTOR = 1.; 
-
-				@Override
-				public double getAvgSpeed() {
-					return VITESSE_MOYENNE;
-				}
-
-				@Override
-				public double getChargeMax() {
-					return CHARGE_MAX;
-				}
-
-				@Override
-				public double getPredictTimeAdjustFactor() {
-					return PREDICT_TIME_ADJUST_FACTOR;
-				}
-
-				@Override
-				public double getStdSpeed() {
-					return ECART_TYPE_VITESSE;
-				}
-
-			};
+			Camion camion = new SmallCamion(steriles.get(0), this, smallCamionImage);
 			camions.add(camion);
 		}
 
 		//Cree les gros camions
 		//
 		for(int i = 0 ; i < nbLargeCamions; i++) {
-			Camion camion = new Camion(steriles.get(0), this, largeCamionImage) {
-
-				/** Vitesse moyenne du camion	 */
-				public static final double VITESSE_MOYENNE = 5;
-				/** �cart type sur la vitesse du camion	 */
-				private static final double ECART_TYPE_VITESSE = 0.3;//ancien 0.5
-				/** Charge maximum du camion.	 */
-				public static final double CHARGE_MAX = 100.;
-
-				private static final double PREDICT_TIME_ADJUST_FACTOR = 9./5;
-				@Override
-				public double getAvgSpeed() {
-					return VITESSE_MOYENNE;
-				}
-
-				@Override
-				public double getChargeMax() {
-					return CHARGE_MAX;
-				}
-
-				@Override
-				public double getPredictTimeAdjustFactor() {
-					return PREDICT_TIME_ADJUST_FACTOR;
-				}
-
-				@Override
-				public double getStdSpeed() {
-					return ECART_TYPE_VITESSE;
-				}
-
-
-			};
+			Camion camion = new LargeCamion(steriles.get(0), this, largeCamionImage);
 			camions.add(camion);
 		}
 

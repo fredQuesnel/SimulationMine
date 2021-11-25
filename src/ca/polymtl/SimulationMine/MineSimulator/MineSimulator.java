@@ -109,7 +109,7 @@ public class MineSimulator implements GuiListener {
 
 		//Cr�� l'engin de d�cision
 		//
-		decisionMaker = new CustomDecisionMaker(mine);
+		decisionMaker = new CustomDecisionMaker(mine, config);
 
 		//warmup la mine
 		//
@@ -483,11 +483,16 @@ public class MineSimulator implements GuiListener {
 
 
 	@Override
-	public void scoreFunctionChanged(String scoreFunction) {
-		decisionMaker.setScoreFunctionString(scoreFunction);
+	public void scoreFunctionSmallCamionsChanged(String scoreFunction) {
+		decisionMaker.setScoreFunctionSmallCamionsString(scoreFunction);
 
 	}
 
+
+	@Override
+	public void scoreFunctionLargeCamionsChanged(String scoreFunction) {
+		decisionMaker.setScoreFunctionLargeCamionsString(scoreFunction);
+	}
 
 	@Override
 	public void simulationSpeedChanged(int speed) {
@@ -1044,8 +1049,8 @@ public class MineSimulator implements GuiListener {
 	private void warmup() {
 		//effectue les steps de warmup aleatoirement
 		//
-		String decisionFunction =decisionMaker.getScoreFunctionString(); 
-		decisionMaker.setScoreFunctionString(DecisionMaker.WARMUP_SCORE_FUNCTION_STRING);
+		String decisionFunction = DecisionMaker.ALEATOIRE_FUNCTION_STRING; 
+		decisionMaker.setScoreFunctionSmallCamionsString(DecisionMaker.WARMUP_SCORE_FUNCTION_STRING);
 
 		// Effectue les steps
 		//
@@ -1057,7 +1062,7 @@ public class MineSimulator implements GuiListener {
 		//desactive le mode warmup
 		//
 		mine.setInWarmup(false);
-		decisionMaker.setScoreFunctionString(decisionFunction);
+		decisionMaker.setScoreFunctionSmallCamionsString(decisionFunction);
 
 		//calcule le temps moyen d'attente des pelles
 		//
