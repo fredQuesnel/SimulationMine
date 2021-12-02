@@ -8,10 +8,12 @@ import bsh.EvalError;
 import bsh.Interpreter;
 import ca.polymtl.SimulationMine.Config;
 import ca.polymtl.SimulationMine.MineSimulator.Camion;
+import ca.polymtl.SimulationMine.MineSimulator.Concentrateur;
 import ca.polymtl.SimulationMine.MineSimulator.Mine;
 import ca.polymtl.SimulationMine.MineSimulator.Pelle;
 import ca.polymtl.SimulationMine.MineSimulator.SimulationMine;
 import ca.polymtl.SimulationMine.MineSimulator.Station;
+import ca.polymtl.SimulationMine.MineSimulator.Sterile;
 import lpsolve.*; 
 
 /**
@@ -105,22 +107,17 @@ public class DecisionMaker {
 	/**
 	 * Choisis la station de retours pour un camion qui viens de se faire remplir à la pelle
 	 * @param camion Camion a assigner
+	 * @param candidates 
 	 * @param pelle Pelle ou se trouve le camion
 	 * @return Station ou se rendra le camion
 	 */
-	protected Station selectReturnStation(Camion camion, Pelle pelle) {
+	protected Station selectReturnStation(Camion camion, ArrayList<Station> candidates) {
+		
 		Station returnStation = null;
-		//si remplis de sterile, choisis parmis les steriles
-		if(pelle.getRockType().getPercentIron() == 0 && pelle.getRockType().getPercentSulfur() ==0) {
-			int index = (int) (Math.random()*mine.getSteriles().size());
-			System.out.println(mine.getSteriles().size()+" steriles. index "+index);
-			returnStation = mine.getSteriles().get(index);
-		}
-		//sinon, choisis parmis les concentrateurs
-		else {
-			returnStation = mine.getConcentrateurs().get((int) Math.random()*mine.getConcentrateurs().size());
-		}
-
+		
+		int index = (int) (Math.random()*candidates.size());
+		returnStation = candidates.get(index);
+		
 		return returnStation;
 	}
 
@@ -149,7 +146,6 @@ public class DecisionMaker {
 		this.scoreFunctionLargeCamionsString = config.getDefaultScoreFunctionLargeCamions();
 
 		this.config = config;
-		mine = mine;
 	}
 
 	/**
@@ -962,14 +958,47 @@ public class DecisionMaker {
 	 */
 	public Station giveObjectiveToCamion(Camion camion) {
 
-
-
-
+		//si le camion doit se faire décharger
+		//
 		if(camion.getCurrentStation()!=null && !camion.getCurrentStation().isDecharge) {
-			return selectReturnStation(camion, (Pelle) camion.getCurrentStation());
+			
+			//Choisis les candidats
+			//
+			ArrayList<Station> candidates = new ArrayList<Station>();
+			
+			//on doit retourner vers un sterile
+			if(camion.getRockType().isSterile()) {
+				for(Sterile s : mine.getSteriles()) {
+					candidates.add(s);
+				}
+			}
+			//on doit retourner vers un concentrateur
+			else {
+				for(Concentrateur c : mine.getConcentrateurs()) {
+					candidates.add(c);
+				}
+			}
+			
+			Station returnStation = selectReturnStation(camion, candidates);
+			
+		
+			
+			return returnStation;
 		}
+		//si le camion doit aller se faire remplir
+		//
 		else {
-			return selectPelleForCamion(camion);
+
+			//Choisis les candidats
+			//
+			ArrayList<Pelle> candidates = new ArrayList<Pelle>();
+			for(Pelle p : mine.getPelles()) {
+				if(p.getState() != Pelle.STATION_STATE_PANNE) {
+					candidates.add(p);
+				}
+			}
+			
+			return selectPelleForCamion(camion, candidates);
 
 		}
 
@@ -978,25 +1007,12 @@ public class DecisionMaker {
 	/**
 	 * Choisis à quelle pelle affecter un camion selon la stratégie indiquée par la fonction de score
 	 * @param camion
+	 * @param candidates 
 	 * @return Pelle à laquelle affecter le camion
 	 */
-	protected Pelle selectPelleForCamion(Camion camion) {
+	protected Pelle selectPelleForCamion(Camion camion, ArrayList<Pelle> candidates) {
 
-		
-		//choisis les pelles candidates
-		//
-		@SuppressWarnings("unchecked")
-		ArrayList<Pelle> pelles = (ArrayList<Pelle>) mine.getPelles().clone();
-
-		//enleve les pelles en panne
-		//
-		ListIterator<Pelle> iter = pelles.listIterator();
-		while(iter.hasNext()) {
-			if(iter.next().getState() == Station.STATION_STATE_PANNE) {
-				iter.remove();
-			}
-		}
-		
+	
 		//-------------------------------------------------------
 		//choisis la methode utilisee pour selectionner la pelle
 		//
@@ -1022,7 +1038,7 @@ public class DecisionMaker {
 		//utilise un probleme d'affectation
 		//
 		if(scoreFunction.equals(OPTIMIZE_FUNCTION_STRING)) {
-			Pelle optimalPelle = giveOptimalObjectiveToCamion(camion, pelles);
+			Pelle optimalPelle = giveOptimalObjectiveToCamion(camion, candidates);
 			return optimalPelle;
 			//camion.setObjective(optimalPelle);
 		}
@@ -1035,12 +1051,12 @@ public class DecisionMaker {
 			double maxScore = -Double.MAX_VALUE;
 			double minScore = Double.MAX_VALUE;
 			Pelle pelleMinScore = null;
-			for(int i = 0 ; i < pelles.size(); i++) {
+			for(int i = 0 ; i < candidates.size(); i++) {
 
 				double score = 0;
 
 				try {
-					score = computeDecisionScore(camion, pelles.get(i), scoreFunction);
+					score = computeDecisionScore(camion, candidates.get(i), scoreFunction);
 				} catch (EvalError e) {
 					e.printStackTrace();
 				}
@@ -1049,7 +1065,7 @@ public class DecisionMaker {
 					maxScore = score;
 				}
 				if(score <= minScore) {
-					pelleMinScore = pelles.get(i);
+					pelleMinScore = candidates.get(i);
 					minScore = score;
 				}
 			}

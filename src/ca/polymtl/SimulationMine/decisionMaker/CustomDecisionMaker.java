@@ -47,7 +47,7 @@ public class CustomDecisionMaker extends DecisionMaker {
 
 	//Votre propre fonction de score, en java
 	//
-	protected Pelle customSelectPelleForCamion(Camion camion) {
+	private Pelle customSelectPelleForCamion(Camion camion, ArrayList<Pelle> candidates) {
 
 
 		//variable contenant le score d'affecter le camion à la pelle
@@ -60,6 +60,11 @@ public class CustomDecisionMaker extends DecisionMaker {
 		ArrayList<Camion> camions = mine.getCamions();
 		
 		// Liste des pelles
+		// !ATTENTION! 
+		// La liste des pelles peut être différente des candidats
+		// Vous devez retourner une pelle qui est dans la liste des
+		// candidats
+		// 
 		ArrayList<Pelle> pelles = mine.getPelles();
 		
 		
@@ -108,17 +113,40 @@ public class CustomDecisionMaker extends DecisionMaker {
 	 *  Output : 
 	 *  	score sous la forme d'un double. Un petit score est meilleur.
 	 */
-	protected Pelle selectPelleForCamion(Camion camion) {
+	protected Pelle selectPelleForCamion(Camion camion, ArrayList<Pelle> candidates) {
+		
+		Pelle selectedPelle = null;
+		
 		//Fonctionalité par défaut : Évalue selon ce qui est écrit dans le champs "fonction de score".
 		// Commentez la ligne suivante pour créer votre propre fonction de score.
 		//
-		return super.selectPelleForCamion(camion);
+		selectedPelle = super.selectPelleForCamion(camion, candidates);
 
 
 		//Votre propre fonction!
 		//Décommenter pour utiliser.
 		//
-		//return customSelectPelleForCamion(camion);
+		//selectedPelle = customSelectPelleForCamion(camion, candidates);
+		
+		//Verifie que la pelle fait partie de la liste des candidats. Lance une erreur sinon.
+		//
+		boolean found = false;
+		for(Pelle p : candidates) {
+			if(p == selectedPelle) {
+				found = true;
+				break;
+			}
+		}
+		if(!found) {
+			if(selectedPelle != null) {
+				throw new IllegalStateException("CustomDecisionMaker::selectPelleForCamion : La pelle "+selectedPelle.getId()+"n'est pas un candidat");
+			}
+			else {
+				throw new IllegalStateException("CustomDecisionMaker::selectPelleForCamion : La pelle selectionnee est null.");
+			}
+		}
+		
+		return selectedPelle;
 	}
 	
 	@Override
@@ -128,17 +156,41 @@ public class CustomDecisionMaker extends DecisionMaker {
 	 * @param pelle
 	 * @return Station de déchargement
 	 */
-	protected Station selectReturnStation(Camion camion, Pelle pelle) {
+	protected Station selectReturnStation(Camion camion, ArrayList<Station> candidates) {
+		
+		Station returnStation = null;
 		
 		//Fonctionalité par défaut : Choisis aléatoirement parmis les candidats valides.
 		//
-		//return super.selectReturnStation(camion, pelle);
+		returnStation =  super.selectReturnStation(camion, candidates);
 
 
 		//Votre propre fonction!
 		//Décommenter pour utiliser.
 		//
-		return customSelectReturnStation(camion, pelle);
+		//returnStation = customSelectReturnStation(camion, candidates);
+		
+		
+		//verifie que la station appartient aux candidats. Lance une erreur sinon
+		//
+		boolean found = false;
+		for(Station s : candidates) {
+			if(returnStation == s) {
+				found = true;
+				break;
+			}
+		}
+		if(!found) {
+			if(returnStation != null) {
+				throw new IllegalStateException("CustomDecisionMaker::giveObjectiveToCamion : La station de retour "+returnStation.getId()+"n'est pas un candidat");
+			}
+			else {
+				throw new IllegalStateException("CustomDecisionMaker::giveObjectiveToCamion : La station de retour est null");
+			}
+		}
+		
+		//retourne la station selectionnee
+		return returnStation;
 
 	}
 
@@ -148,40 +200,20 @@ public class CustomDecisionMaker extends DecisionMaker {
 	 * @param pelle pelle ou se trouve presentement le camion.
 	 * @return Station où doit se rendre le camion
 	 */
-	private Station customSelectReturnStation(Camion camion, Pelle pelle) {
+	private Station customSelectReturnStation(Camion camion, ArrayList<Station> candidates) {
+		
+		//pelle ou se trouve le camion
+		Pelle pelle = (Pelle) camion.getCurrentStation();
 		
 		//station à retourner
 		Station returnStation = null;
-		
-		//-------------------------------------------
-		// Trouve les candidats valides 
-		// (steriles ou concentrateurs selon la pelle)
-		//-------------------------------------------
-		
-		ArrayList<Station> candidateStations = new ArrayList<Station>();
-		
-		
-		//si le camion est remplis de sterile, choisis parmis les steriles
-		//
-		if(pelle.getRockType().isSterile()) {
-			for(Sterile s : mine.getSteriles()) {
-				candidateStations.add(s);
-			}
-		}
-		//sinon, choisis parmis les concentrateurs
-		//
-		else {
-			for(Concentrateur c : mine.getConcentrateurs()) {
-				candidateStations.add(c);
-			}
-		}
 		
 		
 		/*
 		 * Votre code ici! 
 		 * Vous devez choisir une station parmis les candidats.
 		 */
-		returnStation = candidateStations.get(0);
+		returnStation = candidates.get(0);
 		
 		return returnStation;
 	}
