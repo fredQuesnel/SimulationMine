@@ -12,7 +12,7 @@ public class StationFailureEvent {
 	
 	//début de l'événement, selon le nombre de secondes depuis le début de la journée (donc 0 = minuit, 3600 = 1:00, etc)
 	long beginTimeSec;
-	//temps de fin de l'événement (la durée totale est donc endTimeSec - beginTimeSec)
+	//temps de fin de l'événement (la durée totale est donc endTimeSec - beginTimeSec) 
 	long endTimeSec;
 	//station affectée
 	Station station;

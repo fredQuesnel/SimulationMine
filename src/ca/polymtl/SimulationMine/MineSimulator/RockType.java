@@ -33,6 +33,13 @@ public class RockType {
 	public double getPercentSulfur() {
 		return percentSulfur;
 	}
+
+	public boolean isSterile() {
+		if(this.getPercentIron() == 0 && this.getPercentSulfur() == 0) {
+			return true;
+		}
+		return false;
+	}
 	
 
 }
