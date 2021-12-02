@@ -44,16 +44,24 @@ Dans la réalité, maximiser la production totale n'est pas toujours souhaitable
 
 %----------------------------------------
 %avec code 
-\subsection{Stratégies de décision complexes}
+\subsection{Stratégies d'affectation dynamique}
 \label{max_cont:code}
-Comme pour la question \ref{max_prod:code}, modifiez les fonctions  \verb!computeDecisionScore! et \verb!computeCustomDecisionScore! pour maximiser l'objectif tout en respectant les contraintes. Vous pouvez utiliser les fonctions \verb!selectReturnStation! et \verb!customSelectReturnStation! que vous avez écrit dans la section \ref{max_prod:code}, ou les modifier si vous le jugez nécessaire.
 
-\vspace{10pt} 
-\noindent\textbf{Dans votre réponse,}  
+Vous devez maintenant programmer des règles de décision plus complexes en modifiant la classe CustomDecisionMaker. Plus précisément, 
 
 \begin{itemize}
-	\item Décrivez brièvement vos algorithmes. 
-	\item Comparez la production obtenue avec vos résultats de la question \ref{max_prod:code}.
+	\item Modifiez les fonctions \verb!computeDecisionScore! et \verb!computeCustomDecisionScore! pour créer une fonction de score pour l'affectation de camions aux pelles.
+	\item Modifiez les fonctions \verb!selectReturnStation! et \verb!customSelectReturnStation! pour choisir vers quelle station de déchargement (quel stérile ou concentrateur) un camion ira se faire décharger.
+\end{itemize}
+
+Votre algorithme doit être dynamique, c'est à dire que les décisions prises doivent dépendre de l'état de la mine. Vous devez tenter de maximiser les objectifs de production tout en respectant les contraintes.
+
+\vspace{10pt}
+\noindent\textbf{Dans votre réponse,} 
+
+\begin{itemize}
+	\item Décrivez brièvement vos algorithmes. Expliquez le raisonnement derrière ceux-ci.
+	\item Donnez les résultats d'une simulation (quantités produites, respect des contraintes, etc.).
 \end{itemize}
 
 

@@ -4,25 +4,24 @@ Le plan d'opérations peut être modifié dans le but d'atteindre divers objecti
 
 Protocole expérimental 
 
-•Mine : 10 pelles
+\begin{itemize}
+	\item 10 pelles
+	\item Nombre de camions de 60 tonnes : 20
+	\item Nombre de camions de 100 tones : 20
+	\item Durée de simulation : 24h
+	\item Fonction de score : \red{optimise ou optimal\_assign}
+\end{itemize}
 
-•Nombre de camions de 60 tonnes: 20
-
-•Nombre de camions de 100 tonnes: 20
-
-•Temps de simulation : 24h
-
-•Fonction de score : optimise ou optimalassign.
 
 \subsection{Estimation de production}
 
 Supposez que le plan par défaut est suivi à la lettre. Estimez quelle devrait être, sur une période de 24h : 
 
-•La quantité de minerai livrée au concentrateur.
-
-•La quantité de stérile livrée à la pile de stérile.
-
-•Le pourcentage de fer et de soufre au concentrateur.
+\begin{itemize}
+	\item La quantité de minerai livrée au concentrateur.
+	\item La quantité de stérile livrée à la pile de stérile.
+	\item Le pourcentage de fer et de soufre au concentrateur.
+\end{itemize}
 
 Comparez ces chiffres avec les résultats d'une simulation. Comment expliquez-vous la différence observée?
 
@@ -30,37 +29,47 @@ Comparez ces chiffres avec les résultats d'une simulation. Comment expliquez-vo
 
 Un nouveau client souhaite acheter du minerai de très bonne qualité (et à payer cher pour!). Il lui faut au moins X tonnes de minerais d'ici 24 heures! Les nouveaux objectifs et contraintes de production sont : 
 
-•Objectif : Maximiser (on priorise davantage la production de minerai).
 
-•Quantité de minerai : 
-
-•Taux de fer : 
-
-•Taux de soufre : 
+\begin{itemize}
+	\item \textbf{Objectif : } Maximiser $x_c + 0.1 x_s$.
+	\item \textbf{Quantité de minerai : } 
+	
+	\[x_c \geq X\]
+	
+	\item \textbf{Taux de fer : } Entre 26\% et 27\%.
+	\[ y_{fe} \geq 28\% \]
+	
+	\item \textbf{Taux de soufre : } 
+	
+	\[y_s \leq 1.5\]
+	
+\end{itemize}
 
 Proposez un plan d'opération qui permet de respecter toutes les contraintes (dans une simulation). Simulez ce plan et donnez-en les caractéristiques de production.
 
 \subsection{Optimisation du plan}
 
-En supposant que n'importe quel plan peut être suivi à la lettre, écrivez un modèle d'optimisation linéaire qui détermine le meilleur plan d'opérations en régime continu. Utilisez les mêmes objectifs et contraintes que pour la section 
+En supposant que n'importe quel plan peut être suivi à la lettre, écrivez un modèle d'optimisation linéaire qui détermine le meilleur plan d'opérations en régime continu. Utilisez les mêmes objectifs et contraintes que pour la section \ref{sec:objectifs}
 
 À l'aide d'un logiciel d'optimisation (le solveur d'Excel, par exemple), résolvez ce problème et donnez sa solution. Selon votre plan, estimez :
 
-•La quantité de minerai livrée au concentrateur.
+\begin{itemize}
+	\item La quantité de minerai livrée au concentrateur.
+	\item La quantité de stérile livrée à la pile de stérile.
+	\item Le pourcentage de fer et de soufre au concentrateur.
+\end{itemize}
 
-•La quantité de stérile livrée à la pile de stérile.
 
-•Le pourcentage de fer et de soufre au concentrateur.
-
-Plan "optimal" en pratique
+\subsection{Plan "optimal" en pratique}
 
 Simulez le plan trouvé en 4.2. 
 
 Dans votre réponse, 
 
-•Comparez les résultats de la simulation avec vos prédictions de la question . Expliquez les différences observées ( autrement dit, quels sont les éléments que le modèle d'optimisation linéaire ne considère pas?).
-
-•Les modèles linéaires ont tendance à produire des solutions extrêmes. Expliquez en quoi cela pourrait être un problème avec le modèle développé en .
+\begin{itemize}
+	\item Comparez les résultats de la simulation avec vos prédictions de la question . Expliquez les différences observées ( autrement dit, quels sont les éléments que le modèle d'optimisation linéaire ne considère pas?).
+	\item Les modèles linéaires ont tendance à produire des solutions extrêmes. Expliquez en quoi cela pourrait être un problème avec le modèle développé en .
+\end{itemize}
 
 \subsection{Ajustement dynamique du plan}
 
@@ -68,16 +77,15 @@ Il arrive qu'une pelle subisse un bris mécanique et tombe en panne pour une dur
 
 Vous devez développer une stratégie de mise à jour du plan. Pour ce faire, modifiez les fonctions et de la classe .
 
-Testez votre stratégie en simulant 10 jours sur la mine 10 pelles. Utilisez le problème d'affectation pour assigner les camions (option optimiseplan).
+Testez votre stratégie en simulant 10 jours sur la mine 10 pelles. Utilisez le problème d'affectation pour assigner les camions (option \red{optimise\_plan}).
 
 Il faut simuler 10 jours pour qu'il y ait assez de pannes pour que les résultats soient statistiquement significatifs.
 
 Dans votre réponse, 
 
-•Décrivez brièvement votre stratégie de mise à jour du plan.
-
-•Donnez les résultats pertinents de la simulation.
-
-•Comparez vos résultats avec une simulation de 10 jours avec un plan fixe. 
-
+\begin{itemize}
+	\item Décrivez brièvement votre stratégie de mise à jour du plan.
+	\item Donnez les résultats pertinents de la simulation.
+	\item Comparez vos résultats avec une simulation de 10 jours avec un plan fixe. 
+\end{itemize}
 Bonus (?) : Si la stratégie utilise un modèle de programmation linéaire.

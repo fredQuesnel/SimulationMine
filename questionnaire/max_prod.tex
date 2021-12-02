@@ -40,12 +40,12 @@ Dans cette section, nous souhaitons maximiser la production totale (minerai + st
 %-------------------------------------
 % fonction de score
 %-------------------------------------
-\subsection{Affectation à une pelle à l'aide d'une formule simple} 
+\subsection{Affectation à une pelle à l'aide d'un algorithme glouton} 
 \label{max_prod:score}
 
-Une première façon de contrôler l'affectation des camions est de modifier le champ \textit{fonction de score} de l'interface graphique. Vous pouvez entrer dans ce champ une formule qui calcule un \textit{score} pour chaque pelle, correspondant à l'utilité d'affecter le camion disponible à la pelle. Le logiciel assigne ensuite le camion à la pelle ayant le plus petit score. En cas d'égalité, la pelle avec le plus petit numéro est choisie.
+Une première façon de contrôler l'affectation des camions est via un algorithme glouton qui affecte les camions un à un. Lorsqu'un camion devient disponible, on calcule un \textit{score} pour chaque pelle, correspondant à l'utilité d'affecter le camion disponible à la pelle. Le logiciel assigne ensuite le camion à la pelle ayant le plus petit score. En cas d'égalité, la pelle avec le plus petit numéro est choisie. Vous pouvez définir la fonction de score utilisée en modifiant le champ \textit{fonction de score} de l'interface graphique. 
 
-Votre fonction de score peut contenir toutes les variables fournies dans la section \ref{sec:vars}, ainsi que les opérations élémentaires (+, -, *, /, \%). Les exposants peuvent également être utilisés à l'aide de la fonction Java (\verb!Math.pow([base], [exopsant]!). Par exemple, entrer la formule "n1" envoie toujours un camion disponible à la pelle ayant le moins de camions en attente.
+Élaborez une fonction de score qui maximise la production de la mine. Votre fonction de score peut contenir toutes les variables fournies dans la section \ref{sec:vars}, ainsi que les opérations élémentaires (+, -, *, /, \%). Les exposants peuvent également être utilisés à l'aide de la fonction Java (\verb!Math.pow([base], [exopsant]!). Par exemple, entrer la formule "n1" envoie toujours un camion disponible à la pelle ayant le moins de camions en attente.
 
 \vspace{10pt} 
 \noindent\textbf{Dans votre réponse,}  
@@ -59,6 +59,7 @@ Votre fonction de score peut contenir toutes les variables fournies dans la sect
 %--------------------------------------
 % Avec code
 %--------------------------------------
+\begin{comment}
 \subsection{Décisions d'affectation à l'aide de règles complexes} 
 \label{max_prod:code}
 
@@ -79,7 +80,7 @@ Vous devez maintenant programmer des règles de décision plus complexes en modi
 	\item Décrivez brièvement vos algorithmes.
 	\item Comparez la production obtenue avec votre formule d'assignation vos résultats de la question \ref{max_prod:score}.
 \end{itemize}
-
+\end{comment}
 
 %---------------------------------------------
 % deux types de camions
@@ -87,10 +88,13 @@ Vous devez maintenant programmer des règles de décision plus complexes en modi
 \subsection{Deux types de camions}
 Certains camions étaient vieux et ont été remplacés par des camions nouvelle génération. Ceux-ci sont plus lents, mais ont une capacité de 100 tonnes.
 
-Proposez et implémentez une stratégie qui tire avantage des deux types de camions. Répondez aux mêmes questions qu'à la question \ref{max_prod:code}.
+Proposez une fonction de score différente pour chaque type de camion. Répondez aux mêmes questions qu'à la question \ref{max_prod:score}.
 
-\red{Pour être honnête, je ne sais pas ce que je ferais... On peut toujours voir ce que les étudiants inventeront!}
-
+\textbf{Indice : }Pour vous aider à élaborer vos fonctions de score, posez-vous les questions suivantes : 
+\begin{itemize}
+	\item Dans quelle situation as-t-on avantage à utiliser un camion plus rapide?
+	\item Quel type de camion as-t-on avantage à envoyer aux pelles éloignées et peu visitées?
+\end{itemize}
 
 %---------------------------------------------
 % Affectation
@@ -108,7 +112,7 @@ On assigne le camion qui nous intéresse selon la solution du problème, et on �
 
 \begin{itemize}
 	\item Donnez un exemple hypothétique pour lequel il est avantageux d'utiliser un problème d'affectation par rapport à assigner les camions un par un.
-	\item Comparez la production obtenue avec le problème d'affectation avec ceux de la question \ref{max_prod:code}. 
+	\item Comparez la production obtenue avec le problème d'affectation avec ceux de la question \ref{max_prod:score}. 
 	\item Comment expliquez-vous les résultats obtenus?
 \end{itemize}
 \red{Selon mes tests, ici le problème d'affectation marche moins bien que la façon "1 camion à la fois". C'est parce que la fonction objectif minimise le temps d'attente des pelles, ce qui n'est pas toujours optimal. Par exemple, il peut être préférable d'envoyer les camions à une pelle plus proche quitte à laisser attendre une pelle éloignée. Il n'est pas évident de trouver une fonction objectif qui fait ce que l'on veut sans effets pervers. En gros, il faut s'assurer que ce qui est avantageux pour le camion qui nous intéresse ne soit pas plus avantageux pour un camion qui deviendra disponible plus tard. }
