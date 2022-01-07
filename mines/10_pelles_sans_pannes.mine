@@ -1,7 +1,7 @@
 id : "10pellessanspannes"
 name : "10 pelles sans pannes"
-default_camions_small : 15
-default_camions_large : 15
+default_camions_small : 70
+default_camions_large : 0
 
 //type min/ste id x y taux_fe taux_s cible_tonnes_par_heure
 pelle min "pelle1" 500 8000 38 3 300

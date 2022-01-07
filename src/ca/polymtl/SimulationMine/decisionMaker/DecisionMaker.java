@@ -234,7 +234,7 @@ public class DecisionMaker {
 			throw new IllegalStateException("DecisionMaker::giveObjectiveToCamion : Type de camion inconnu : "+camion.getType());
 		}
 
-
+		System.out.println("fonction de score : "+scoreFunction);
 
 		//utilise un probleme d'affectation
 		//
@@ -271,6 +271,7 @@ public class DecisionMaker {
 				}
 			}
 
+			
 			return pelleMinScore;
 		}
 
@@ -540,8 +541,8 @@ public class DecisionMaker {
 			distanceEntreCamionEtPelle = camion.getCurrentStation().getLocation().distance(station.getLocation());
 		}
 		else {
-			System.out.println("Camion "+camion.getState()+" currentStation "+camion.getCurrentStation().getId());
-			System.out.println("station" + station.getId());
+			//System.out.println("Camion "+camion.getState()+" currentStation "+camion.getCurrentStation().getId());
+			//System.out.println("station" + station.getId());
 			throw new IllegalStateException("DistanceEntreCamionEtStation : impossible d'évaluer la distance pour ce camion.");
 		}
 		return distanceEntreCamionEtPelle;
@@ -656,7 +657,7 @@ public class DecisionMaker {
 		//	attenteEspereeCamion = 0;
 		//}
 		//return attenteEspereePelle*Math.abs(attenteEspereePelle)+ attenteEspereeCamion*Math.abs(attenteEspereeCamion);
-		return attenteEspereePelle + attenteEspereeCamion;
+		return Math.abs(attenteEspereePelle);
 	}
 
 	/**
@@ -1220,7 +1221,9 @@ public class DecisionMaker {
 
 			//Fonction de cout
 			//
-			System.out.println("scores : ");
+			if(debug) {
+				System.out.println("scores : ");
+			}
 			double[] costFunction = new double[camions.size()*pelles.size()+1];
 			int index = 0;
 			for(int i = 0 ; i < camions.size(); i++ ) {
@@ -1290,6 +1293,10 @@ public class DecisionMaker {
 		return null;
 	}
 
+	public String getScoreFunctionLargeCamionsString() {
+		return scoreFunctionLargeCamionsString;
+	}
+
 	/**
 	 * Set la fonction de score pour les petits camions
 	 * @param text
@@ -1299,6 +1306,10 @@ public class DecisionMaker {
 
 	}
 
+
+	public String getScoreFunctionSmallCamionsString() {
+		return scoreFunctionSmallCamionsString;
+	}
 
 	/**
 	 * Set la fonction de score pour les gros camions

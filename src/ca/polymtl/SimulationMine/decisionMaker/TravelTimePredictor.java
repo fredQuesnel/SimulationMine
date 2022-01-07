@@ -92,7 +92,7 @@ public class TravelTimePredictor {
 
 		
 
-		System.out.println("enregistre temps parcours : "+ODKey+" "+adjustedRealTravelTime);
+		//System.out.println("enregistre temps parcours : "+ODKey+" "+adjustedRealTravelTime);
 		
 		
 		//enregistre le temps reel de transport
@@ -134,7 +134,7 @@ public class TravelTimePredictor {
 			throw new IllegalStateException("la fonction de prédiction n'est pas bien définie!");
 		}
 		
-		System.out.println("predicted travel time "+(predictedTime*c.getPredictTimeAdjustFactor()));
+		//System.out.println("predicted travel time "+(predictedTime*c.getPredictTimeAdjustFactor()));
 		return predictedTime*c.getPredictTimeAdjustFactor();
 
 	}
@@ -170,7 +170,6 @@ public class TravelTimePredictor {
 			String ODKey = getMapKeyForODPair(origine, destination);
 			ArrayList<Double> historyForOD = this.historyMap.get(ODKey);
 
-			System.out.println("key : "+ODKey);
 			//si aucun historique, retourne -1
 			if(historyForOD == null || historyForOD.size() == 0) {
 
@@ -185,7 +184,6 @@ public class TravelTimePredictor {
 			if(historySize < nbEchantillon) {
 				nbEchantillon = historySize;
 			}
-			System.out.println(ODKey+" nb echantillons :"+nbEchantillon);
 
 			//calcule la moyenne des nbEchantillon derniers temps de parcours
 			//

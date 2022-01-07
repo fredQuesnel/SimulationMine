@@ -1049,8 +1049,10 @@ public class MineSimulator implements GuiListener {
 	private void warmup() {
 		//effectue les steps de warmup aleatoirement
 		//
-		String decisionFunction = DecisionMaker.ALEATOIRE_FUNCTION_STRING; 
+		String decisionFunctionSmallCamion = decisionMaker.getScoreFunctionSmallCamionsString();
+		String decisionFunctionLargeCamion = decisionMaker.getScoreFunctionLargeCamionsString();
 		decisionMaker.setScoreFunctionSmallCamionsString(DecisionMaker.WARMUP_SCORE_FUNCTION_STRING);
+		decisionMaker.setScoreFunctionLargeCamionsString(DecisionMaker.WARMUP_SCORE_FUNCTION_STRING);
 
 		// Effectue les steps
 		//
@@ -1062,7 +1064,8 @@ public class MineSimulator implements GuiListener {
 		//desactive le mode warmup
 		//
 		mine.setInWarmup(false);
-		decisionMaker.setScoreFunctionSmallCamionsString(decisionFunction);
+		decisionMaker.setScoreFunctionSmallCamionsString(decisionFunctionSmallCamion);
+		decisionMaker.setScoreFunctionLargeCamionsString(decisionFunctionLargeCamion);
 
 		//calcule le temps moyen d'attente des pelles
 		//
