@@ -36,26 +36,31 @@ public class DecisionMaker {
 	//Assignation aleatoire des camions
 	public static final String ALEATOIRE_FUNCTION_STRING = "aleatoire";
 
-	// Par defaut : Assignation aleatoire des camions
-	protected static final String DEFAULT_SCORE_FUNCTION_STRING = "aleatoire";
-	//Mine bidon (sert a tester si une fonction de score fournie par l'utilisateur est valide) 
+	//Assigne les camions un a un, mais avec la meme formule que pour le probleme d'affectation qui maximise le respect du plan
+	protected static final String OPTIMAL_SCORE_FUNCTION_STRING = "optimal_affect_plan";
 
+ 
+	//Maximiser la production l'aide d'un problème d'affectation
+	protected static final String OPTIMIZE_PROD_FUNCTION_STRING = "optimise_production";
+
+
+	//Maximiser le respect du plan à l'aide d'un problème d'affectation
+	protected static final String OPTIMIZE_PLAN_FUNCTION_STRING = "optimise_plan";
+
+	//En warmup, on assigne les camions aleatoirement
+	public static final String WARMUP_SCORE_FUNCTION_STRING = "aleatoire";
+
+
+	//===============================
+	//CHAMPS
+	//===============================
+	
 	private static Config config;
 
 	//mine
 	protected static Mine mine;
-
-	//Assigne les camions un a un, mais avec la meme formule que pour le probleme d'affectation
-	protected static final String OPTIMAL_SCORE_FUNCTION_STRING = "optimal_assign";
-
-	//Version alternative du probleme d'affectation ou on minimise le temps d'attente des pelles (Et des camions)
-	private static final String OPTIMAL_SCORE_MIN_ATTENTE_PELLE_FUNCTION_STRING = "optimise_min_attente_pelle";
-
-	//Assignation à l'aide d'un problème d'affectation
-	protected static final String OPTIMIZE_FUNCTION_STRING = "optimise";
-
-	//En warmup, on assigne les camions aleatoirement
-	public static final String WARMUP_SCORE_FUNCTION_STRING = "aleatoire";
+	
+	private double affectDiscountFactor;
 
 	/**
 	 * Valide une fonction de score.
@@ -64,6 +69,16 @@ public class DecisionMaker {
 	 * @return true si la fonction de score est valide, false sinon
 	 */
 	public static boolean isFunctionStringValid(String function) {
+		
+		//valide si il s'agit d'une des fonction de score predefinie
+		//
+		if(	function.equals(DecisionMaker.ALEATOIRE_FUNCTION_STRING) ||
+				function.equals(DecisionMaker.OPTIMAL_SCORE_FUNCTION_STRING) ||
+				function.equals(DecisionMaker.OPTIMIZE_PROD_FUNCTION_STRING) ||
+				function.equals(DecisionMaker.OPTIMIZE_PLAN_FUNCTION_STRING) ||
+				function.equals(DecisionMaker.WARMUP_SCORE_FUNCTION_STRING) ) {
+			return true;
+		}
 
 		Camion camion = new Camion(mine.getSteriles().get(0), mine,  null) {
 
@@ -92,10 +107,11 @@ public class DecisionMaker {
 
 
 
-		if(function.equals(DecisionMaker.OPTIMIZE_FUNCTION_STRING)) return true;
+		if(function.equals(DecisionMaker.OPTIMIZE_PROD_FUNCTION_STRING)) return true;
 
 		try {
-			DecisionMaker dm = new DecisionMaker(mine, config);
+
+			DecisionMaker dm = new DecisionMaker(mine, config);
 			dm.computeDecisionScore(camion,pelle, function);
 		} catch (EvalError e) {
 			return false;
@@ -104,22 +120,6 @@ public class DecisionMaker {
 	} 
 
 
-	/**
-	 * Choisis la station de retours pour un camion qui viens de se faire remplir à la pelle
-	 * @param camion Camion a assigner
-	 * @param candidates 
-	 * @param pelle Pelle ou se trouve le camion
-	 * @return Station ou se rendra le camion
-	 */
-	protected Station selectReturnStation(Camion camion, ArrayList<Station> candidates) {
-		
-		Station returnStation = null;
-		
-		int index = (int) (Math.random()*candidates.size());
-		returnStation = candidates.get(index);
-		
-		return returnStation;
-	}
 
 	//==========================================
 	// Champs
@@ -144,9 +144,375 @@ public class DecisionMaker {
 
 		this.scoreFunctionSmallCamionsString = config.getDefaultScoreFunctionSmallCamions();
 		this.scoreFunctionLargeCamionsString = config.getDefaultScoreFunctionLargeCamions();
-
+		this.affectDiscountFactor = config.getAffectDiscountFactor();
+		
 		this.config = config;
 	}
+
+	//donne un nouvel objectif a un camion sans but
+	//
+	/**
+	 * Trouve une nouvelle destination pour un camion
+	 * @param camion Camion auquel on doit donner un objectif
+	 * @return Station correspondant au nouvel objectif du camion.
+	 */
+	public Station giveObjectiveToCamion(Camion camion) {
+
+		//si le camion doit se faire décharger
+		//
+		if(camion.getCurrentStation()!=null && !camion.getCurrentStation().isDecharge) {
+
+			//Choisis les candidats
+			//
+			ArrayList<Station> candidates = new ArrayList<Station>();
+
+			//on doit retourner vers un sterile
+			if(camion.getRockType().isSterile()) {
+				for(Sterile s : mine.getSteriles()) {
+					candidates.add(s);
+				}
+			}
+			//on doit retourner vers un concentrateur
+			else {
+				for(Concentrateur c : mine.getConcentrateurs()) {
+					candidates.add(c);
+				}
+			}
+
+			Station returnStation = selectReturnStation(camion, candidates);
+
+
+
+			return returnStation;
+		}
+		//si le camion doit aller se faire remplir
+		//
+		else {
+
+			//Choisis les candidats
+			//
+			ArrayList<Pelle> candidates = new ArrayList<Pelle>();
+			for(Pelle p : mine.getPelles()) {
+				if(p.getState() != Pelle.STATION_STATE_PANNE) {
+					candidates.add(p);
+				}
+			}
+
+			return selectPelleForCamion(camion, candidates);
+
+		}
+
+	}
+
+
+	/**
+	 * Choisis à quelle pelle affecter un camion selon la stratégie indiquée par la fonction de score
+	 * @param camion
+	 * @param candidates 
+	 * @return Pelle à laquelle affecter le camion
+	 */
+	protected Pelle selectPelleForCamion(Camion camion, ArrayList<Pelle> candidates) {
+
+
+		//-------------------------------------------------------
+		//choisis la methode utilisee pour selectionner la pelle
+		//
+
+
+		// Choisis la fonction de score a utiliser
+		//
+		String scoreFunction = "";
+		if(camion.getType() == Camion.TYPE_SMALL) {
+
+			scoreFunction = this.scoreFunctionSmallCamionsString;
+		}
+		else if(camion.getType() == Camion.TYPE_LARGE) {
+			System.out.println("gros camion");
+			scoreFunction = this.scoreFunctionLargeCamionsString;
+		}
+		else {
+			throw new IllegalStateException("DecisionMaker::giveObjectiveToCamion : Type de camion inconnu : "+camion.getType());
+		}
+
+
+
+		//utilise un probleme d'affectation
+		//
+		if(scoreFunction.equals(OPTIMIZE_PROD_FUNCTION_STRING) || scoreFunction.equals(OPTIMIZE_PLAN_FUNCTION_STRING)) {
+			Pelle optimalPelle = giveOptimalObjectiveToCamion(camion, candidates, scoreFunction);
+			return optimalPelle;
+			//camion.setObjective(optimalPelle);
+		}
+		//affectation greedy avec fonction de score
+		//
+		else {
+			//on peut donner un objectif seulement si le camion est à une station
+			//Lance une erreur si le camion n'est pas a une station
+
+			double maxScore = -Double.MAX_VALUE;
+			double minScore = Double.MAX_VALUE;
+			Pelle pelleMinScore = null;
+			for(int i = 0 ; i < candidates.size(); i++) {
+
+				double score = 0;
+
+				try {
+					score = computeDecisionScore(camion, candidates.get(i), scoreFunction);
+				} catch (EvalError e) {
+					e.printStackTrace();
+				}
+
+				if(score >= maxScore) {
+					maxScore = score;
+				}
+				if(score <= minScore) {
+					pelleMinScore = candidates.get(i);
+					minScore = score;
+				}
+			}
+
+			return pelleMinScore;
+		}
+
+	}
+
+
+	/**
+	 * Choisis la station de retours pour un camion qui viens de se faire remplir à la pelle
+	 * @param camion Camion a assigner
+	 * @param candidates 
+	 * @param pelle Pelle ou se trouve le camion
+	 * @return Station ou se rendra le camion
+	 */
+	protected Station selectReturnStation(Camion camion, ArrayList<Station> candidates) {
+
+		Station returnStation = null;
+
+		int index = (int) (Math.random()*candidates.size());
+		returnStation = candidates.get(index);
+
+		return returnStation;
+	}
+
+	/**
+	 * Trouve une destination "optimale" pour un camion. Pour ce faire, résout un probleme d'affectation
+	 * @param camionToAssign Cammion a affecter.
+	 * @param pelles liste des pelles candidates.
+	 * @return pelle correspondat a la destination "optimale".
+	 */
+	public Pelle giveOptimalObjectiveToCamion(Camion camionToAssign, ArrayList<Pelle> pelles, String scoreFunctionString) {
+
+		ArrayList<Pelle> optimizablePelles = pelles;
+		ArrayList<Camion> optimizableCamions = findOptimizableCamions(optimizablePelles, camionToAssign);
+
+		//si il manque de camions, ajoute des clones du dernier camion.
+		while(optimizablePelles.size() > optimizableCamions.size()) {
+			optimizableCamions.add(optimizableCamions.get(optimizableCamions.size()-1));
+		}
+
+
+		HashMap<Camion, Pelle> optimalAssign = resoutProblemeAffectation(optimizableCamions, optimizablePelles, scoreFunctionString);
+
+		if(!optimalAssign.containsKey(camionToAssign)) {
+			//System.out.println("Erreur d'assignation");
+
+		}
+		else {
+			//System.out.println("je retourne la pelle "+optimalAssign.get(camionToAssign).getId());
+			return optimalAssign.get(camionToAssign);
+		}
+		throw new IllegalStateException();
+
+
+	}
+
+
+	/**
+	 * Calcule un score associé à l'assignation d'un camion à une pelle, selon une fonction de score donnée en entrée.
+	 * @param camion
+	 * @param pelle
+	 * @param scoreFunctionString : chaine de caracteres representant la fonction de score a utiliser
+	 * @return score calcule
+	 * @throws EvalError
+	 */
+	private double computeDecisionScore(Camion camion, Pelle pelle, String scoreFunctionString) throws EvalError {
+
+		boolean objectiveIsConcentrator = false;
+		boolean objectiveIsSterile = false;
+
+		for(int i = 0 ; i < mine.getConcentrateurs().size(); i++) {
+			if(camion.getDestination() == mine.getConcentrateurs().get(i)) {
+				objectiveIsConcentrator = true;
+				break;
+			}
+		}
+		for(int i = 0 ; i < mine.getSteriles().size(); i++) {
+			if(camion.getDestination() == mine.getSteriles().get(i)) {
+				objectiveIsSterile= true;
+				break;
+			}
+		}
+
+
+		//erreur si le camion n'est pas soit : 
+		//idle 
+		//en route vers sterile ou concentrateur
+		//vient d'arriver au sterile ou concentrateur
+		if(camion.getState() != Camion.ETAT_INACTIF &&
+				!(camion.getState() == Camion.ETAT_EN_ROUTE && (objectiveIsConcentrator|| objectiveIsSterile)) &&
+				!(camion.getState() == Camion.ETAT_JUSTE_ARRIVE && (objectiveIsConcentrator|| objectiveIsSterile))) {
+			//throw new IllegalArgumentException("le camion est dans un mauvais état");
+		}
+
+
+
+
+		ArrayList<Camion> camions = mine.getCamions();
+
+
+
+		//calcule plein de métriques qui pourront etre utilisees par les etudiants
+		//
+
+
+		//--------------------------------------------------
+
+		//nombre aléatoire
+		double random = SimulationMine.random.nextDouble();
+
+		//si la fonction aleatoire est choisie, retourne tout de suite pour accelerer
+		if(scoreFunctionString.equals("aleatoire")){
+			return random;
+		}
+
+		//de meme, si on choisit "optimal_assign", retourne immediatement la value pour accelerer
+		double optimalAssignCost = affectScoreOptPlan(camion, pelle);
+
+		if(scoreFunctionString.equals(DecisionMaker.OPTIMAL_SCORE_FUNCTION_STRING)){
+			return optimalAssignCost;
+		}
+
+
+
+		//score max
+		double max = Double.MAX_VALUE;
+
+		double vitesse_moyenne_camion = camion.getAvgSpeed();
+		double temps_moyen_remplissage = camion.getChargeMax()/Pelle.AVERAGE_CHARGE_SPEED;
+
+		//indique 1 si la pelle est occupee
+		int pelleOccupee = 0;
+		if(pelle.getCamionEnTraitement() != null) pelleOccupee = 1;
+
+		//nombre de camions en attente
+		int nbCamionsEnAttente = pelle.getCamionsEnAttente().size();
+
+		//nombre de camions a la pelle (attente + remplissage)
+		int nbCamionsALaPelle = 0;
+		if(pelle.getCamionEnTraitement()!= null) {
+			nbCamionsALaPelle = nbCamionsEnAttente+1;
+		}
+
+		//distance entre le camion et la pelle (m)
+		//si le camion est en route pour un autre objectif, compte la distance entre camion et objectif + distance entre objectif et pelle
+
+		double distanceEntreCamionEtPelle = calculeDistanceEntreCamionEtStation(camion, pelle);
+
+
+
+
+		//temps espere vers la pelle (s)
+		double tempsDeParcoursEspere = distanceEntreCamionEtPelle/( camion.getAvgSpeed()*mine.getMeteoFactor());
+
+
+		//nombre de camions presentement en route pour la pelle
+		int nbCamionsEnRoutePourLaPelle = 0;
+		for(int i = 0 ; i < camions.size(); i++) {
+			if(camions.get(i).getState() == Camion.ETAT_EN_ROUTE && camions.get(i).getDestination() == pelle) {
+				nbCamionsEnRoutePourLaPelle++;
+			}
+		}
+
+		//temps restant avant que la pelle n'aie plus de travail (en considerant seulement les camions en attente)
+		//
+		double tempsRestantAvantFinPelle = calculeTempsRestantAvantFinPelle(pelle);
+		Camion camionEnRemplissage = pelle.getCamionEnTraitement();
+		if(camionEnRemplissage != null) {
+
+			//temps de remplissage restant = charge restante / vitesse moyenne charge
+			double chargeRemaining = camionEnRemplissage.getChargeMax()-camionEnRemplissage.getCharge(); 
+			double esperanceTempsRemplissageRestant = chargeRemaining/Pelle.AVERAGE_CHARGE_SPEED;
+
+			tempsRestantAvantFinPelle = esperanceTempsRemplissageRestant + pelle.getCamionsEnAttente().size()*camion.getChargeMax()/Pelle.AVERAGE_CHARGE_SPEED;
+		}
+
+
+		//temps espere avant le debut du remplissage
+		//
+		double tempsEspereAvantDebutRemplissage = calculeTempsEspereAvantTraitement(camion, pelle);
+
+		//temps espere d'attente de la pelle
+		//
+
+
+		//attente esperee du camion
+		//
+		double attenteEspereeCamion = tempsEspereAvantDebutRemplissage - tempsDeParcoursEspere;
+		if(attenteEspereeCamion < 0) {
+			attenteEspereeCamion = 0;
+		}
+
+		//attente esperee de la pelle (compte seulement le temps ou la pelle attend pour le camion courant, pas pour ceux deja en route!)
+		//peut etre négatif, signifiant que le camion ira en attente.
+		//
+		double attenteEspereePelle = calculeTempsAttenteEspereePelle(camion, pelle);
+		//System.out.println("attente esperee "+pelle.getId()+" "+attenteEspereePelle);
+		//double penaliteQuadAttentePelle = calculePenaliteQuadAttentePelle(attenteEspereePelle, pelle.cibleAttentePelleSeconds());
+		//double penaliteQuadAttenteCamion = calculePenaliteQuadAttenteCamion(attenteEspereeCamion, pelle.cibleAttenteCamionSeconds());
+
+
+		Interpreter interpreter = new Interpreter();  // Construct an interpreter
+		// Eval a statement and get the result
+
+
+
+
+		interpreter.set("x1", vitesse_moyenne_camion);
+		interpreter.set("x2", pelleOccupee);
+		interpreter.set("x3", random);
+		interpreter.set("aleatoire", random);
+		interpreter.set("x4", max);
+		interpreter.set("t1", temps_moyen_remplissage);
+		interpreter.set("t2", tempsDeParcoursEspere);
+		interpreter.set("t3", tempsRestantAvantFinPelle);
+		interpreter.set("t4", tempsEspereAvantDebutRemplissage);
+		interpreter.set("t5", attenteEspereeCamion);
+		interpreter.set("t6", attenteEspereePelle);
+		interpreter.set("d1", distanceEntreCamionEtPelle);
+		interpreter.set("n1", nbCamionsEnAttente);
+		interpreter.set("n2", nbCamionsALaPelle);
+		interpreter.set("n3", nbCamionsEnRoutePourLaPelle);
+
+		//interpreter.set("ecart_cible_quadratique", penaliteQuadAttentePelle);
+
+		interpreter.set("optimal_assign", optimalAssignCost);
+
+		interpreter.set("optimise_min_attente_pelle", attenteEspereePelle*Math.abs(attenteEspereePelle)+ attenteEspereeCamion*attenteEspereeCamion*0.5);
+
+		interpreter.eval("double score = "+ scoreFunctionString); 
+
+		double score = (double) interpreter.get("score");
+		if(score == Double.POSITIVE_INFINITY) {
+			score = Double.MAX_VALUE;
+		}
+		if(score == Double.NEGATIVE_INFINITY) {
+			score = -Double.MAX_VALUE;
+		}
+
+		return score;
+
+	}
+
 
 	/**
 	 * Calcule la distance entre le camion et la pelle (m). Pour que cette fonction fonctionne, il faut que le camion soit :
@@ -188,7 +554,7 @@ public class DecisionMaker {
 	 * @return score
 	 */
 	//Cette fonction mériterait d'être réécrite, mais j'ai eu beaucoup de misère a la faire fonctionner alors je ne la briserai pas tout de suite!!
-	protected double calculeOptimalAssignCost(Camion camion, Pelle pelle) {
+	protected double affectScoreOptPlan(Camion camion, Pelle pelle) {
 		// - si le camion est en route vers un concentrateur ou un stérile, 
 		//   ou si le camion est déjà à un concentrateur ou un stérile, on calcule le temps avant qu'il arrive à la pelle
 		// - sinon, retourne 0 (dans le problème d'assignation, le score sera 0 pour toutes les pelles, donc c'est comme si on ne prenait pas en compte le camion).
@@ -253,6 +619,7 @@ public class DecisionMaker {
 
 			double penaliteQuadAttenteCamion = (attenteEspereeCamion/3600.)*(attenteEspereeCamion/3600.);// pelle.cibleAttenteCamionSeconds()/3600.);
 
+			//DEBUG
 			if(false) {
 
 				System.out.println("attente esperee pelle  : "+attenteEspereePelle);
@@ -270,6 +637,27 @@ public class DecisionMaker {
 
 	}
 
+
+	/**
+	 * Score d'affectation d'un camion a une pelle pour maximiser la production totale
+	 * @param camion
+	 * @param pelle
+	 * @return score
+	 */
+	private double affectScoreOptProd(Camion camion, Pelle pelle) {
+		double attenteEspereePelle = calculeTempsAttenteEspereePelle(camion, pelle);
+		//if(attenteEspereePelle < 0) attenteEspereePelle = 0;
+		double tempsEspereAvantDebutRemplissage = calculeTempsEspereAvantTraitement(camion, pelle);
+		double distanceEntreCamionEtPelle = calculeDistanceEntreCamionEtStation(camion, pelle);
+	
+		double tempsDeParcoursEspere = distanceEntreCamionEtPelle/( camion.getAvgSpeed()*mine.getMeteoFactor());
+		double attenteEspereeCamion = tempsEspereAvantDebutRemplissage - tempsDeParcoursEspere;
+		//if(attenteEspereeCamion < 0) {
+		//	attenteEspereeCamion = 0;
+		//}
+		//return attenteEspereePelle*Math.abs(attenteEspereePelle)+ attenteEspereeCamion*Math.abs(attenteEspereeCamion);
+		return attenteEspereePelle + attenteEspereeCamion;
+	}
 
 	/**
 	 * Calcule, si le camion est assigné à la pelle, le temps que la pelle attendra avant que le camion commence à se faire traiter.
@@ -366,7 +754,7 @@ public class DecisionMaker {
 	 * @param camion
 	 * @return temps (espere) avant que le camion soit disponible.
 	 */
-	private double calculeTempsAvantDispo(Camion camion) {
+	protected double calculeTempsAvantDispo(Camion camion) {
 
 
 
@@ -696,207 +1084,6 @@ public class DecisionMaker {
 
 
 	/**
-	 * Calcule un score associé à l'assignation d'un camion à une pelle, selon une fonction de score donnée en entrée.
-	 * @param camion
-	 * @param pelle
-	 * @param scoreFunctionString : chaine de caracteres representant la fonction de score a utiliser
-	 * @return score calcule
-	 * @throws EvalError
-	 */
-	private double computeDecisionScore(Camion camion, Pelle pelle, String scoreFunctionString) throws EvalError {
-
-		boolean objectiveIsConcentrator = false;
-		boolean objectiveIsSterile = false;
-
-		for(int i = 0 ; i < mine.getConcentrateurs().size(); i++) {
-			if(camion.getDestination() == mine.getConcentrateurs().get(i)) {
-				objectiveIsConcentrator = true;
-				break;
-			}
-		}
-		for(int i = 0 ; i < mine.getSteriles().size(); i++) {
-			if(camion.getDestination() == mine.getSteriles().get(i)) {
-				objectiveIsSterile= true;
-				break;
-			}
-		}
-
-
-		//erreur si le camion n'est pas soit : 
-		//idle 
-		//en route vers sterile ou concentrateur
-		//vient d'arriver au sterile ou concentrateur
-		if(camion.getState() != Camion.ETAT_INACTIF &&
-				!(camion.getState() == Camion.ETAT_EN_ROUTE && (objectiveIsConcentrator|| objectiveIsSterile)) &&
-				!(camion.getState() == Camion.ETAT_JUSTE_ARRIVE && (objectiveIsConcentrator|| objectiveIsSterile))) {
-			//throw new IllegalArgumentException("le camion est dans un mauvais état");
-		}
-
-
-
-
-		ArrayList<Camion> camions = mine.getCamions();
-
-
-
-		//calcule plein de métriques qui pourront etre utilisees par les etudiants
-		//
-
-
-		//--------------------------------------------------
-
-		//nombre aléatoire
-		double random = SimulationMine.random.nextDouble();
-
-		//si la fonction aleatoire est choisie, retourne tout de suite pour accelerer
-		if(scoreFunctionString.equals("aleatoire")){
-			return random;
-		}
-
-		//de meme, si on choisit "optimal_assign", retourne immediatement la value pour accelerer
-		double optimalAssignCost = calculeOptimalAssignCost(camion, pelle);
-
-		if(scoreFunctionString.equals(DecisionMaker.OPTIMAL_SCORE_FUNCTION_STRING)){
-			return optimalAssignCost;
-		}
-
-		if(scoreFunctionString.equals(DecisionMaker.OPTIMAL_SCORE_MIN_ATTENTE_PELLE_FUNCTION_STRING)){
-			double attenteEspereePelle = calculeTempsAttenteEspereePelle(camion, pelle);
-			//if(attenteEspereePelle < 0) attenteEspereePelle = 0;
-			double tempsEspereAvantDebutRemplissage = calculeTempsEspereAvantTraitement(camion, pelle);
-			double distanceEntreCamionEtPelle = calculeDistanceEntreCamionEtStation(camion, pelle);
-
-			double tempsDeParcoursEspere = distanceEntreCamionEtPelle/( camion.getAvgSpeed()*mine.getMeteoFactor());
-			double attenteEspereeCamion = tempsEspereAvantDebutRemplissage - tempsDeParcoursEspere;
-			//if(attenteEspereeCamion < 0) {
-			//	attenteEspereeCamion = 0;
-			//}
-			return attenteEspereePelle*Math.abs(attenteEspereePelle)+ attenteEspereeCamion*Math.abs(attenteEspereeCamion);
-			//return Math.sqrt(attenteEspereeCamion)+Math.sqrt(attenteEspereePelle);
-			//return attenteEspereePelle;
-		}
-
-		//score max
-		double max = Double.MAX_VALUE;
-
-		double vitesse_moyenne_camion = camion.getAvgSpeed();
-		double temps_moyen_remplissage = camion.getChargeMax()/Pelle.AVERAGE_CHARGE_SPEED;
-
-		//indique 1 si la pelle est occupee
-		int pelleOccupee = 0;
-		if(pelle.getCamionEnTraitement() != null) pelleOccupee = 1;
-
-		//nombre de camions en attente
-		int nbCamionsEnAttente = pelle.getCamionsEnAttente().size();
-
-		//nombre de camions a la pelle (attente + remplissage)
-		int nbCamionsALaPelle = 0;
-		if(pelle.getCamionEnTraitement()!= null) {
-			nbCamionsALaPelle = nbCamionsEnAttente+1;
-		}
-
-		//distance entre le camion et la pelle (m)
-		//si le camion est en route pour un autre objectif, compte la distance entre camion et objectif + distance entre objectif et pelle
-
-		double distanceEntreCamionEtPelle = calculeDistanceEntreCamionEtStation(camion, pelle);
-
-
-
-
-		//temps espere vers la pelle (s)
-		double tempsDeParcoursEspere = distanceEntreCamionEtPelle/( camion.getAvgSpeed()*mine.getMeteoFactor());
-
-
-		//nombre de camions presentement en route pour la pelle
-		int nbCamionsEnRoutePourLaPelle = 0;
-		for(int i = 0 ; i < camions.size(); i++) {
-			if(camions.get(i).getState() == Camion.ETAT_EN_ROUTE && camions.get(i).getDestination() == pelle) {
-				nbCamionsEnRoutePourLaPelle++;
-			}
-		}
-
-		//temps restant avant que la pelle n'aie plus de travail (en considerant seulement les camions en attente)
-		//
-		double tempsRestantAvantFinPelle = calculeTempsRestantAvantFinPelle(pelle);
-		Camion camionEnRemplissage = pelle.getCamionEnTraitement();
-		if(camionEnRemplissage != null) {
-
-			//temps de remplissage restant = charge restante / vitesse moyenne charge
-			double chargeRemaining = camionEnRemplissage.getChargeMax()-camionEnRemplissage.getCharge(); 
-			double esperanceTempsRemplissageRestant = chargeRemaining/Pelle.AVERAGE_CHARGE_SPEED;
-
-			tempsRestantAvantFinPelle = esperanceTempsRemplissageRestant + pelle.getCamionsEnAttente().size()*camion.getChargeMax()/Pelle.AVERAGE_CHARGE_SPEED;
-		}
-
-
-		//temps espere avant le debut du remplissage
-		//
-		double tempsEspereAvantDebutRemplissage = calculeTempsEspereAvantTraitement(camion, pelle);
-
-		//temps espere d'attente de la pelle
-		//
-
-
-		//attente esperee du camion
-		//
-		double attenteEspereeCamion = tempsEspereAvantDebutRemplissage - tempsDeParcoursEspere;
-		if(attenteEspereeCamion < 0) {
-			attenteEspereeCamion = 0;
-		}
-
-		//attente esperee de la pelle (compte seulement le temps ou la pelle attend pour le camion courant, pas pour ceux deja en route!)
-		//peut etre négatif, signifiant que le camion ira en attente.
-		//
-		double attenteEspereePelle = calculeTempsAttenteEspereePelle(camion, pelle);
-		//System.out.println("attente esperee "+pelle.getId()+" "+attenteEspereePelle);
-		//double penaliteQuadAttentePelle = calculePenaliteQuadAttentePelle(attenteEspereePelle, pelle.cibleAttentePelleSeconds());
-		//double penaliteQuadAttenteCamion = calculePenaliteQuadAttenteCamion(attenteEspereeCamion, pelle.cibleAttenteCamionSeconds());
-
-
-		Interpreter interpreter = new Interpreter();  // Construct an interpreter
-		// Eval a statement and get the result
-
-
-
-
-		interpreter.set("x1", vitesse_moyenne_camion);
-		interpreter.set("x2", pelleOccupee);
-		interpreter.set("x3", random);
-		interpreter.set("aleatoire", random);
-		interpreter.set("x4", max);
-		interpreter.set("t1", temps_moyen_remplissage);
-		interpreter.set("t2", tempsDeParcoursEspere);
-		interpreter.set("t3", tempsRestantAvantFinPelle);
-		interpreter.set("t4", tempsEspereAvantDebutRemplissage);
-		interpreter.set("t5", attenteEspereeCamion);
-		interpreter.set("t6", attenteEspereePelle);
-		interpreter.set("d1", distanceEntreCamionEtPelle);
-		interpreter.set("n1", nbCamionsEnAttente);
-		interpreter.set("n2", nbCamionsALaPelle);
-		interpreter.set("n3", nbCamionsEnRoutePourLaPelle);
-
-		//interpreter.set("ecart_cible_quadratique", penaliteQuadAttentePelle);
-
-		interpreter.set("optimal_assign", optimalAssignCost);
-
-		interpreter.set("optimise_min_attente_pelle", attenteEspereePelle*Math.abs(attenteEspereePelle)+ attenteEspereeCamion*attenteEspereeCamion*0.5);
-
-		interpreter.eval("double score = "+ scoreFunctionString); 
-
-		double score = (double) interpreter.get("score");
-		if(score == Double.POSITIVE_INFINITY) {
-			score = Double.MAX_VALUE;
-		}
-		if(score == Double.NEGATIVE_INFINITY) {
-			score = -Double.MAX_VALUE;
-		}
-
-		return score;
-
-	}
-
-
-	/**
 	 * Trouve des camions qui sont "optimisables". Un camion est optimisable si il est :
 	 * 	- En route pour se faire décharger.
 	 *  - En attente ou en traitement pour se faire décharger
@@ -949,173 +1136,16 @@ public class DecisionMaker {
 
 	} 
 
-	//donne un nouvel objectif a un camion sans but
-	//
-	/**
-	 * Trouve une nouvelle destination pour un camion
-	 * @param camion Camion auquel on doit donner un objectif
-	 * @return Station correspondant au nouvel objectif du camion.
-	 */
-	public Station giveObjectiveToCamion(Camion camion) {
-
-		//si le camion doit se faire décharger
-		//
-		if(camion.getCurrentStation()!=null && !camion.getCurrentStation().isDecharge) {
-			
-			//Choisis les candidats
-			//
-			ArrayList<Station> candidates = new ArrayList<Station>();
-			
-			//on doit retourner vers un sterile
-			if(camion.getRockType().isSterile()) {
-				for(Sterile s : mine.getSteriles()) {
-					candidates.add(s);
-				}
-			}
-			//on doit retourner vers un concentrateur
-			else {
-				for(Concentrateur c : mine.getConcentrateurs()) {
-					candidates.add(c);
-				}
-			}
-			
-			Station returnStation = selectReturnStation(camion, candidates);
-			
-		
-			
-			return returnStation;
-		}
-		//si le camion doit aller se faire remplir
-		//
-		else {
-
-			//Choisis les candidats
-			//
-			ArrayList<Pelle> candidates = new ArrayList<Pelle>();
-			for(Pelle p : mine.getPelles()) {
-				if(p.getState() != Pelle.STATION_STATE_PANNE) {
-					candidates.add(p);
-				}
-			}
-			
-			return selectPelleForCamion(camion, candidates);
-
-		}
-
-	}
-
-	/**
-	 * Choisis à quelle pelle affecter un camion selon la stratégie indiquée par la fonction de score
-	 * @param camion
-	 * @param candidates 
-	 * @return Pelle à laquelle affecter le camion
-	 */
-	protected Pelle selectPelleForCamion(Camion camion, ArrayList<Pelle> candidates) {
-
-	
-		//-------------------------------------------------------
-		//choisis la methode utilisee pour selectionner la pelle
-		//
-		
-		
-		// Choisis la fonction de score a utiliser
-		//
-		String scoreFunction = "";
-		if(camion.getType() == Camion.TYPE_SMALL) {
-
-			scoreFunction = this.scoreFunctionSmallCamionsString;
-		}
-		else if(camion.getType() == Camion.TYPE_LARGE) {
-			System.out.println("gros camion");
-			scoreFunction = this.scoreFunctionLargeCamionsString;
-		}
-		else {
-			throw new IllegalStateException("DecisionMaker::giveObjectiveToCamion : Type de camion inconnu : "+camion.getType());
-		}
-
-	
-
-		//utilise un probleme d'affectation
-		//
-		if(scoreFunction.equals(OPTIMIZE_FUNCTION_STRING)) {
-			Pelle optimalPelle = giveOptimalObjectiveToCamion(camion, candidates);
-			return optimalPelle;
-			//camion.setObjective(optimalPelle);
-		}
-		//affectation greedy avec fonction de score
-		//
-		else {
-			//on peut donner un objectif seulement si le camion est à une station
-			//Lance une erreur si le camion n'est pas a une station
-
-			double maxScore = -Double.MAX_VALUE;
-			double minScore = Double.MAX_VALUE;
-			Pelle pelleMinScore = null;
-			for(int i = 0 ; i < candidates.size(); i++) {
-
-				double score = 0;
-
-				try {
-					score = computeDecisionScore(camion, candidates.get(i), scoreFunction);
-				} catch (EvalError e) {
-					e.printStackTrace();
-				}
-
-				if(score >= maxScore) {
-					maxScore = score;
-				}
-				if(score <= minScore) {
-					pelleMinScore = candidates.get(i);
-					minScore = score;
-				}
-			}
-
-			return pelleMinScore;
-		}
-
-	}
-
-
-	/**
-	 * Trouve une destination "optimale" pour un camion. Pour ce faire, résout un probleme d'affectation
-	 * @param camionToAssign Cammion a affecter.
-	 * @param pelles liste des pelles candidates.
-	 * @return pelle correspondat a la destination "optimale".
-	 */
-	public Pelle giveOptimalObjectiveToCamion(Camion camionToAssign, ArrayList<Pelle> pelles) {
-
-		ArrayList<Pelle> optimizablePelles = pelles;
-		ArrayList<Camion> optimizableCamions = findOptimizableCamions(optimizablePelles, camionToAssign);
-
-		//si il manque de camions, ajoute des clones du dernier camion.
-		while(optimizablePelles.size() > optimizableCamions.size()) {
-			optimizableCamions.add(optimizableCamions.get(optimizableCamions.size()-1));
-		}
-
-
-		HashMap<Camion, Pelle> optimalAssign = resoutProblemeAssignation(optimizableCamions, optimizablePelles);
-
-		if(!optimalAssign.containsKey(camionToAssign)) {
-			//System.out.println("Erreur d'assignation");
-
-		}
-		else {
-			//System.out.println("je retourne la pelle "+optimalAssign.get(camionToAssign).getId());
-			return optimalAssign.get(camionToAssign);
-		}
-		throw new IllegalStateException();
-
-
-	}
 
 
 	/**
 	 * cree et resout un probleme d'affectation de camions a des pelles 
 	 * @param camions liste des camions
 	 * @param pelles liste des pelles
+	 * @param scoreFunctionString 
 	 * @return HashMap indiquant a quel camion sera assigne quelle pelle.
 	 */
-	private HashMap<Camion, Pelle> resoutProblemeAssignation(ArrayList<Camion> camions, ArrayList<Pelle> pelles	) {
+	private HashMap<Camion, Pelle> resoutProblemeAffectation(ArrayList<Camion> camions, ArrayList<Pelle> pelles, String scoreFunctionString	) {
 
 		boolean debug = false;
 
@@ -1200,14 +1230,20 @@ public class DecisionMaker {
 
 
 					double score = 0;
-					try {
-						//score = computeDecisionScore(camion, pelle, DecisionMaker.OPTIMAL_SCORE_FUNCTION_STRING);
-						score = computeDecisionScore(camion, pelle, DecisionMaker.OPTIMAL_SCORE_MIN_ATTENTE_PELLE_FUNCTION_STRING);
-					} catch (EvalError e) {
-						e.printStackTrace();
+
+					if(scoreFunctionString == DecisionMaker.OPTIMIZE_PLAN_FUNCTION_STRING) {
+						score = affectScoreOptPlan(camion, pelle);
 					}
-
-
+					else {
+						score = affectScoreOptProd(camion, pelle);
+					}
+					
+					//discount factor pour le camion qui nous interesse
+					if(i == 0) {
+						score = score * this.affectDiscountFactor;
+					}
+					
+					//pour stabilité numérique
 					costFunction[index+1] = score/100000;
 
 					index ++;

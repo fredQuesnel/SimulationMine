@@ -26,6 +26,7 @@ public class Config {
 	private int defaultSimultaionSpeed;
 	/**Pause a la fin de voyage*/
 	private boolean defaultPauseFinVoyage;
+	private double affectDiscountFactor;
 	/**
 	 * Constructeur
 	 */
@@ -85,9 +86,12 @@ public class Config {
 				this.defaultSimultaionSpeed = sc.nextInt();
 				break;
 			case "default_meteo" : 
-				System.out.println("ici");
 				this.defaultMeteo = sc.nextInt();
 				break;
+			case "affect_discount_factor" : 
+				System.out.println("ici");
+				this.affectDiscountFactor = sc.nextDouble();
+				break;	
 			case "default_pause_fin_voyage":
 				int val = sc.nextInt();
 				if(val == 1) {
@@ -147,5 +151,9 @@ public int getDefaultSimultaionSpeed() {
 
 public boolean isDefaultPauseFinVoyage() {
 	return defaultPauseFinVoyage;
+}
+
+public double getAffectDiscountFactor() {
+	return this.affectDiscountFactor;
 }
 }

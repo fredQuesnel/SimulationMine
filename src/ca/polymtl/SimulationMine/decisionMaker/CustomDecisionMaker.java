@@ -32,12 +32,12 @@ public class CustomDecisionMaker extends DecisionMaker {
 	 * Output : Coût d'affectation, sous la forme d'un double. Une faible coût est meilleur.
 	 * 
 	 */
-	protected double calculeOptimalAssignCost(Camion camion, Pelle pelle) {
+	protected double affectScoreOptPlan(Camion camion, Pelle pelle) {
 
 		//Fonction par défaut
 		// Commenter pour utiliser votre propre fonction de score
 		//
-		return super.calculeOptimalAssignCost(camion, pelle);
+		return super.affectScoreOptPlan(camion, pelle);
 
 		//Votre propre fonction de score!
 		//Décommenter pour utiliser! Vous ne devriez pas le faire, car cela ne fait pas partie du TP!

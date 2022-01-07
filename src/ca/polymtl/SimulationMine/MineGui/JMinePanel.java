@@ -369,7 +369,7 @@ public class JMinePanel extends JPanel{
 		g.drawString("attente :  "+nbCamions, xrect+paddingx, yrect +25 );
 
 
-		//Qualitï¿½ du minerai
+		//Qualité du minerai
 		//
 		double percentMinerai = concentrateur.getPercentIron();
 		double percentSouffre = concentrateur.getPercentSulfur();
@@ -448,7 +448,7 @@ public class JMinePanel extends JPanel{
 		g.drawString("attente :  "+nbCamions, xrect+paddingx, yrect +25 );
 
 
-		//Qualitï¿½ du minerai
+		//Qualité du minerai
 		//
 		double percentMinerai = pelle.getRockType().getPercentIron();
 		double percentSouffre = pelle.getRockType().getPercentSulfur();
@@ -470,7 +470,7 @@ public class JMinePanel extends JPanel{
 
 
 
-	//peint les chemins reliant le concentrateur  et le stï¿½rile aux pelles
+	//peint les chemins reliant le concentrateur  et le stérile aux pelles
 	private void paintRoutes(Graphics g, Mine mine) {
 		//Station concentrateur = mine.getConcentrateur();
 
@@ -587,7 +587,7 @@ public class JMinePanel extends JPanel{
 		String strTotalSterile = String.format("%.0f\n", totalConcentrateur);
 		
 		g.setColor(Color.black);
-		g.drawString("Stériles : "+strTotalSterile+" tonnes", this.getWidth()-width+20, 105);
+		g.drawString("Steriles : "+strTotalSterile+" tonnes", this.getWidth()-width+20, 105);
 		
 		//DEBUG
 		// temps d'attente de tous les camions
@@ -694,7 +694,7 @@ public class JMinePanel extends JPanel{
 				public void actionPerformed(ActionEvent arg0) {
 					String strNbCamionsParHeure = JOptionPane.showInputDialog(closestPelle.getId()+" : Nombre de tonnes/heure?");
 
-					//Utilisation de Float car le package Double est dï¿½fini pour des coordonneï¿½s 2D
+					//Utilisation de Float car le package Double est defini pour des coordonnees 2D
 					double nbCamionsParHeure = Float.parseFloat(strNbCamionsParHeure);
 
 					parentFrame.notifyListenersPlanPelleChanged(closestPelle, nbCamionsParHeure);
