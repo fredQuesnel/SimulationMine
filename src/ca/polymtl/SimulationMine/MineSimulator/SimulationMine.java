@@ -30,7 +30,7 @@ public class SimulationMine {
 	
 	public static void main(String[] args) {
 
-		System.out.println(System.getProperty("sun.arch.data.model"));
+		System.out.println("machine "+System.getProperty("sun.arch.data.model")+"bit");
 		
 		try {
 			UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
@@ -45,6 +45,7 @@ public class SimulationMine {
 
 		random.setSeed(1962996941790320022L);
 		
+		System.out.println("charge le simulateur");
 		
 		MineSimulator mineSimulator = new MineSimulator(config);
 
@@ -54,7 +55,7 @@ public class SimulationMine {
 		
 
 
-		
+		System.out.println("charge l'interface graphique");
 
 		mineFrame = new JMineFrame(mineSimulator, config);
 
@@ -76,44 +77,7 @@ public class SimulationMine {
 
 		mineSimulator.addListener(chart);
 
-		//----------------------------------------
-		//test de stats
-		//----------------------------------------
-
-		boolean testMode = false;
-
-		if(testMode) {
-			int nbSim = 10;
-
-			double sommeEffCamions = 0;
-			double sommeEffPelleMin = 0;
-			double sommeEffPelleMax = 0;
-			double sommeEffPelleMoy = 0;
-			double sommeNbVoyages = 0;
-			for(int i = 0 ; i < nbSim; i++) {
-
-				//roule simulation
-				mineSimulator.completerSimulation();
-
-				//calculeStats
-				sommeEffCamions += mineSimulator.getAverageCamionEfficiency();
-				sommeEffPelleMin += mineSimulator.getMinPelleEfficiency();
-				sommeEffPelleMax += mineSimulator.getMaxPelleEfficiency();
-				sommeEffPelleMoy += mineSimulator.getAveragePelleEfficiency();
-				sommeNbVoyages += mineSimulator.getNumberOfRuns();
-
-				//reset
-				mineSimulator.chargeMine(mineSimulator.getMine().getCurrentExampleId(), mineSimulator.getMine().getCamions().size(), 0, mineSimulator.getTempsSimulationSeconds());
-			}
-
-			double effCamions = sommeEffCamions/nbSim;
-			double effPelleMin = sommeEffPelleMin/nbSim;
-			double effPelleMax = sommeEffPelleMax/nbSim;
-			double effPelleMoy = sommeEffPelleMoy/nbSim;
-			double nbVoyages = sommeNbVoyages/nbSim;
-
-			System.out.println(""+effCamions+"\t"+effPelleMin+"\t"+effPelleMax+"\t"+effPelleMoy+"\t"+nbVoyages);
-		}
+		
 /**/		
 	}
 

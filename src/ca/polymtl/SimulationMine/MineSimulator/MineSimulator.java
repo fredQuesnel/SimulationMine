@@ -73,9 +73,11 @@ public class MineSimulator implements GuiListener {
 		//cree le module en charge de l'IA des camions
 
 		this.config = config;
+		
 		//instantie la liste des listeners
 		listeners = new ArrayList<MineSimulationListener>();
 
+		
 		//Cree la mine et l'initialise
 		//
 		mine = new Mine(config);

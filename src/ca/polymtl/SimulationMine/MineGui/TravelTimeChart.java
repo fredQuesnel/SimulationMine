@@ -47,7 +47,6 @@ public class TravelTimeChart extends JFrame implements MineSimulationListener{
 
 	public void addDataPoint(String serieKey, double x, double y) {
 
-		//System.out.println("ajoute point "+x+" "+y);
 		if(seriesMap.containsKey(serieKey)) {
 
 			XYSeries serie = seriesMap.get(serieKey);
@@ -76,7 +75,6 @@ public class TravelTimeChart extends JFrame implements MineSimulationListener{
 		//clé d'origine/destination
 		String ODKey = TravelTimePredictor.getMapKeyForODPair(camion.getOrigine(), camion.getDestination());
 
-		System.out.println("prediction");
 		if(camion.getPredictedTravelTime() >0) {			
 			
 			addDataPoint("pred:"+ODKey, time, camion.getPredictedTravelTime()/camion.getPredictTimeAdjustFactor());
@@ -130,7 +128,6 @@ public class TravelTimeChart extends JFrame implements MineSimulationListener{
 		XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
 
 		for(int i = 0 ; i < dataset.getSeriesCount(); i++) {
-			System.out.println("series : "+dataset.getSeriesKey(i));
 			if( ((String)dataset.getSeriesKey(i)).substring(0, 4).equals("reel") ) {
 				renderer.setSeriesPaint(i, Color.blue);
 			}
@@ -203,7 +200,6 @@ public class TravelTimeChart extends JFrame implements MineSimulationListener{
 		//
 		seriesMap = new HashMap<String, XYSeries>();
 		for(int i = 0 ; i < dataSeriesHandles.size(); i++) {
-			System.out.println(dataSeriesHandles.get(i));
 			
 			seriesMap.put(dataSeriesHandles.get(i), new XYSeries(dataSeriesHandles.get(i)));
 		}

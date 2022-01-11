@@ -38,8 +38,6 @@ public class Config {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.out.println("petits camions : "+this.getDefaultScoreFunctionSmallCamions());
-		System.out.println("gros camions : "+this.getDefaultScoreFunctionLargeCamions());
 	}
 
 	private void readConfigFile() throws IOException {
@@ -51,7 +49,6 @@ public class Config {
 		
 		while(sc.hasNext()) {
 			String token = sc.next();
-			System.out.println(token);
 			sc.next(":");
 
 			switch(token){
@@ -89,7 +86,6 @@ public class Config {
 				this.defaultMeteo = sc.nextInt();
 				break;
 			case "affect_discount_factor" : 
-				System.out.println("ici");
 				this.affectDiscountFactor = sc.nextDouble();
 				break;	
 			case "default_pause_fin_voyage":

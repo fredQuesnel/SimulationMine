@@ -227,14 +227,12 @@ public class DecisionMaker {
 			scoreFunction = this.scoreFunctionSmallCamionsString;
 		}
 		else if(camion.getType() == Camion.TYPE_LARGE) {
-			System.out.println("gros camion");
 			scoreFunction = this.scoreFunctionLargeCamionsString;
 		}
 		else {
 			throw new IllegalStateException("DecisionMaker::giveObjectiveToCamion : Type de camion inconnu : "+camion.getType());
 		}
 
-		System.out.println("fonction de score : "+scoreFunction);
 
 		//utilise un probleme d'affectation
 		//
@@ -316,15 +314,12 @@ public class DecisionMaker {
 
 		if(!optimalAssign.containsKey(camionToAssign)) {
 			//System.out.println("Erreur d'assignation");
-
+			throw new IllegalStateException();
 		}
 		else {
 			//System.out.println("je retourne la pelle "+optimalAssign.get(camionToAssign).getId());
 			return optimalAssign.get(camionToAssign);
 		}
-		throw new IllegalStateException();
-
-
 	}
 
 
@@ -467,7 +462,6 @@ public class DecisionMaker {
 		//peut etre négatif, signifiant que le camion ira en attente.
 		//
 		double attenteEspereePelle = calculeTempsAttenteEspereePelle(camion, pelle);
-		//System.out.println("attente esperee "+pelle.getId()+" "+attenteEspereePelle);
 		//double penaliteQuadAttentePelle = calculePenaliteQuadAttentePelle(attenteEspereePelle, pelle.cibleAttentePelleSeconds());
 		//double penaliteQuadAttenteCamion = calculePenaliteQuadAttenteCamion(attenteEspereeCamion, pelle.cibleAttenteCamionSeconds());
 
@@ -541,8 +535,6 @@ public class DecisionMaker {
 			distanceEntreCamionEtPelle = camion.getCurrentStation().getLocation().distance(station.getLocation());
 		}
 		else {
-			//System.out.println("Camion "+camion.getState()+" currentStation "+camion.getCurrentStation().getId());
-			//System.out.println("station" + station.getId());
 			throw new IllegalStateException("DistanceEntreCamionEtStation : impossible d'évaluer la distance pour ce camion.");
 		}
 		return distanceEntreCamionEtPelle;
@@ -556,6 +548,7 @@ public class DecisionMaker {
 	 */
 	//Cette fonction mériterait d'être réécrite, mais j'ai eu beaucoup de misère a la faire fonctionner alors je ne la briserai pas tout de suite!!
 	protected double affectScoreOptPlan(Camion camion, Pelle pelle) {
+		System.out.println("ici");
 		// - si le camion est en route vers un concentrateur ou un stérile, 
 		//   ou si le camion est déjà à un concentrateur ou un stérile, on calcule le temps avant qu'il arrive à la pelle
 		// - sinon, retourne 0 (dans le problème d'assignation, le score sera 0 pour toutes les pelles, donc c'est comme si on ne prenait pas en compte le camion).
@@ -657,7 +650,10 @@ public class DecisionMaker {
 		//	attenteEspereeCamion = 0;
 		//}
 		//return attenteEspereePelle*Math.abs(attenteEspereePelle)+ attenteEspereeCamion*Math.abs(attenteEspereeCamion);
-		return Math.abs(attenteEspereePelle);
+		
+		//On veut minimiser l'attente esperee de la pelle, mais lorsque plusieurs pelles ont une attente esperee egale, on veut prendre la pelle la plus proche.
+		//La constante 0.06 a ete selectionnee par essai erreur.
+		return Math.abs(attenteEspereePelle)+0.06*distanceEntreCamionEtPelle;
 	}
 
 	/**
@@ -675,8 +671,6 @@ public class DecisionMaker {
 		double tempsAttente = 0;
 
 		double tempsRestantAvantFinPelle = calculeTempsRestantAvantFinPelle(pelle);
-		if(debug) System.out.println("temps avant fin de "+pelle.getId()+" : "+tempsRestantAvantFinPelle);
-
 
 		double tempsCamionPelle = camion.getLocation().distance(pelle.getLocation())/camion.getAvgSpeed();
 		//liste des camions en route pour la pelle qui vont arriver avant le camion.
@@ -1154,7 +1148,6 @@ public class DecisionMaker {
 
 		if(debug) System.out.println("\nbegin resoutProblemeAssignation");
 
-		//System.out.println("debut de resolution du probleme d'assignation");
 		//le nombre de camions doit etre <= au nombre de pelles
 		//
 		if(camions.size() > pelles.size()) {
@@ -1185,7 +1178,6 @@ public class DecisionMaker {
 
 
 			for(int i = 0 ; i < camions.size(); i++) {
-				//System.out.println("camion");
 				solver.setRh(i+1, 1);
 				solver.setConstrType(i+1, LpSolve.EQ);
 				//solver.addConstraint(null, LpSolve.EQ, 1);
@@ -1234,21 +1226,34 @@ public class DecisionMaker {
 
 					double score = 0;
 
-					if(scoreFunctionString == DecisionMaker.OPTIMIZE_PLAN_FUNCTION_STRING) {
+					if(scoreFunctionString.equals(DecisionMaker.OPTIMIZE_PLAN_FUNCTION_STRING)) {
+						System.out.println("optimise pour le plan");
 						score = affectScoreOptPlan(camion, pelle);
+						if(i == 0) {
+							score = score / this.affectDiscountFactor;
+						}
+						//set la fonction de score (le /100000 est pour avoir une stabilite numerique)
+						costFunction[index+1] = score/100000;
+
+					}
+					else if(scoreFunctionString.equals(DecisionMaker.OPTIMIZE_PROD_FUNCTION_STRING)) {
+						System.out.println("optimise pour la production");
+						score = affectScoreOptProd(camion, pelle);
+						//discount factor pour le camion qui nous interesse
+						if(i == 0) {
+							score = score * this.affectDiscountFactor;
+						}
+						//set la fonction de score (le /1000 est pour avoir une stabilite numerique)
+						costFunction[index+1] = score/1000;
+
 					}
 					else {
-						score = affectScoreOptProd(camion, pelle);
+						throw new IllegalArgumentException("Fonction de score inconnue : "+scoreFunctionString);
 					}
 					
-					//discount factor pour le camion qui nous interesse
-					if(i == 0) {
-						score = score * this.affectDiscountFactor;
-					}
+				
 					
-					//pour stabilité numérique
-					costFunction[index+1] = score/100000;
-
+					
 					index ++;
 					if(debug) System.out.println("camion "+i+" "+pelle.getId()+" : "+score);
 
@@ -1283,7 +1288,6 @@ public class DecisionMaker {
 
 			// delete the problem and free memory
 			//solver.deleteLp();
-			//System.out.println("fin de resolution du probleme d'assignation");
 			return assign;
 		}
 		catch (LpSolveException e) {

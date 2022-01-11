@@ -148,7 +148,7 @@ public class Mine {
 		//
 		for(int i = 0 ; i < mineFiles.length; i++) {
 			if(mineFiles[i].substring(mineFiles[i].length()-5, mineFiles[i].length()).equals(".mine")) {
-				System.out.println(mineFiles[i]);
+				System.out.println("Charge le fichier de mine "+mineFiles[i]);
 				try {
 					Scanner scanner = new Scanner(new File("mines/"+mineFiles[i]));
 					
@@ -158,24 +158,25 @@ public class Mine {
 					
 					//enleve les double guillemets
 					id = id.substring(1, id.length()-1);
-					System.out.println("ID : "+id);
+					System.out.println("  ID : "+id);
 					
 					scanner.next("name");
 					scanner.next(":");			
 					String name = scanner.findInLine(Pattern.compile("\"(.+)\""));
 					//enleve les double guillemets
 					name = name.substring(1, name.length()-1);
-					System.out.println(name);
-	
+					System.out.println("  Nom : "+name);
+					System.out.println("");
 					exampleIds.add(new ExampleId(id, name, mineFiles[i]));
 					currentIndex++;
 	
 				} catch (FileNotFoundException e) {
 					e.printStackTrace();
 				}
+				
 			}
 			else {
-				System.out.println(mineFiles[i].substring(mineFiles[i].length()-4, mineFiles[i].length()));
+				//System.out.println(mineFiles[i].substring(mineFiles[i].length()-4, mineFiles[i].length()));
 			}
 		}
 		return exampleIds;
@@ -634,7 +635,6 @@ public class Mine {
 		//Lis le fichier
 		//
 		try {
-			System.out.println("mines/"+failureScenariosFilename);
 
 			Scanner scanner = new Scanner(new File("mines/"+failureScenariosFilename));
 			//pour que le point délimite la pratie fractionnaire
@@ -670,7 +670,6 @@ public class Mine {
 					
 					fs.addStationFailureEvent(new StationFailureEvent(beginTimeSec, endTimeSec, station));
 					this.failureScenarios.add(fs);
-					System.out.println(stationName+" "+heureString+" "+endTimeSec);
 					
 					if(lineScanner.hasNext(",")) {
 						lineScanner.next(",");
