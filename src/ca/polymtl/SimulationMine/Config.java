@@ -27,6 +27,12 @@ public class Config {
 	/**Pause a la fin de voyage*/
 	private boolean defaultPauseFinVoyage;
 	private double affectDiscountFactor;
+	private int defaultNbCamionsSmall;
+	
+
+
+	private int defaultNbCamionsLarge;
+	private int defaultSimulationTimeSeconds;
 	/**
 	 * Constructeur
 	 */
@@ -50,6 +56,7 @@ public class Config {
 		while(sc.hasNext()) {
 			String token = sc.next();
 			sc.next(":");
+			System.out.println("token "+token);
 
 			switch(token){
 			case "theme":
@@ -59,6 +66,16 @@ public class Config {
 			case "default_mine_id":
 				String defaultMineId = sc.next(stringPattern);
 				this.defaultMineId = defaultMineId.substring(1, defaultMineId.length()-1);
+				break;
+			case "default_camions_small":
+				System.out.println("default_camions_small ");
+				this.defaultNbCamionsSmall = sc.nextInt();
+				break;
+			case "default_camions_large":
+				this.defaultNbCamionsLarge = sc.nextInt();
+				break;
+			case "default_simulation_time_seconds":
+				this.defaultSimulationTimeSeconds= sc.nextInt();
 				break;
 			case "default_score_function_small_camions":
 				String defaultScoreFunctionSmallCamions = sc.next(stringPattern);
@@ -151,5 +168,17 @@ public boolean isDefaultPauseFinVoyage() {
 
 public double getAffectDiscountFactor() {
 	return this.affectDiscountFactor;
+}
+
+public int getDefaultNbCamionsSmall() {
+	return defaultNbCamionsSmall;
+}
+
+public int getDefaultNbCamionsLarge() {
+	return defaultNbCamionsLarge;
+}
+
+public int getDefaultSimulationTimeSeconds() {
+	return defaultSimulationTimeSeconds;
 }
 }

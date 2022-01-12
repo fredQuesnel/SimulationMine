@@ -14,7 +14,7 @@ import ca.polymtl.SimulationMine.MineGui.TravelTimeChart;
 
 public class SimulationMine {
  
-	public static double DEFAULT_SIMULATION_TIME_SECONDS = 24*3600;
+	public static double DEFAULT_SIMULATION_TIME_SECONDS;
 
 
 	public static Random random;
@@ -41,6 +41,7 @@ public class SimulationMine {
 		
 		Config config = new Config();
 		
+		SimulationMine.DEFAULT_SIMULATION_TIME_SECONDS = config.getDefaultSimulationTimeSeconds();
 		random = new Random();
 
 		random.setSeed(1962996941790320022L);

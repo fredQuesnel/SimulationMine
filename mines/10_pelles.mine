@@ -1,9 +1,8 @@
 id : "10pelles"
 name : "10 pelles"
-default_camions_small : 10
-default_camions_large : 10
 
-//type min/ste id x y taux_fe taux_s cible_camions_par_heure
+
+//type min/ste id x y taux_fe taux_s cible_tonnes_par_heure
 pelle min "pelle1" 500 8000 38 3 300
 pelle ste "pelle2" 6500 3300 0 0 300
 pelle min "pelle3" 5000 7000 20 0.1 500
@@ -22,4 +21,4 @@ display "pelle3" "sterile"
 display "pelle1" "concentrateur"
 display "pelle4" "concentrateur"
 
-failure_scenarios "10_pelles.fail"
+failure_scenarios ""

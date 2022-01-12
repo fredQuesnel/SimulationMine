@@ -95,7 +95,7 @@ public class MineSimulator implements GuiListener {
 			throw new IllegalArgumentException("Aucune mine avec l'ID par defaut : "+config.getDefaultMineId());
 		}
 		
-		mine.init(exIdChosen);
+		mine.init(exIdChosen, config.getDefaultNbCamionsSmall(), config.getDefaultNbCamionsLarge());
 
 
 

@@ -372,9 +372,11 @@ public class Mine {
 
 
 	/**initialise la mine en fonction de l'exemple de mine desiree avec le nombre de camions par defaut*/
+	/*
 	protected void init(ExampleId exempleId) {
 		init(exempleId, -1, -1);
 	}
+	*/
 	
 	/**initialise la mine en fonction de l'exemple de mine desiree*/
 	protected void init(ExampleId exempleId, int nbSmallCamions, int nbLargeCamions) {
@@ -418,8 +420,8 @@ public class Mine {
 			scanner.useLocale(Locale.US);
 			//ignore la premiere ligne
 			scanner.nextLine();
-			int defaultLargeCamion = 0;
-			int defaultSmallCamion = 0;
+			//int defaultLargeCamion = 0;
+			//int defaultSmallCamion = 0;
 
 
 			while(scanner.hasNext()) {
@@ -432,6 +434,7 @@ public class Mine {
 					failureScenariosFilename = failureScenariosFilename.substring(1,  failureScenariosFilename.length()-1);
 					System.out.println("failure scenarios "+failureScenariosFilename);
 				}
+				/*
 				//Nombre de petits camions
 				//
 				else if(	scanner.hasNext("default_camions_small")) {
@@ -446,6 +449,7 @@ public class Mine {
 					scanner.next(":");
 					defaultLargeCamion = scanner.nextInt(); 
 				}
+				*/
 				//Lis une pelle
 				//
 				else if( scanner.hasNext("pelle")) {
@@ -545,6 +549,7 @@ public class Mine {
 			createRoutes();
 			//determine si on utilise le nombre de camions par defaut
 			//
+			/*
 			if(nbSmallCamions == -1) {
 				nbSmallCamions = defaultSmallCamion;
 			}
@@ -552,6 +557,7 @@ public class Mine {
 			if(nbLargeCamions == -1) {
 				nbLargeCamions = defaultLargeCamion;
 			}
+			*/
 
 
 		} catch (FileNotFoundException e) {
@@ -762,7 +768,7 @@ public class Mine {
 
 		//reset les stats de la mine
 		//
-		this.time = 0;
+		this.resetTime();
 
 		//reset les stats des camions
 		//
