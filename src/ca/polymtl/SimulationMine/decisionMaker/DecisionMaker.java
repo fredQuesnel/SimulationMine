@@ -548,15 +548,17 @@ public class DecisionMaker {
 	 */
 	//Cette fonction mériterait d'être réécrite, mais j'ai eu beaucoup de misère a la faire fonctionner alors je ne la briserai pas tout de suite!!
 	protected double affectScoreOptPlan(Camion camion, Pelle pelle) {
-		System.out.println("ici");
+		//System.out.println(camion.getState());
 		// - si le camion est en route vers un concentrateur ou un stérile, 
 		//   ou si le camion est déjà à un concentrateur ou un stérile, on calcule le temps avant qu'il arrive à la pelle
 		// - sinon, retourne 0 (dans le problème d'assignation, le score sera 0 pour toutes les pelles, donc c'est comme si on ne prenait pas en compte le camion).
-		if( (camion.getState() == Camion.ETAT_EN_ROUTE && camion.getDestination().isDecharge == true) || //si le camion va se faire décharger
+		if(		(camion.getState() == Camion.ETAT_INACTIF && camion.getCurrentStation().isDecharge == true) ||
+				(camion.getState() == Camion.ETAT_EN_ROUTE && camion.getDestination().isDecharge == true) || //si le camion va se faire décharger
 				(camion.getState() == Camion.ETAT_EN_TRAITEMENT && camion.getCurrentStation().isDecharge == true) || //si le camion est en traitement
 				(camion.getState()== Camion.ETAT_ATTENTE && camion.getCurrentStation().isDecharge == true) //si le camion est en attente de se faire décharger
 				) {
-
+			
+			
 			Station s = null;
 			if(camion.getState() == Camion.ETAT_EN_ROUTE) {
 				s = camion.getDestination();
@@ -623,7 +625,7 @@ public class DecisionMaker {
 				System.out.println("score                  : "+(penaliteQuadAttentePelle+penaliteQuadAttenteCamion));	
 			}
 
-			return penaliteQuadAttentePelle+penaliteQuadAttenteCamion;
+			return 0.000001*(penaliteQuadAttentePelle+penaliteQuadAttenteCamion);
 		}
 		else {
 			return 0;
@@ -1213,9 +1215,9 @@ public class DecisionMaker {
 
 			//Fonction de cout
 			//
-			if(debug) {
+			//if(debug) {
 				System.out.println("scores : ");
-			}
+			//}
 			double[] costFunction = new double[camions.size()*pelles.size()+1];
 			int index = 0;
 			for(int i = 0 ; i < camions.size(); i++ ) {
@@ -1227,13 +1229,13 @@ public class DecisionMaker {
 					double score = 0;
 
 					if(scoreFunctionString.equals(DecisionMaker.OPTIMIZE_PLAN_FUNCTION_STRING)) {
-						System.out.println("optimise pour le plan");
+						//System.out.println("optimise pour le plan");
 						score = affectScoreOptPlan(camion, pelle);
 						if(i == 0) {
-							score = score / this.affectDiscountFactor;
+							score = score * this.affectDiscountFactor;
 						}
 						//set la fonction de score (le /100000 est pour avoir une stabilite numerique)
-						costFunction[index+1] = score/100000;
+						costFunction[index+1] = score;
 
 					}
 					else if(scoreFunctionString.equals(DecisionMaker.OPTIMIZE_PROD_FUNCTION_STRING)) {
@@ -1255,7 +1257,8 @@ public class DecisionMaker {
 					
 					
 					index ++;
-					if(debug) System.out.println("camion "+i+" "+pelle.getId()+" : "+score);
+					//if(debug) 
+						System.out.println("camion "+i+" "+pelle.getId()+" : "+score);
 
 				}
 			}

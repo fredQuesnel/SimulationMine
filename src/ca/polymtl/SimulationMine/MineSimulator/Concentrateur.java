@@ -79,7 +79,7 @@ public class Concentrateur extends Station {
 
 	@Override
 	protected void resetStats() {
-
+		super.resetStats();
 		quantityIron = 0;
 		quantitySulfur = 0;
 		totalQuantity = 0;

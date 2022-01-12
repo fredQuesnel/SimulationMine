@@ -15,6 +15,7 @@ public class Pelle extends Station{
 	public final static double AVERAGE_CHARGE_SPEED = 1./6.;
 	/** Écart type sur la vitesse de remplissage*/
 	public final static double ECART_TYPE_CHARGE_SPEED = 1./30.;
+	private static final double MAX_CIBLE_ATTENTE_PELLE_SECONDS = 240*3600;//la cible d'attente ne depasse pas 10 jour. 
 
 	
 
@@ -97,6 +98,7 @@ public class Pelle extends Station{
 	 */
 	public double cibleAttentePelleSeconds(){
 		
+
 		double cibleAttente = 0;
 		
 		double averageChargeParCamion = averageChargeParCamion();
@@ -113,6 +115,9 @@ public class Pelle extends Station{
 			cibleAttente = (3600-tempsTravailParHeureEnSecondes)/cibleCamionsParHeure;
 		}
 		
+		if(cibleAttente > Pelle.MAX_CIBLE_ATTENTE_PELLE_SECONDS) {
+			cibleAttente = Pelle.MAX_CIBLE_ATTENTE_PELLE_SECONDS;
+		}
 		return cibleAttente;
 	}
 
@@ -220,7 +225,13 @@ public class Pelle extends Station{
 	}
 
 	
-
+	/**
+	 * reset les stats de la pelle
+	 */
+	protected void resetStats() {
+		super.resetStats();
+		this.totalQuantity = 0;
+	}
 
 
 }

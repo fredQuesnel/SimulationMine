@@ -9,7 +9,7 @@ public class LargeCamion extends Camion {
 		avgSpeed = 6.5;
 		stdSpeed = 0.3;
 		chargeMax = 100;
-		predictTimeAdjustFactor=7.5/6.;
+		predictTimeAdjustFactor=7.5/6.5;
 	}
 
 }

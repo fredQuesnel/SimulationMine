@@ -29,6 +29,7 @@ public class Sterile extends Station {
 	
 	@Override
 	protected void resetStats() {
+		super.resetStats();
 		totalQuantity = 0;
 		
 	}

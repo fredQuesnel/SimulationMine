@@ -162,7 +162,8 @@ public class MineSimulator implements GuiListener {
 
 		//reinitialise la nouvelle mine
 		//
-		mine.init(exempleId, nbSmallCamions, nbLargeCamions);
+		
+		//mine.init(exempleId, nbSmallCamions, nbLargeCamions);
 		warmup();
 
 		notifyListenersMineReset();
