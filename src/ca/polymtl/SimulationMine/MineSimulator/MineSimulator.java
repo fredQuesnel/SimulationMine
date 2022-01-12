@@ -150,7 +150,6 @@ public class MineSimulator implements GuiListener {
 	@Override
 	public void automaticCompletionRequested() {
 		completerSimulation();
-
 	}
 
 	/*
@@ -163,7 +162,7 @@ public class MineSimulator implements GuiListener {
 		//reinitialise la nouvelle mine
 		//
 		
-		//mine.init(exempleId, nbSmallCamions, nbLargeCamions);
+		mine.init(exempleId, nbSmallCamions, nbLargeCamions);
 		warmup();
 
 		notifyListenersMineReset();
@@ -479,7 +478,23 @@ public class MineSimulator implements GuiListener {
 		ExampleId exempleId = mine.getCurrentExampleId();
 		int nbSmallCamions = mine.getNumberSmallCamions();
 		int nbLargeCamions = mine.getNumberLargeCamions();
-		chargeMine(exempleId, nbSmallCamions, nbLargeCamions, this.max_steps*MineSimulator.TIME_INCREMENT);
+		
+		setPauseMode();
+
+		//reinitialise la nouvelle mine
+		//
+		
+		warmup();
+
+		notifyListenersMineReset();
+		this.stepCounter = 0;
+		
+
+		this.plannedFailureEvents = new ArrayList<StationFailureEvent>();
+		this.ongoingFailureEvents = new ArrayList<StationFailureEvent>();
+		this.completedFailureEvents = new ArrayList<StationFailureEvent>();
+		this.selectFailureScenarioForNextDay();
+		
 		this.travelTimePredictor.resetStats();
 		
 	}
@@ -500,7 +515,6 @@ public class MineSimulator implements GuiListener {
 	@Override
 	public void simulationSpeedChanged(int speed) {
 		this.setNbIterPerStep(speed);
-
 	}
 
 
