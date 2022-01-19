@@ -38,13 +38,15 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 	/** Objet controlant la simulation*/
 	private MineSimulator mineSimulator;
 
+	/**Donnees de configuration*/
 	private Config config;
 
 
 	/** Constructeur
 	 * 
 	 * Initialise les Panels
-	 * @param config 
+	 * @param mineSimulator simulateur de mine
+	 * @param config objet config
 	 */
 	public JMineFrame(MineSimulator mineSimulator, Config config) {
 		
@@ -118,47 +120,50 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 		this.minePanel.automaticCompleteUpdated(fractionComplete);
 	}
 
-
-
 	@Override
 	public void camionJustArrived(Camion camion, double time) {
 		
 	}
 
 
-
-
 	@Override
 	public void eventDispatched(AWTEvent arg0) {
 	}
 
+	/**Retourne le control panel
+	 * 
+	 * @return control panel
+	 */
 	public JControlPanel getControlPanel() {
 		return this.controlPanel;
 	}
 
-
-
-
+	/**Retourne la mine
+	 * 
+	 * @return Mine
+	 */
 	public Mine getMine() {
 		return mineSimulator.getMine();
 	}
 
 
-
-
+	/**Retourne le panel de mine
+	 * 
+	 * @return panel de mine
+	 */
 	public JMinePanel getMinePanel() {
 		return this.minePanel;
 	}
 
 
-
-
+	/**Retourne l'objet MineSimulator
+	 * 
+	 * @return objet MineSimulator
+	 */
 	public MineSimulator getMineSimulator() {
 		
 		return this.mineSimulator;
 	}
-
-
 
 
 	@Override
@@ -190,7 +195,9 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 
 
 
-
+	/**Avertis les listeners que l'usager vient de demander la completion automatique
+	 * 
+	 */
 	public void notifyListenersAutomaticCompletionRequested() {
 		for(int i = 0 ; i < listenerList.size(); i++) {
 			listenerList.get(i).automaticCompletionRequested();
@@ -199,7 +206,10 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 
 
 
-
+	/** Avertis les listeners que l'usager vient de changer la meteo
+	 * 
+	 * @param meteoFactor Nouveau facteur meteo
+	 */
 	public void notifyListenersMeteoChanged(double meteoFactor) {
 		for(int i = 0 ; i < listenerList.size(); i++) {
 			listenerList.get(i).meteoSliderChanged(meteoFactor);
@@ -208,20 +218,27 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 		
 	}
 
-
-
-
+	/**Avertis les listeners que l'usager vient de cliquer sur le panel de mine.
+	 * 
+	 * @param fracX Position X (relatif) du clic 
+	 * @param fracY Position Y (relatif) du clic
+	 */
 	public void notifyListenersMinePanelClicked(double fracX, double fracY){
 		for(int i = 0 ; i < listenerList.size(); i++) {
 			System.out.println("dans le frame : clicked");
 			listenerList.get(i).minePanelClicked(fracX, fracY);
 		}
-		
 	}
 
 
 
-
+	/**Avertis  les listeners que l'usager souhaite charger une nouvelle mine
+	 * 
+	 * @param selectedId Id de la mine selectionnee
+	 * @param numberOfSmallCamions Nombre de petits camions
+	 * @param numberOfLargeCamions Nombre de gros camions
+	 * @param tempsSimulationSeconds Temps de simulation
+	 */
 	public void notifyListenersNewSimulationRequested(ExampleId selectedId, int numberOfSmallCamions,
 			int numberOfLargeCamions, double tempsSimulationSeconds) {
 		for(int i = 0 ; i < listenerList.size(); i++) {
@@ -232,7 +249,10 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 
 
 
-
+	/**Avertis les listeners que l'usager vient de changer la valeur de N dans la fonction de prediction
+	 * 
+	 * @param currentNValue Nouvelle valeur de N
+	 */
 	public void notifyListenersNumberSampleChanged(int currentNValue) {
 		for(int i = 0 ; i < listenerList.size(); i++) {
 			listenerList.get(i).numberSampleChanged(currentNValue);
@@ -242,7 +262,7 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 
 
 
-
+	/**Avertis les listeners que l'usager vient de cliquer sur le bouton pause*/
 	public void notifyListenersPauseButtonPressed() {
 		for(int i = 0 ; i < listenerList.size(); i++) {
 			listenerList.get(i).pauseButtonPressed();
@@ -250,26 +270,30 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 	}
 
 
-
-
+	/**Avertis les listeners que l'usager vient de changer le plan d'une pelle
+	 * 
+	 * @param p pelle
+	 * @param newValue Nouvelle valeur du plan pour la pelle
+	 */
 	public void notifyListenersPlanPelleChanged(Pelle p, double newValue){
 		for(int i = 0 ; i < listenerList.size(); i++) {
 			listenerList.get(i).planPelleChanged(p, newValue);
 		}
 	}
 
-
-
-
+	/**Avertis les listeners que l'usager vient de cliquer sur le bouton play
+	 * 
+	 */
 	public void notifyListenersPlayButtonPressed() {
 		for(int i = 0 ; i < listenerList.size(); i++) {
 			listenerList.get(i).playButtonPressed();
 		}
 	}
 
-
-
-
+	/**Avertis les listeners que l'usager vient de modifier la formule de prediction
+	 * 
+	 * @param newPredictFunctionIndex Id de la nouvelle formule de prediction
+	 */
 	public void notifyListenersPredictFunctionChanged(int newPredictFunctionIndex) {
 		for(int i = 0 ; i < listenerList.size(); i++) {
 			listenerList.get(i).predictFunctionChanged(newPredictFunctionIndex);
@@ -278,8 +302,9 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 	}
 
  
-
-
+	/**Avertis les listeners que l'usager vient de cliquer sur le bouton reset
+	 * 
+	 */
 	public void notifyListenersResetSimulationRequested() {
 		for(int i = 0 ; i < listenerList.size(); i++) {
 			listenerList.get(i).resetSimulationRequested();
@@ -288,17 +313,23 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 
 
 
-
-	public void notifyListenersRhoChanged(double rhoValue) {
+	/**Avertis les listeners que l'usager vient de changer la valeur de lambda
+	 * 
+	 * @param lambdaValue : Nouvelle valeur de lambda
+	 */
+	public void notifyListenersLambdaChanged(double lambdaValue) {
 		for(int i = 0 ; i < listenerList.size(); i++) {
-			listenerList.get(i).lambdaValueChanged(rhoValue);
+			listenerList.get(i).lambdaValueChanged(lambdaValue);
 			//SimulationMine.mine.setMeteoFactor(meteoFactor);
 		}
 	}
 
 
 
-
+	/**Avertis les listeners que l'usager vient de changer la fonction de score pour les petits camions.
+	 * 
+	 * @param scoreFunction Nouvelle fonction de score pour les petits camions.
+	 */
 	public void notifyListenersScoreFunctionSmallCamionsChanged(String scoreFunction) {
 		for(int i = 0 ; i < listenerList.size(); i++) {
 			listenerList.get(i).scoreFunctionSmallCamionsChanged(scoreFunction);
@@ -308,7 +339,10 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 
 
 	
-
+	/**Avertis les listeners que l'usager vient de changer la fonction de score pour les gros camions.
+	 * 
+	 * @param scoreFunction Nouvelle fonction de score pour les gros camions.
+	 */
 	public void notifyListenersScoreFunctionLargeCamionsChanged(String scoreFunction) {
 		for(int i = 0 ; i < listenerList.size(); i++) {
 			listenerList.get(i).scoreFunctionLargeCamionsChanged(scoreFunction);
@@ -317,13 +351,20 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 
 
 
-
+	/**Avertis les listeners que l'usager vient de changer la vitesse de simulation
+	 * 
+	 * @param speed Nouvelle vitesse de simulation
+	 */
 	public void notifyListenersSimulationSpeedChanged(int speed) {
 		for(int i = 0 ; i < listenerList.size(); i++) {
 			listenerList.get(i).simulationSpeedChanged(speed);
 		}
 	}
 
+	/**Avertis les listeners que l'usager vient de cliquer sur le bouton "pause a chaque fin de voyage".
+	 * 
+	 * @param selected true si la fonctione est activée, false sinon.
+	 */
 	public void notifyListenersStopOnAssignStateChanged(boolean selected) {
 		for(int i = 0 ; i < listenerList.size(); i++) {
 			listenerList.get(i).stopOnAssignStateChanged(selected);
@@ -332,7 +373,10 @@ public class JMineFrame extends JFrame implements MineSimulationListener{
 
 
 
-
+	/**Retourne l'objet config
+	 * 
+	 * @return Objet config
+	 */
 	public Config getConfig() {
 		return config;
 	}

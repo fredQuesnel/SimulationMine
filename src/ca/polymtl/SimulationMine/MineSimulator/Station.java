@@ -3,6 +3,11 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Point2D.Double;
 import java.util.ArrayList;
 
+/**
+ * Classe abstraite representant une station
+ * @author Fred
+ *
+ */
 public abstract class Station {
 
 	/** État indiquant une pelle inactive*/
@@ -81,7 +86,10 @@ public abstract class Station {
 		nbCamionsTraites = 0;
 	}
 
-	/**Ajoute de temps d'iteration a la station*/
+	/**Ajoute de temps d'iteration a la station
+	 * 
+	 * @param temps temps a ajouter
+	 * */
 	public void addIterTime(double temps) {
 		if(temps > this.getRemainingTimeInTurn()+0.0001) {
 			throw new IllegalArgumentException("temps ajouté plus grand que temps restant : "+temps+" > "+this.getRemainingTimeInTurn());
@@ -89,7 +97,8 @@ public abstract class Station {
 		this.iterCurrentTime+= temps;
 	}
 	
-	/**Temps de traitement moyen*/
+	/**Temps de traitement moyen
+	 * @return temps de traitement moyen*/
 	public abstract double averageTraitementSpeed();
 
 	/** 

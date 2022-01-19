@@ -23,14 +23,26 @@ public class StationFailureEvent {
 		this.station = station;
 	}
 
+	/**
+	 * 
+	 * @return Temps de debut de l'evenement
+	 */
 	public long getBeginTimeSec() {
 		return beginTimeSec;
 	}
 
+	/**
+	 * 
+	 * @return Temps de fin de l'evenement
+	 */
 	public long getEndTimeSec() {
 		return endTimeSec;
 	}
 
+	/**
+	 * 
+	 * @return station concernee par l'evenement
+	 */
 	public Station getStation() {
 		return station;
 	}

@@ -14,7 +14,11 @@ import ca.polymtl.SimulationMine.Config;
 import ca.polymtl.SimulationMine.decisionMaker.TravelTimePredictor;
 import javafx.util.Pair;
 
-
+/**
+ * Classe representant une mine
+ * @author Fred
+ *
+ */
 public class Mine {
 
 
@@ -34,7 +38,12 @@ public class Mine {
 		/** Nom de fichier decrivant la mine*/
 		private String fileName;
 		
-		/** Constructeur. Initialise les champs*/
+		/** Constructeur. Initialise les champs
+		 * 
+		 * @param id Identifiant de la mine
+		 * @param name nom de la mine
+		 * @param fileName fichier decrivant la mine
+		 */
 		public ExampleId(String id, String name, String fileName){
 			this.id = id;
 			this.name = name;
@@ -128,8 +137,10 @@ public class Mine {
 	/** Nombre de "petits" camions (60 t)*/
 	private int numberSmallCamions;
 
+	/**Liste des routes*/
 	private ArrayList<Pair<Station, Station>> routes;
 
+	/**Objet config*/
 	private Config config;
 
 	
@@ -185,7 +196,10 @@ public class Mine {
 
 	//private MineSimulator mineSimulator;
 	//------------------------------------------
-	/** constructeur qui construit une mine vide*/
+	/** constructeur qui construit une mine vide
+	 * 
+	 * @param config objet config
+	 */
 	//------------------------------------------
 	public Mine(Config config) {
 
@@ -202,10 +216,14 @@ public class Mine {
 
 	}
 
-	/**
+	 
+	/** 
 	 * 
-	 * @return La  pelle la plus pres des coordonnees relatives donnees.
+	 * @param fractionX coordonnee x relative de la pelle
+	 * @param fractionY coordonnee y relative de la pelle
+	 * @return Pelle la plus pres  des coordonnees relatives donnees.
 	 */
+	 
 	public Pelle closestPelle(double fractionX, double fractionY) {
 		double x = fractionX*Mine.WIDTH;
 		double y = fractionY*Mine.HEIGHT;
@@ -358,7 +376,10 @@ public class Mine {
 	}
 
 
-	/** Ajoute du temps a l'horloge */
+	/** Ajoute du temps a l'horloge 
+	 * 
+	 * @param time temps a ajouter
+	 */
 	protected void addTime(double time) {
 		double previousTime = this.time;
 		this.time+=time;
@@ -370,15 +391,12 @@ public class Mine {
 	}
 
 
-
-	/**initialise la mine en fonction de l'exemple de mine desiree avec le nombre de camions par defaut*/
-	/*
-	protected void init(ExampleId exempleId) {
-		init(exempleId, -1, -1);
-	}
-	*/
-	
-	/**initialise la mine en fonction de l'exemple de mine desiree*/
+	/**initialise la mine en fonction de l'exemple de mine desiree
+	 * 
+	 * @param exempleId Exemplaire de mine
+	 * @param nbSmallCamions Nombre de petits camions
+	 * @param nbLargeCamions Nombre de gros camions
+	 */
 	protected void init(ExampleId exempleId, int nbSmallCamions, int nbLargeCamions) {
 		
 		//efface la mine precedente
@@ -800,34 +818,36 @@ public class Mine {
 
 
 
-
+	/**Change le status "en warmup" de la mine
+	 * 
+	 * @param inWarmup Nouveau status
+	 */
 	protected void setInWarmup(boolean inWarmup) {
 		this.inWarmup = inWarmup;
 	}
 
 
-
-
-
-
+	/**Change le facteur meteo de la mine
+	 * 
+	 * @param meteoFactor nouveau facteur meteo
+	 */
 	protected void setMeteoFactor(double meteoFactor) {
 		this.meteoFactor = meteoFactor;
 	}
 
-
-
-
-
-
+	/** Retourne le jour courant
+	 * 
+	 * @return jour courant
+	 */
 	public int getDayNumber() {
 		return this.dayNumber;
 	}
 
 
-
-
-
-
+	/**choisis un scenario de pannes au hasard
+	 * 
+	 * @return scenario de pannes
+	 */
 	public FailureScenario getRandomFailureScenario() {
 		
 		FailureScenario fs = null;
@@ -841,8 +861,8 @@ public class Mine {
 
 	/**
 	 *	Détermine si il y a une route entre la station 1 et la station 2. 
-	 * @param station1
-	 * @param station2
+	 * @param station1 station 1
+	 * @param station2 station 2
 	 * @return true si il y a une route entre la station1 et la station2, false sinon.
 	 */
 	public boolean routeEntre(Station station1, Station station2) {

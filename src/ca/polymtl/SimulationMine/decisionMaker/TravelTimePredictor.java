@@ -10,14 +10,30 @@ import ca.polymtl.SimulationMine.MineSimulator.Pelle;
 import ca.polymtl.SimulationMine.MineSimulator.Station;
 import javafx.util.Pair;
 
+/**
+ * Classe chargée de la prédiction des temps de parcours
+ * @author Fred
+ *
+ */
 public class TravelTimePredictor {
 
 	//Prediction du temps de parcours
 	//
+	/** Constante correspondant a la prediction de temps de parcours avec la fonction "moyenne des temps precedents" */
 	public static final int PREDICT_FUNCTION_AVG_PREV = 1;
+	/** Constante correspondant a la prediction de temps de parcours avec la fonction "combinaison convexe" */
 	public static int PREDICT_FUNCTION_WEIGTED = 2;
+	/** Constante correspondant a la prediction de temps de parcours avec la fonction "erreur precedente" */
 	public static int PREDICT_FUNCTION_WEIGTED_ERROR = 3;
 
+	/**
+	 * Calcule la cle correspondant a la paire d'origine et destination pour des fins de prediction de temps de parcours.
+	 * NB: Puisque le trajet A->B est équivalent au trajet B->A, on fait en sorte que les cles pour les deux trajets soient identiques.
+	 * 
+	 * @param origine Station d'origine
+	 * @param destination Station de destination
+	 * @return Cle correspondant a la paire d'origine et destination.
+	 */
 	public static String getMapKeyForODPair(Station origine, Station destination) {
 		
 		if(origine == null) {
@@ -37,24 +53,29 @@ public class TravelTimePredictor {
 	}
 	//Prediction des temps de parcours
 	//
-	//fonction de prediction de temps de parcours
+	/**fonction de prediction de temps de parcours*/
 	private int fPredictFunction;
+	/**Valeur de N dans la fonction de prediction (si applicable)*/
 	private int predictFunctionNumberSample;
-
-
+	/**Valeur de lambda dans la fonction de prediction (si applicable)*/
 	private double predictFunctionWeight;
+	
 	//historique des temps de parcours. La clé est une string indiquant l'origine/destination
 	//une prédiction de -1 signifie aucune prédiction
+	/**Historique des temps de parcours pour chaque trajet*/
 	private HashMap<String, ArrayList<Double>> historyMap;
+	/**Historique des predictions pour chaque trajet*/
 	private HashMap<String, ArrayList<Double>> predictionMap;
 
+	/**Mine*/
 	private Mine mine;
 
 
 
-
-	/*
-	 * Constructeur
+	/**
+	 * Constructeur 
+	 * @param mine Mine
+	 * @param config Configuration
 	 */
 	public TravelTimePredictor(Mine mine, Config config) {
 
@@ -72,9 +93,10 @@ public class TravelTimePredictor {
 
 
 	
-	//enregistre l'historique de temps de parcours du camion
-	// Cela inclus le temps réel de parcours et le temps prédit
-	//
+	/**
+	 * enregistre l'historique de temps de parcours du camion (incl. temps predit)
+	 * @param camion qui vient de terminer son parcours
+	 */
 	public void enregistreHistoriqueTempsParcours(Camion camion) {
 		
 		//lance une exceptions si le camion n'est pas dans l'étata just arrived
@@ -90,10 +112,7 @@ public class TravelTimePredictor {
 		double adjustedRealTravelTime= camion.getCurrentTravelTime()/camion.getPredictTimeAdjustFactor();
 		double adjustedPredictedTravelTime = camion.getPredictedTravelTime()/camion.getPredictTimeAdjustFactor();
 
-		
-
 		//System.out.println("enregistre temps parcours : "+ODKey+" "+adjustedRealTravelTime);
-		
 		
 		//enregistre le temps reel de transport
 		//
@@ -112,14 +131,24 @@ public class TravelTimePredictor {
 		this.predictionMap.get(ODKey).add(adjustedPredictedTravelTime);
 	}
 
+	/**
+	 * 
+	 * @return index associe a la fonction de prediction utilisee
+	 */
 	public int getfPredictFunction() {
 		return this.fPredictFunction;
 	}
 
 
 
-	//prédit le temps de parcours selon la formule spécifiée
-	public double predictTravelTime(Station origine, Station destination, Camion c) {
+	/**
+	 * prédit le temps de parcours selon la formule spécifiée
+	 * @param origine station d'origine
+	 * @param destination station de destination 
+	 * @param camion camion
+	 * @return Temps de parcours prédit
+	 */
+	public double predictTravelTime(Station origine, Station destination, Camion camion) {
 		double predictedTime = 0;
 		if(this.fPredictFunction == TravelTimePredictor.PREDICT_FUNCTION_AVG_PREV) {
 			predictedTime =  predictTravelTimeAveragePrev(origine, destination);
@@ -135,34 +164,46 @@ public class TravelTimePredictor {
 		}
 		
 		//System.out.println("predicted travel time "+(predictedTime*c.getPredictTimeAdjustFactor()));
-		return predictedTime*c.getPredictTimeAdjustFactor();
+		return predictedTime*camion.getPredictTimeAdjustFactor();
 
 	}
 
 
-
+	/**
+	 * Modifie la valeur de N pour la formule de prédiction
+	 * @param nbSample valeur de N
+	 */
 	public void setNumberSample(int nbSample) {
 		this.predictFunctionNumberSample = nbSample;
 	}
 
+	/**
+	 * Modifie la fonction de prediction 
+	 * @param newPredictFunctionIndex nouvel index de fonction de prediction
+	 */
 	public void setPredictFunction(int newPredictFunctionIndex) {
 		this.fPredictFunction = newPredictFunctionIndex;
 
 	}
 
-
-
-
-	public void setWeight(double rhoValue) {
-		this.predictFunctionWeight = rhoValue;
+	/**
+	 * Modifie la valeur de "lambda" pour la formule de prédiction
+	 * @param lambdaValue valeur de lambda
+	 */
+	public void setWeight(double lambdaValue) {
+		this.predictFunctionWeight = lambdaValue;
 
 	}
 
 
 
-
-	//predit selon la moyenne des k derniers voyages
-	//option "moyenne des observations precedentes" dans le logiciel
+	/**
+	 * Prédit le temps de parcours selon la formule "moyenne des n derniers voyages"
+	 * option "moyenne des observations precedentes" dans le logiciel
+	 * @param origine origine
+	 * @param destination destination
+	 * @return Temps de parcours prédit
+	 */
 	private double predictTravelTimeAveragePrev(Station origine, Station destination) {
 
 		//retrouve l'historique des temps de parcours
@@ -203,10 +244,13 @@ public class TravelTimePredictor {
 		
 	}
 
-
-
-
-	//option "combinaison convexe" dans le logiciel
+	/**
+	 * Prédit le temps de parcours selon la formule "combinaison convexe"
+	 * option "combinaison convexe" dans le logiciel
+	 * @param origine origine
+	 * @param destination destination
+	 * @return temps de parcours prédit
+	 */
 	private double predictTravelTimeWeighted(Station origine, Station destination) {
 		//retrouve l'historique des temps de parcours
 		String ODKey = getMapKeyForODPair(origine, destination);
@@ -249,6 +293,13 @@ public class TravelTimePredictor {
 
 
 	//Option "erreur précédente" dans le logiciel
+	/**
+	 * Prédit le temps de parcours selon la formule "erreur précédente"
+	 * option "erreur précédente" dans le logiciel
+	 * @param origine origine
+	 * @param destination destination
+	 * @return Temps de parcours prédit
+	 */
 	private double predictTravelTimeWeightedError(Station origine, Station destination) {
 
 		ArrayList<Pelle> pelles = mine.getPelles();
@@ -359,8 +410,10 @@ public class TravelTimePredictor {
 
 	}
 
-
-
+	/**
+	 * 
+	 * @return Liste des noms des fonctions de prédiction et des identifiants associes.
+	 */
 	public static ArrayList<Pair<Integer, String>> travelTimePredictFunctionNames() {
 		ArrayList<Pair<Integer, String>> names = new ArrayList<Pair<Integer, String>>();
 		
@@ -368,12 +421,13 @@ public class TravelTimePredictor {
 		names.add(new Pair<Integer, String>(PREDICT_FUNCTION_WEIGTED, "Combinaison convexe"));
 		names.add(new Pair<Integer, String>(PREDICT_FUNCTION_WEIGTED_ERROR , "Erreur précédente"));
 		
-		// TODO Auto-generated method stub
 		return names;
 	}
 
 
-
+	/**
+	 * Reset les historiques de temps réels et predits.
+	 */
 	public void resetStats() {
 		this.historyMap.clear();
 		this.predictionMap.clear();

@@ -12,24 +12,32 @@ import ca.polymtl.SimulationMine.MineSimulator.SimulationMine;
 import ca.polymtl.SimulationMine.MineSimulator.Station;
 import ca.polymtl.SimulationMine.MineSimulator.Sterile;
 
+/**
+ * Specialisation de la class DecisionMaker. Permet aux étudiants de modifier les fonctions pertinentes pour le TP sans être distrait par les fonctions compliquées de DecisionMaker.
+ * @author Fred
+ *
+ */
 public class CustomDecisionMaker extends DecisionMaker {
  
 
-
+	/**
+	 * Constructeur. Appelle seulement le constructeur de la superclasse.
+	 * @param mine mine
+	 * @param config objet config
+	 */
 	public CustomDecisionMaker(Mine mine, Config config) {
 		super(mine, config);
 	}
 
 
 	@Override
-	/*
+	/**
 	 * Calcule le coût d'assignation d'un camion à une pelle dans le problème d'affectation
 	 * 
-	 * Input : 
-	 * 		Camion : Camion à assigner
-	 * 		Pelle  : Pelle évaluée
+	 * 		@param camion : Camion à assigner
+	 * 		@param pelle  : Pelle évaluée
 	 * 
-	 * Output : Coût d'affectation, sous la forme d'un double. Une faible coût est meilleur.
+	 * @return : Coût d'affectation, sous la forme d'un double. Une faible coût est meilleur.
 	 * 
 	 */
 	protected double affectScoreOptPlan(Camion camion, Pelle pelle) {
@@ -45,8 +53,13 @@ public class CustomDecisionMaker extends DecisionMaker {
 		//return computeCustomAssignCost(camion, pelle);
 	}
 
-	//Votre propre fonction de score, en java
-	//
+	/**
+	 * Fonction pour choisir la pelle a laquelle sera affecte un camion.
+	 * 
+	 * @param camion : Camion a affecter
+	 * @param candidates : Pelles candidates
+	 * @return Une pelle parmis les candidats.
+	 */
 	private Pelle customSelectPelleForCamion(Camion camion, ArrayList<Pelle> candidates) {
 
 
@@ -99,7 +112,7 @@ public class CustomDecisionMaker extends DecisionMaker {
 	}
 
 	@Override
-	/*
+	/**
 	 * (non-Javadoc)
 	 * @see ca.polymtl.SimulationMine.decisionMaker.DecisionMaker#computeDecisionScore(ca.polymtl.SimulationMine.MineSimulator.Camion, ca.polymtl.SimulationMine.MineSimulator.Pelle, java.lang.String)
 	 * 

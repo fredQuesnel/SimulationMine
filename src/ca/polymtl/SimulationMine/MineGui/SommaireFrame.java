@@ -35,25 +35,36 @@ import ca.polymtl.SimulationMine.MineSimulator.MineSimulator;
 import ca.polymtl.SimulationMine.MineSimulator.Pelle;
 import javafx.util.Pair;
 
+/**Frame contenant l'affichage du sommaire
+ * 
+ * @author Fred
+ *
+ */
 public class SommaireFrame extends JFrame {
 
-	/**
-	 * 
+	/*
+	 *Constantes 
 	 */
 	private static final long serialVersionUID = 1L;
 	//couleurs de police
 	//
+	/**Couleur verte utilisee*/
 	private static Color darkGreen = new Color(45, 140, 45);
+	/**Couleur rouge fonce*/
 	private static Color darkRed = new Color(170, 0, 0);
 
-	//nombre de pixels correspondant à une tabulation.
+	/**nombre de pixels correspondant à une tabulation.*/
 	int tabWidth = 30;
+	/**JPanel d'une largeur de tabulation*/
 	JPanel tabPanel;
+	
 	//styles de texte
 	//
+	/**Police pour les titres principaux*/
 	Font fontTitre1;
-
+	/**Police pour les titres secondaires*/ 
 	Font fontTitre2;
+	/** Police pour les textes normaux*/
 	Font fontNormal;
 
 	//--------------------------------------
@@ -62,35 +73,60 @@ public class SommaireFrame extends JFrame {
 
 	//parametres de simulation
 	//
+	/**Duree de la simulation en secondes*/
 	private int dureeSimulationSeconds;
+	/**String correspondant a la duree de la simulation*/
 	private String stringDuree;
+	
+	/**Nombre de camions*/
+	//TODO Discriminer selon le type de camions
 	private int nbCamions;
+	/**Nom de la mine*/
 	private String nomMine;
 
 	//Sommaire productivité
 	//
-	private int nbVoyage;
+
+	/**Pourcentages min, max et moyen d'utilisation des pelles*/
 	private double percentEffPellesMin, percentEffPellesMax, percentEffPellesAvg;
+	/**Pourcentages min, max et moyen d'utilisation des camions*/
 	private double percentEffCamionsMin, percentEffCamionsMax, percentEffCamionsAvg;
 
 	//productivité des pelles
 	//
+	/**Efficacite de chaque pelle*/
 	private ArrayList<Pair<Pelle, Double>> effPelles;
+	/**Attente moyen des camions a chaque pelle*/
 	private HashMap<Pelle, Double> attenteMoyenCamions;
 
+	/**Ecart type sur la productivite des pelles*/
 	private double ecartTypeProdPelle;
+	/**Attente moyenne des camions*/
 	private double attenteMoyenGlobalCamions;
+	/**Ecart type sur l'attente des camions*/
 	private double ecartTypeAttenteCamions;
+	/**Attente moyenne des pelles*/
 	private double attenteMoyenGlobalPelles;
+	/**Ecart type sur l'attente des pelles*/
 	private double ecartTypeAttentePelle;
+	/**Taux de fer*/
 	private double pourcentFer;
-	private double pourcentSouffre;
+	/**Taux de soufre*/
+	private double pourcentsoufre;
+	/**Quantite de minerai*/
 	private double quantiteMinerai;
+	/**Quantite de sterile*/
 	private double quantiteSterile;
+	/**Taux reel d'utilisation des pelles*/
 	private ArrayList<Pair<Pelle, Double>> tauxPelles;
+	/**Plan pour chaque pelle*/
 	private ArrayList<Pair<Pelle, Double>> planPelles;
 
 
+	/**
+	 * Constructeur
+	 * @param mineSimulator simulateur de mines
+	 */
 	public SommaireFrame(MineSimulator mineSimulator) {
 
 		super();
@@ -124,11 +160,20 @@ public class SommaireFrame extends JFrame {
 		//exportSommaireToFile(null);
 	}
 
+	/**Arrondis un nombre a deux decimales
+	 * 
+	 * @param number Nombre a arrondir
+	 * @return nombre arrondi
+	 */
 	private double arrondiDeuxDecimales(double number) {
 
 		return 1.*((int)((number+0.005)*100))/100.;
 	}
 
+	/**
+	 * Cree et retourne le bouton annuler
+	 * @return bouton annuler
+	 */
 	private JButton boutonAnnuler() {
 		JButton boutonAnnuler = new JButton("Annuler");
 		final JFrame frame = (JFrame) this;
@@ -145,6 +190,10 @@ public class SommaireFrame extends JFrame {
 		return boutonAnnuler;
 	}
 
+	/**Cree et retourne le bouton exporter
+	 * 
+	 * @return Bouton exporter
+	 */
 	private JButton boutonExporter() {
 		JButton boutonExporter = new JButton("Exporter");
 
@@ -183,6 +232,10 @@ public class SommaireFrame extends JFrame {
 		return boutonExporter;
 	}
 
+	/**Cree le panneau des boutons
+	 * 
+	 * @return panneau des boutons
+	 */
 	private JPanel buttons() {
 		JPanel buttonsPanel = new JPanel();
 
@@ -195,6 +248,10 @@ public class SommaireFrame extends JFrame {
 		return buttonsPanel;
 	}
 
+	/**Calcule les statistiques a afficher
+	 * 
+	 * @param mineSimulator Simulateur de mine
+	 */
 	private void getMineStats(MineSimulator mineSimulator) {
 		Mine mine = mineSimulator.getMine();
 
@@ -212,7 +269,6 @@ public class SommaireFrame extends JFrame {
 
 		//Sommaire de productivité
 		//
-		this.nbVoyage = mineSimulator.getNumberOfRuns();
 
 		this.quantiteMinerai =0;
 		for(int i = 0 ; i < mine.getConcentrateurs().size(); i++ ) {
@@ -247,7 +303,7 @@ public class SommaireFrame extends JFrame {
 		}
 		
 		this.pourcentFer = totalFer/totalMineraiConc*100;
-		this.pourcentSouffre = totalSoufre/totalMineraiConc*100;
+		this.pourcentsoufre = totalSoufre/totalMineraiConc*100;
 
 		ArrayList<Pelle> pelles = mine.getPelles();
 		
@@ -355,6 +411,10 @@ public class SommaireFrame extends JFrame {
 
 	}
 
+	/**
+	 * Cree et retourne le panneau sur les parametres de la simulation
+	 * @return Pan
+	 */
 	private Component paramsSimulationPanel() {
 
 		JPanel paramsSimulationPanel = new JPanel();
@@ -417,6 +477,10 @@ public class SommaireFrame extends JFrame {
 		return paramsSimulationPanel ;
 	}
 
+	/**Panneau avec les stats de production de chaque pelle
+	 * 
+	 * @return le panneau
+	 */
 	private Component prodPellesPanel() {
 		JPanel prodPellesPanel = new JPanel();
 		prodPellesPanel.setOpaque(false);
@@ -589,6 +653,9 @@ public class SommaireFrame extends JFrame {
 		return prodPellesPanel ;
 	}
 
+	/**Cree les differentes polices a utiliser
+	 * 
+	 */
 	private void setFonts() {
 		Map<TextAttribute, Integer> fontAttributes = new HashMap<TextAttribute, Integer>();
 		fontAttributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
@@ -601,6 +668,10 @@ public class SommaireFrame extends JFrame {
 
 	}
 
+	/**Cree le panneau resume
+	 * 
+	 * @return le panneau
+	 */
 	private Component sommairePanel() {
 
 		JPanel sommairePanel = new JPanel();
@@ -650,6 +721,10 @@ public class SommaireFrame extends JFrame {
 		return scrollPane;
 	}
 
+	/**
+	 * Cree le panneau resumant la production
+	 * @return le panneau
+	 */
 	private JPanel sommaireProdPanel() {
 		JPanel sommaireProdPanel = new JPanel();
 		sommaireProdPanel.setOpaque(false);
@@ -735,13 +810,13 @@ public class SommaireFrame extends JFrame {
 		sommaireProdPanel.add(ferLabel, gc);
 
 		//----------------------------------
-		//Souffre
+		//soufre
 		gc.insets = new Insets(5, 10+2*tabWidth, 0, 0);
 		gc.gridy++;
-		String souffreText = "Souffre : "+df.format(this.pourcentSouffre)+"%";
-		JLabel souffreLabel = new JLabel(souffreText);
-		souffreLabel.setFont(fontNormal);
-		sommaireProdPanel.add(souffreLabel, gc);
+		String soufreText = "soufre : "+df.format(this.pourcentsoufre)+"%";
+		JLabel soufreLabel = new JLabel(soufreText);
+		soufreLabel.setFont(fontNormal);
+		sommaireProdPanel.add(soufreLabel, gc);
 
 
 
@@ -859,6 +934,10 @@ public class SommaireFrame extends JFrame {
 		return sommaireProdPanel ;
 	}
 
+	/**Cree le panneau titre
+	 * 
+	 * @return le panneau
+	 */
 	private Component titrePanel() {
 		JPanel mainTitlePanel = new JPanel();
 
@@ -874,6 +953,7 @@ public class SommaireFrame extends JFrame {
 		return mainTitlePanel;
 	}
 
+	//TODO revoir!
 	protected void exportSommaireToFile(File file) {
 		String outString = "";
 
@@ -881,7 +961,7 @@ public class SommaireFrame extends JFrame {
 		outString+=this.nomMine+"\t"+this.nbCamions+"\t"+this.dureeSimulationSeconds+"\t";
 
 		//sommaire de productivité
-		outString += this.quantiteMinerai +"\t"+this.quantiteSterile +"\t"+this.nbVoyage +"\t"+this.pourcentFer+"\t"+this.pourcentSouffre;
+		outString += this.quantiteMinerai +"\t"+this.quantiteSterile +"\t"+this.pourcentFer+"\t"+this.pourcentsoufre;
 		outString +="\t"+this.percentEffPellesMax+"\t"+this.percentEffPellesAvg+"\t"+this.percentEffPellesMin+"\t"+this.percentEffCamionsMax+"\t"+this.percentEffCamionsAvg+"\t"+this.percentEffCamionsMin+"\t"+this.attenteMoyenGlobalPelles+"\t"+this.attenteMoyenGlobalCamions+"\t";
 
 

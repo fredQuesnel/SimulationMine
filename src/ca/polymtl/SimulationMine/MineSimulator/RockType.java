@@ -1,19 +1,29 @@
 package ca.polymtl.SimulationMine.MineSimulator;
 
+/**
+ * Classe representant un type de roche
+ * @author Fred
+ *
+ */
 public class RockType {
 	
-	//pourcentage de mineral
-	private double percentOre;
+	/**Taux de fer (%)*/
+	private double percentIron;
 	
-	//pourcentage souffre
+	/**Taux de soufre (%)*/
 	private double percentSulfur;
 	
-	public RockType(double percentOre, double percentSulfur) {
-		if(percentOre + percentSulfur > 100) {
-			throw new IllegalArgumentException("le gisement contient plus de 100% : "+percentOre+"+"+percentSulfur);
+	/**Constructeur
+	 * 
+	 * @param percentIron Taux de fer
+	 * @param percentSulfur Taux de soufre
+	 */
+	public RockType(double percentIron, double percentSulfur) {
+		if(percentIron + percentSulfur > 100) {
+			throw new IllegalArgumentException("le gisement contient plus de 100% : "+percentIron+"+"+percentSulfur);
 		}
 		
-		this.percentOre = percentOre;
+		this.percentIron = percentIron;
 		this.percentSulfur = percentSulfur;
 		
 	}
@@ -23,7 +33,7 @@ public class RockType {
 	 * @return Pourcentage de fer dans le type de roche.
 	 */
 	public double getPercentIron() {
-		return percentOre;
+		return percentIron;
 	}
 
 	/**
@@ -34,6 +44,10 @@ public class RockType {
 		return percentSulfur;
 	}
 
+	/**
+	 * 
+	 * @return true si il s'agit de sterile
+	 */
 	public boolean isSterile() {
 		if(this.getPercentIron() == 0 && this.getPercentSulfur() == 0) {
 			return true;

@@ -4,7 +4,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.Scanner;
-
+/**
+ * Classe contenant les informations du fichier de configuration. 
+ * @author Fred
+ *
+ */
 public class Config {
 
 	/**Thème */
@@ -26,13 +30,15 @@ public class Config {
 	private int defaultSimultaionSpeed;
 	/**Pause a la fin de voyage*/
 	private boolean defaultPauseFinVoyage;
+	/**Facteur d'actualisation (discount factor) pour le camion a affecter*/
 	private double affectDiscountFactor;
+	/**Nombre par defaut de petits camions dans la mine*/
 	private int defaultNbCamionsSmall;
-	
-
-
+	/**Nombre par defaut de gros camions dans la mine*/
 	private int defaultNbCamionsLarge;
+	/**Temps de simulation par defaut*/
 	private int defaultSimulationTimeSeconds;
+	
 	/**
 	 * Constructeur
 	 */
@@ -46,6 +52,12 @@ public class Config {
 		}
 	}
 
+	/**
+	 * Lis le fichier de configuration. 
+	 * TODO : Verifier que toutes les infomations nécessaires sont bien extraites! Je laisse ca pour l'an prochain!
+	 * 
+	 * @throws IOException
+	 */
 	private void readConfigFile() throws IOException {
 
 		String stringPattern = "\".*\"";
@@ -125,59 +137,112 @@ public class Config {
 	}
 	
 
-
+/**Retourne le nom du theme
+ * 
+ * @return Nom du theme
+ */
 public String getTheme() {
 	return theme;
 }
 
+/**Retourne l'id de la mine chargee au depart
+ * 
+ * @return Id de la mine chargee au depart
+ */
 public String getDefaultMineId() {
 	return defaultMineId;
 }
 
+/**Retourne la fonction de score pour les petits camions qui est chargée au depart
+ * 
+ * @return Fonction de score pour les petits camions au depart.
+ */
 public String getDefaultScoreFunctionSmallCamions() {
 	return defaultScoreFunctionSmallCamions;
 }
 
+/**Retourne la fonction de score pour les gros camions qui est chargée au depart
+ * 
+ * @return fonction de score pour les gros camions qui est chargée au depart
+ */
 public String getDefaultScoreFunctionLargeCamions() {
 	return defaultScoreFunctionLargeCamions;
 }
 
+/**Retourne la fonction de prediction qui est utilisee au depart
+ * 
+ * @return la fonction de prediction qui est utilisee au depart
+ */
 public int getDefaultTimePredictFormula() {
 	return defaultTimePredictFormula;
 }
 
+/**Retourne la valeur de N dans la fonction de prediction qui est utilisee au depart (si celle-ci utilise N)
+ * 
+ * @return la valeur de N dans la fonction de prediction qui est utilisee au depart (si celle-ci utilise N)
+ */
 public int getDefaultTimePredictN() {
 	return defaultTimePredictN;
 }
-
+/**Retourne la valeur de lambda dans la fonction de prediction qui est utilisee au depart (si celle-ci utilise lambda)
+ * 
+ * @return la valeur de lambda dans la fonction de prediction qui est utilisee au depart (si celle-ci utilise lambda)
+ */
 public double getDefaultTimePredictLambda() {
 	return defaultTimePredictLambda;
 }
 
+/**Retourne la valeur de la meteo au depart
+ * 
+ * @return la valeur de la meteo au depart
+ */
 public int getDefaultMeteo() {
 	return defaultMeteo;
 }
 
+/**Retourne la vitesse de simulation au depart
+ * 
+ * @return la vitesse de simulation au depart
+ */
 public int getDefaultSimultaionSpeed() {
 	return defaultSimultaionSpeed;
 }
 
+/**Retourne true si on a l'option "pause a la fin de chaque voyage" activee au depart, false sinon
+ * 
+ * @return true si on a l'option "pause a la fin de chaque voyage" activee au depart, false sinon
+ */
 public boolean isDefaultPauseFinVoyage() {
 	return defaultPauseFinVoyage;
 }
 
+/**Retourne le facteur d'actualisation (Discount factor) pour le camion affecte
+ * 
+ * @return le facteur d'actualisation (Discount factor) pour le camion affecte
+ */
 public double getAffectDiscountFactor() {
 	return this.affectDiscountFactor;
 }
 
+/**Retourne le nombre de petits camions au depart
+ * 
+ * @return le nombre de petits camions au depart
+ */
 public int getDefaultNbCamionsSmall() {
 	return defaultNbCamionsSmall;
 }
 
+/**Retourne le nombre de gros camions au depart
+ * 
+ * @return le nombre de gros camions au depart
+ */
 public int getDefaultNbCamionsLarge() {
 	return defaultNbCamionsLarge;
 }
-
+/**Retourne le temps de simulation au depart
+ * 
+ * @return le temps de simulation au depart
+ */
 public int getDefaultSimulationTimeSeconds() {
 	return defaultSimulationTimeSeconds;
 }

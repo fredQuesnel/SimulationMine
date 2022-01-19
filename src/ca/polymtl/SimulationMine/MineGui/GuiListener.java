@@ -21,7 +21,7 @@ public interface GuiListener extends AWTEventListener {
 	public void automaticCompletionRequested();
 		
 	/** On charge une nouvelle mine
-	 * @param evt
+	 * @param evt evenement du gui
 	 */
 	public void chargeMineConfirmed(GuiEvent evt);
 	
@@ -91,7 +91,7 @@ public interface GuiListener extends AWTEventListener {
 	public void predictFunctionChanged(int newPredictFunctionIndex);
 
 	/** Une info relative a la formule de temps de calcul est changé
-	 * @param evt
+	 * @param evt evenement du gui
 	 */
 	public void predictTimeChanged(GuiEvent evt);
 
@@ -101,11 +101,16 @@ public interface GuiListener extends AWTEventListener {
 	public void resetSimulationRequested();
 
 	/**
-	 * La fonction de score est modifiée.
+	 * La fonction de score pour les petits camions est modifiée.
 	 * @param scoreFunction : nouvelle fonction de score.
 	 */
 	public void scoreFunctionSmallCamionsChanged(String scoreFunction);
 
+
+	/**
+	 * La fonction de score pour les gros camions est modifiée.
+	 * @param scoreFunction : nouvelle fonction de score.
+	 */
 	public void scoreFunctionLargeCamionsChanged(String scoreFunction);
 
 	/**

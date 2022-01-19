@@ -1,5 +1,10 @@
 package ca.polymtl.SimulationMine.MineSimulator;
 
+/**Specialisation de la classe Station representant un concentrateur
+ * 
+ * @author Fred
+ *
+ */
 public class Concentrateur extends Station {
 
 	/** Vitesse moyenne de remplissage (en tonnes secondes)*/
@@ -8,13 +13,19 @@ public class Concentrateur extends Station {
 	/** Écart type sur la vitesse de remplissage*/
 	public final static double ECART_TYPE_DECHARGE_SPEED = 1./30.;
 
-	//quantité de minerai (en nombre de voyages)
+	/**quantité de minerai (en nombre de voyages)*/
 	private double quantityIron;
 
-	//quantité de souffre (en nombre de voyages)
+	/**quantité de souffre (en nombre de voyages)*/
 	private double quantitySulfur;
 	private double totalQuantity;
 	
+	/**
+	 * Constructeur
+	 * @param i Position x
+	 * @param j Position y
+	 * @param id Identifiant
+	 */
 	protected Concentrateur(double i, double j, String id) {
 		super(i, j, id);
 		this.isDecharge = true;

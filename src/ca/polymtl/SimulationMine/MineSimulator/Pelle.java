@@ -2,19 +2,22 @@ package ca.polymtl.SimulationMine.MineSimulator;
 
 import javax.swing.JOptionPane;
 
-
+/**
+ * Specialisation de la classe Station representant une pelle
+ * @author Fred
+ *
+ */
 public class Pelle extends Station{
 	/*
 	 * constantes
 	 */
-	//public final static double AVERAGE_CHARGE_TIME=300;//5 minutes
-	//public final static double ECART_TYPE_CHARGE_TIME=60;//1 min
 
 	//vitesse en pourcentage de chargement par seconde
 	/** Vitesse moyenne de remplissage (en tonnes secondes)*/
 	public final static double AVERAGE_CHARGE_SPEED = 1./6.;
 	/** Écart type sur la vitesse de remplissage*/
 	public final static double ECART_TYPE_CHARGE_SPEED = 1./30.;
+	/**Cible d'attente maximum*/
 	private static final double MAX_CIBLE_ATTENTE_PELLE_SECONDS = 240*3600;//la cible d'attente ne depasse pas 10 jour. 
 
 	
@@ -23,43 +26,30 @@ public class Pelle extends Station{
 	/*
 	 * Champs
 	 */
-	//-----------------------
-	//constantes
-	//-----------------------
-	//station de retour des camions
-	//
-	//private Station returnStation;
 
-	//type de roches
-	//
+	/**type de roches*/
 	private RockType rockType;
 
 
-	//plan de travail
+	/**plan de travail (tonnes/h)*/
 	private double cibleTonnesParHeure;
 
-	private double defaultCibleTonnesParHeure;
-
+	/**Quantité de minerai ou sterile extraits par la pelle*/
 	private double totalQuantity;
 	
-	
-	
-
-	
-
-	
-	//	private double timeRemainingInTurn;
-
-
-	/*
+	/**
 	 * Constructeur
+	 * @param i position x de la pelle
+	 * @param j position y de la pelle
+	 * @param id identifiant de la pelle
+	 * @param cibleTonnesParHeure plan pour la pelle
 	 */
+	
 	public Pelle(int i, int j, String id, double cibleTonnesParHeure) {
 		super(i,j, id);
 		
 		this.totalQuantity = 0;
 		this.cibleTonnesParHeure = cibleTonnesParHeure;
-		this.defaultCibleTonnesParHeure = cibleTonnesParHeure;
 		this.isDecharge = false;
 	}
 
@@ -187,6 +177,10 @@ public class Pelle extends Station{
 		
 	}
 
+	/**Modifie le plan de la pelle
+	 * 
+	 * @param newValue Nouvelle valeur du plan  (tonnes/h)
+	 */
 	public void setPlan(double newValue){
 
 		// lambda = taux arrivée des camions (camions/h)
@@ -205,6 +199,11 @@ public class Pelle extends Station{
 
 	}
 
+	/**Modifie le type de roche a la pelle
+	 * 
+	 * @param percentOre Taux de fer
+	 * @param percentSulfur Taux de soufre
+	 */
 	protected void setRockType(double percentOre, double percentSulfur) {
 		RockType rt = new RockType(percentOre, percentSulfur);
 
@@ -219,6 +218,11 @@ public class Pelle extends Station{
 		
 	}
 
+	
+	/**
+	 * 
+	 * @return Quantite totale extraite
+	 */
 	public double getTotalQuantity() {
 		
 		return totalQuantity;

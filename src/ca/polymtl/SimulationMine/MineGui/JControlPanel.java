@@ -115,8 +115,10 @@ public class JControlPanel extends JPanel{
 	private static int SLIDER_WIDTH_PX = 400;
 	/**couleur bleu foncé */
 	public static final Color DARK_BLUE = new Color(19, 86, 174);
+	/**couleur bleu pale */
 	private static final Color LIGHT_BLUE = new Color(207, 236, 255);
 
+	/**couleur lorsqu'un input est mauvais (genre de rouge pale)*/
 	private static final Color COLOR_WRONG_INPUT = new Color(255, 146, 146);
 
 	//Images
@@ -242,7 +244,7 @@ public class JControlPanel extends JPanel{
 
 	/**
 	 * 
-	 * @returnle temps de simulation (en secondes) inscrite dans le champs
+	 * @return le temps de simulation (en secondes) inscrite dans le champs
 	 */
 	public double getTempsSimulationSeconds() {
 
@@ -360,7 +362,7 @@ public class JControlPanel extends JPanel{
 					}
 					else {
 						currentLambdaValue = rhoValue;
-						parentFrame.notifyListenersRhoChanged(rhoValue);
+						parentFrame.notifyListenersLambdaChanged(rhoValue);
 					}
 				}
 				catch(NumberFormatException exception) {

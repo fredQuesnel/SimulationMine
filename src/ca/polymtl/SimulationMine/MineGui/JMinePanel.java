@@ -32,44 +32,72 @@ import ca.polymtl.SimulationMine.MineSimulator.Pelle;
 import ca.polymtl.SimulationMine.MineSimulator.Station;
 import ca.polymtl.SimulationMine.MineSimulator.Sterile;
 
+/**Panneau dans lequel s'affiche la mine
+ * 
+ * @author Fred
+ *
+ */
 public class JMinePanel extends JPanel{
 
-	/**
-	 * 
+	/*
+	 * Constantes
 	 */
 	private static final long serialVersionUID = 1L;
+	
+	/**Dimension reliee a l'affichage des infos du concentrateur dans le rectangle d'information (px)*/
 	private static final int INFO_RECT_CONCENTRATEUR_WIDTH = 90;
+	/**Dimension reliee a l'affichage des infos du sterile dans le rectangle d'information (px)*/
 	private static final int INFO_RECT_STERILE_HEIGHT = 35;
+	/**Couleur pour l'affichage des quantités de fer*/
 	private static final Color COLOR_IRON = new Color(150, 0, 0);
+	/**Couleur pour l'affichage des quantités de soufre*/
 	private static final Color COLOR_SULFUR = new Color(255, 100, 0);
+	
+	/**Largeur d'une station (px)*/
 	private static int STATION_WIDTH = 50;
+	/**Hauteur d'une station (px)*/
 	private static int STATION_HEIGHT = 50;
 
+	/**Largeur relie au rectangle d'information*/
 	private static int INFO_RECT_WIDTH = 70;
+	/**Hauteur relie au rectangle d'information*/
 	private static int INFO_RECT_HEIGHT = 70;
 
 
 
-
+	/**Largeur d'un camion (px)*/
 	private static int CAMION_WIDTH = 30;
+	/**Hauteur d'un camion (px)*/
 	private static int CAMION_HEIGHT = 20;
 
+	/**Image de pelle*/
 	private BufferedImage pelleImage;
+	/**Image de pelle en panne*/
 	private BufferedImage pellePanneImage;
 
+	/**Image de sterile*/
 	private BufferedImage sterileImage;
+	/**Image de concentrateur*/
 	private BufferedImage concentrateurImage;
 
+	/**Image de background*/
 	private BufferedImage backgroundImage;
 
+	/**Frame parent*/
 	private JMineFrame parentFrame;
 
+	/**Panel de progrès (en mode completion auto)*/
 	private JPanel progressBarPanel;
+	/**Barre de progrès de progrès (en mode completion auto)*/
 	private JProgressBar progressBar;
+	/**Rectangle dans lequel se trouve le progressBarPanel (pour ne pas avoir a updater l'affichage au complet en mode completion auto).*/
 	private Rectangle bounds;
 
 
-	//constructeur
+	/**
+	 * Constructeur
+	 * @param frame frame
+	 */
 	public JMinePanel(JMineFrame frame) {
 
 		this.setLayout(null);
@@ -182,7 +210,9 @@ public class JMinePanel extends JPanel{
 	}
 
 
-
+	/**Quand la completion automatique est terminee, affiche la mine
+	 * 
+	 */
 	public void automaticCompleteFinished() {
 		progressBarPanel.setVisible(false);
 		repaint();
@@ -191,6 +221,9 @@ public class JMinePanel extends JPanel{
 
 
 
+	/**Quand on commence la completion automatique, affiche le panel de progression
+	 * 
+	 */
 	public void automaticCompleteStarted() {
 		Dimension panelSize = this.getSize();
 		int width = 300;
@@ -211,6 +244,10 @@ public class JMinePanel extends JPanel{
 		//progressBarPanel.repaint(1);		
 	}
 
+	/**Update la barre de progrès en mode completion automatique
+	 * 
+	 * @param fractionComplete Fraction de la simulation completee (en %)
+	 */
 	public void automaticCompleteUpdated(double fractionComplete) {
 
 		progressBar.setValue((int) fractionComplete);
@@ -220,11 +257,16 @@ public class JMinePanel extends JPanel{
 
 	}
 
+	/**Repeint la mine lorsque reset
+	 * 
+	 */
 	public void mineResetted() {
 		this.repaint();		
 	}
 
-	//peint la mine
+	/**
+	 * Peint la mine
+	 */
 	public void paintComponent(Graphics g) {
 
 		MineSimulator mineSimulator = parentFrame.getMineSimulator();
@@ -281,12 +323,19 @@ public class JMinePanel extends JPanel{
 
 	}
 
+	/**Repeint la mine lorsque celle-ci est updatee
+	 * 
+	 */
 	public void updateMine() {
 		revalidate();
 		repaint();	
 	}
 
-	//convertis un point dans l'espace de la mine en point dans l'espace de la fenetre
+	/**convertis un point dans l'espace de la mine en point dans l'espace de la fenetre
+	 * 
+	 * @param double1 Point de l'espace
+	 * @return
+	 */
 	private Point convertPointToWindow(Double double1) {
 		double ratioX = this.getWidth()/Mine.WIDTH;
 		double ratioY = this.getHeight()/Mine.HEIGHT;
@@ -295,7 +344,11 @@ public class JMinePanel extends JPanel{
 		return newPoint;
 	}
 
-	//peint un camion
+	/**
+	 * peint un camion
+	 * @param camion camion
+	 * @param g objet graphique
+	 */
 	private void paintCamion(Camion camion, Graphics g) {
 		Point point = convertPointToWindow(camion.getLocation());
 		g.setColor(Color.RED);
@@ -309,7 +362,11 @@ public class JMinePanel extends JPanel{
 
 	}
 
-	//peint une station
+	/**peint une station
+	 * 
+	 * @param concentrateur concentrateur
+	 * @param g objet graphique
+	 */
 	private void paintConcentrateur(Concentrateur concentrateur, Graphics g) {
 
 		//format des nombres
@@ -389,7 +446,11 @@ public class JMinePanel extends JPanel{
 	}
 
 
-	//peint une pelle
+	/**peint une pelle
+	 * 
+	 * @param pelle pelle
+	 * @param g objet graphique
+	 */
 	private void paintPelle(Pelle pelle, Graphics g) {
 		//format des nombres
 		DecimalFormat df = new DecimalFormat("0.0");
@@ -470,7 +531,11 @@ public class JMinePanel extends JPanel{
 
 
 
-	//peint les chemins reliant le concentrateur  et le stérile aux pelles
+	/**peint les chemins reliant le concentrateur  et le stérile aux pelles
+	 * 
+	 * @param g objet graphique
+	 * @param mine Mine
+	 */
 	private void paintRoutes(Graphics g, Mine mine) {
 		//Station concentrateur = mine.getConcentrateur();
 
@@ -508,7 +573,11 @@ public class JMinePanel extends JPanel{
 
 
 
-
+	/**
+	 * Peint le rectangle de statistiques
+	 * @param g objet graphique
+	 * @param mineSimulator Simulateur
+	 */
 	private void paintStatsPanel(Graphics g, MineSimulator mineSimulator) {
 		int width = 330;
 		int height = 120;
@@ -606,7 +675,11 @@ public class JMinePanel extends JPanel{
 	}
 
 
-	//peint une station
+	/**peint un sterile
+	 * 
+	 * @param sterile sterile
+	 * @param g objet graphique
+	 */
 	private void paintSterile(Sterile sterile, Graphics g) {
 		g.setColor(Color.BLACK);	
 

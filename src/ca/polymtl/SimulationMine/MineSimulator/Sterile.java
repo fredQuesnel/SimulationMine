@@ -1,5 +1,10 @@
 package ca.polymtl.SimulationMine.MineSimulator;
 
+/**
+ * Specialisation de la classe Station representant une sterile.
+ * @author Fred
+ *
+ */
 public class Sterile extends Station {
 	/** Vitesse moyenne de remplissage (en tonnes/secondes)*/
 	public final static double AVERAGE_DECHARGE_SPEED = 1./2.;
@@ -9,6 +14,12 @@ public class Sterile extends Station {
 	public final static double ECART_TYPE_DECHARGE_SPEED = 1./30.;
 	private double totalQuantity;
 	
+	/** constructeur
+	 * 
+	 * @param i position x du sterile
+	 * @param j position y du sterile
+	 * @param id identifiant du sterile
+	 */
 	public Sterile(double i, double j, String id) {
 		super(i, j, id);
 		this.isDecharge = true;
@@ -22,6 +33,10 @@ public class Sterile extends Station {
 		return AVERAGE_DECHARGE_SPEED;
 	}
 
+	/**
+	 * 
+	 * @return Quantite totale livree au sterile
+	 */
 	public double getTotalQuantity() {
 		return totalQuantity;
 	}

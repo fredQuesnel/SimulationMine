@@ -12,22 +12,33 @@ import ca.polymtl.SimulationMine.Config;
 import ca.polymtl.SimulationMine.MineGui.JMineFrame;
 import ca.polymtl.SimulationMine.MineGui.TravelTimeChart;
 
+/**
+ * Classe principale
+ * @author Fred
+ *
+ */
 public class SimulationMine {
  
+	/**Duree de simulation par defaut*/
 	public static double DEFAULT_SIMULATION_TIME_SECONDS;
 
 
+	/**Classe pourles nombres aleatoires*/
 	public static Random random;
 
-	//public static Mine mine;
+	/**Graphique des temps de parcours*/
 	public static TravelTimeChart chart; 
-	//public static DecisionMaker decisionMaker;
 
+	/**Frame d'affichage pour la mine*/
 	public static JMineFrame mineFrame;
 
  
  
-	
+	/**
+	 * 
+	 * Fonction principale
+	 * @param args aucun argument
+	 */
 	public static void main(String[] args) {
 
 		System.out.println("machine "+System.getProperty("sun.arch.data.model")+"bit");

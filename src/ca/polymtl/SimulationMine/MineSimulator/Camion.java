@@ -20,21 +20,22 @@ public abstract class Camion {
 	/*
 	 * Constantes
 	 */
-
+	/**Petit camion*/
 	public static int TYPE_SMALL = 1;
+	/**Gros camion*/
 	public static int TYPE_LARGE = 2;
 	
 	//etats possibles
 	//
-	/** ï¿½tat indiquant un camion auquel aucune activitï¿½ n'est assignï¿½e.	 */
+	/** Etat indiquant un camion auquel aucune activitï¿½ n'est assignï¿½e.	 */
 	public static int ETAT_INACTIF = 1;
-	/** ï¿½tat indiquant un camion en route vers sa destination.	 */
+	/**Etat indiquant un camion en route vers sa destination.	 */
 	public static int ETAT_EN_ROUTE = 2;
-	/** ï¿½tat indiquant un camion en attente de chargement.	 */
+	/** Etat indiquant un camion en attente de chargement.	 */
 	public static int ETAT_ATTENTE = 3;
-	/** ï¿½tat indiquant un camion en chargement.	 */
+	/** Etat indiquant un camion en chargement.	 */
 	public static int ETAT_EN_TRAITEMENT = 4;
-	/** ï¿½tat indiquant un camion qui viens juste d'arriver ï¿½ sa destination.	 */
+	/** Etat indiquant un camion qui viens juste d'arriver ï¿½ sa destination.	 */
 	public static int ETAT_JUSTE_ARRIVE = 5;
 	
 	/*
@@ -44,6 +45,7 @@ public abstract class Camion {
 	Mine mine;
 	
 	//Caractéristiques du camion
+	
 	protected int type;
 	/** Vitesse moyenne du camion	 */
 	protected double avgSpeed;
@@ -125,8 +127,12 @@ public abstract class Camion {
 	/**Temps passé à voyager vide*/
 	private double emptyTravelTime;
 
-	/**constructeur*/
-	//
+	/**constructeur
+	 * 
+	 * @param station station
+	 * @param mine mine
+	 * @param goingEastImage image du camion se deplacant vers l'est
+	 */
 	public Camion(Station station, Mine mine, BufferedImage goingEastImage) {
 		
 		
@@ -157,7 +163,7 @@ public abstract class Camion {
 	}
 	
 	/**
-	 * 
+	 * @param station station
 	 * @return Le temps total d'attente du camion a la station
 	 */
 	public double getAttenteAtStation(Station station){
@@ -165,6 +171,7 @@ public abstract class Camion {
 	}
 	
 	/**
+	 * @param station station
 	 * @return La moyenne du temps d'attente du camion a la station donnee
 	 */
 	public double getAverageWaitTimeSecondsForStation(Station station){
@@ -249,6 +256,7 @@ public abstract class Camion {
 	}
 
 	/**
+	 * @param station station
 	 * @return Le nombre de fois ou le camion est alle a la station
 	 */
 	public double getNbVisitAtStation(Station station){
@@ -326,6 +334,7 @@ public abstract class Camion {
 	/**
 	 * 
 	 * NE PAS UTILISER! Donne un objetif au camion.
+	 * @param objective : objectif du camion
 	 */
 	public void setObjective(Station objective) {
 
@@ -343,12 +352,18 @@ public abstract class Camion {
 
 	}
 	
-	/** Set la prediction pour le parcours courant.*/
+	/** Set la prediction pour le parcours courant.
+	 * 
+	 * @param predictedTravelTime temps de parcours predit
+	 */
 	public void setPredictedTravelTime(double predictedTravelTime) {
 		this.predictedTravelTime = predictedTravelTime;
 	}
 
-	/**calcule le temps restant a la tache actuelle*/
+	/**calcule le temps restant a la tache actuelle
+	 * 
+	 * @return temps restant a la tache actuelle
+	 */
 	public double taskTimeRemaining() {
 		
 		if(this.getState() == Camion.ETAT_ATTENTE) {
@@ -628,6 +643,10 @@ public abstract class Camion {
 		return this.emptyTravelTime;
 	}
 
+	/**
+	 * 
+	 * @return type de camion
+	 */
 	public int getType() {
 		return type;
 	}

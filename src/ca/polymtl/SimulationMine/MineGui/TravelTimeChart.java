@@ -29,22 +29,41 @@ import ca.polymtl.SimulationMine.MineSimulator.MineSimulationListener;
 import ca.polymtl.SimulationMine.MineSimulator.MineSimulator;
 import ca.polymtl.SimulationMine.decisionMaker.TravelTimePredictor;
 
+/**
+ * Classe pour le panneau d'affichage des temps de parcours réels et predits.
+ * @author Fred
+ *
+ */
 public class TravelTimeChart extends JFrame implements MineSimulationListener{
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	
+	/** je ne sais plus...*/
 	private HashMap<String, XYSeries> seriesMap;
+	/** je ne sais plus...*/
 	private XYSeriesCollection dataset;
+	/**Panneau d'affichage*/
 	private ChartPanel chartPanel;
 
-
+	/**
+	 * Constructeur 
+	 * @param dataSeriesHandles dataSeriesHandles
+	 * @param tempsSimulationSeconds tempsSimulationSeconds
+	 */
 	public TravelTimeChart(ArrayList<String> dataSeriesHandles, double tempsSimulationSeconds) {
 		setChart(dataSeriesHandles,tempsSimulationSeconds);
 
 	}
 
+	/**
+	 * Ajoute un point de donnees
+	 * @param serieKey Nom de la serie
+	 * @param x valeur x
+	 * @param y valeur y
+	 */
 	public void addDataPoint(String serieKey, double x, double y) {
 
 		if(seriesMap.containsKey(serieKey)) {
@@ -107,6 +126,12 @@ public class TravelTimeChart extends JFrame implements MineSimulationListener{
 	public void minUnpaused(Mine mine) {
 	}
 
+	/**Cree le graphique
+	 * 
+	 * @param dataset
+	 * @param tempsSimulationSeconds
+	 * @return
+	 */
 	private JFreeChart createChart(final XYDataset dataset, double tempsSimulationSeconds) {
 
 		JFreeChart chart = ChartFactory.createXYLineChart(
@@ -164,6 +189,10 @@ public class TravelTimeChart extends JFrame implements MineSimulationListener{
 		return chart;
 	}
 
+	/**Cree le dataset?
+	 * 
+	 * @return
+	 */
 	private XYSeriesCollection createDataset() {    
 
 		XYSeriesCollection dataset = new XYSeriesCollection();
