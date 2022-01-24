@@ -11,6 +11,8 @@ import javax.swing.UnsupportedLookAndFeelException;
 import ca.polymtl.SimulationMine.Config;
 import ca.polymtl.SimulationMine.MineGui.JMineFrame;
 import ca.polymtl.SimulationMine.MineGui.TravelTimeChart;
+import lpsolve.LpSolve;
+import lpsolve.LpSolveException;
 
 /**
  * Classe principale
@@ -41,6 +43,14 @@ public class SimulationMine {
 	 */
 	public static void main(String[] args) {
 
+		
+		try {
+			LpSolve.makeLp(10, 10);
+		} catch (LpSolveException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
 		System.out.println("machine "+System.getProperty("sun.arch.data.model")+"bit");
 		
 		try {
