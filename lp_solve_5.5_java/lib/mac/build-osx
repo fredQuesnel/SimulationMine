@@ -11,13 +11,14 @@
 #
 # Change the paths below this line and you should be ready to go!
 # -------------------------------------------------------------------
-LPSOLVE_DIR=/Users/spkane/Desktop/mac/downloads/lp_solve/lp_solve_5.5
-JDK_DIR=/System/Library/Frameworks/JavaVM.framework/Versions/Current/Headers
+LPSOLVE_DIR=/Users/legraina/git/SimulationMine/lp_solve_5.5_java
+JDK_DIR=/Library/Java/JavaVirtualMachines/openjdk-11.0.2.jdk/Contents/Home/include
 
 # OK, here we go!
 
-SRC_DIR=../../src/c
-INCL="-I $JDK_DIR -I $LPSOLVE_DIR -I $SRC_DIR -idirafter /usr/include/sys"
+SRC_DIR=$(LPSOLVE_DIR)/src/c
+ARCH_FLAG=-arch x86_64
 
-g++ -fPIC -fno-common $INCL -c $SRC_DIR/lpsolve5j.cpp
-g++ -dynamiclib lpsolve5j.o -compatibility_version 5.5.0 -current_version 5.5.0 -o liblpsolve55j.jnilib -lc -llpsolve55
+g++ -fPIC -fno-common -I $(JDK_DIR) -I $(LPSOLVE_DIR) -I $(SRC_DIR) -idirafter /usr/include/sys -c $(SRC_DIR)/lpsolve5j.cpp $ARCH_FLAG
+
+g++ -dynamiclib lpsolve5j.o -compatibility_version 5.5.0 -current_version 5.5.0 -o liblpsolve55j.jnilib -lc -llpsolve55 $ARCH_FLAG
