@@ -57,7 +57,7 @@ public class SommaireFrame extends JFrame {
 	int tabWidth = 30;
 	/**JPanel d'une largeur de tabulation*/
 	JPanel tabPanel;
-	
+
 	//styles de texte
 	//
 	/**Police pour les titres principaux*/
@@ -77,10 +77,12 @@ public class SommaireFrame extends JFrame {
 	private int dureeSimulationSeconds;
 	/**String correspondant a la duree de la simulation*/
 	private String stringDuree;
-	
+
 	/**Nombre de camions*/
 	//TODO Discriminer selon le type de camions
-	private int nbCamions;
+	//private int nbCamions;
+	private int nbSmallCamions;
+	private int nbLargeCamions;
 	/**Nom de la mine*/
 	private String nomMine;
 
@@ -178,15 +180,15 @@ public class SommaireFrame extends JFrame {
 		JButton boutonAnnuler = new JButton("Annuler");
 		final JFrame frame = (JFrame) this;
 		boutonAnnuler.addActionListener(new ActionListener(){
-			
+
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
-				
+
 			}
-			
+
 		});
-		
+
 		return boutonAnnuler;
 	}
 
@@ -265,7 +267,22 @@ public class SommaireFrame extends JFrame {
 				TimeUnit.SECONDS.toMinutes(dureeSimulationSeconds) - TimeUnit.HOURS.toMinutes(TimeUnit.SECONDS.toHours(dureeSimulationSeconds)), 
 				TimeUnit.SECONDS.toSeconds(dureeSimulationSeconds) - TimeUnit.MINUTES.toSeconds(TimeUnit.SECONDS.toMinutes(dureeSimulationSeconds))
 				);
-		this.nbCamions = mine.getCamions().size();
+		//this.nbCamions = mine.getCamions().size();
+		this.nbSmallCamions = 0;
+		this.nbLargeCamions = 0;
+
+		for(Camion c : mine.getCamions()) {
+			if(c.getType()==Camion.TYPE_SMALL) {
+				this.nbSmallCamions++;
+			}
+			else if(c.getType()==Camion.TYPE_LARGE) {
+				this.nbLargeCamions++;
+			}
+			else {
+				throw new IllegalStateException("SommaireFrame::getMineStats : type de camion indéfini : "+c.getType());
+			}
+
+		}
 
 		//Sommaire de productivité
 		//
@@ -274,12 +291,12 @@ public class SommaireFrame extends JFrame {
 		for(int i = 0 ; i < mine.getConcentrateurs().size(); i++ ) {
 			quantiteMinerai+= mine.getConcentrateurs().get(i).getTotalQuantity();
 		}
-		
+
 		this.quantiteSterile = 0;
 		for(int i = 0 ; i < mine.getSteriles().size(); i++) {
 			quantiteSterile+= mine.getSteriles().get(i).getTotalQuantity();
 		}
-		
+
 
 		this.percentEffCamionsMin = mineSimulator.getMinCamionEfficiency();
 		this.percentEffCamionsMax = mineSimulator.getMaxCamionEfficiency();
@@ -301,22 +318,22 @@ public class SommaireFrame extends JFrame {
 			totalSoufre+= concentrateur.getQuantitySulfur();
 			totalMineraiConc+= concentrateur.getTotalQuantity();
 		}
-		
+
 		this.pourcentFer = totalFer/totalMineraiConc*100;
 		this.pourcentsoufre = totalSoufre/totalMineraiConc*100;
 
 		ArrayList<Pelle> pelles = mine.getPelles();
-		
+
 		//efficacité des pelles
 		//
 		effPelles = new ArrayList<Pair<Pelle, Double>>();
-		
+
 		for(int i = 0 ; i < pelles.size(); i++){
 			double efficiency = mineSimulator.computePelleEfficiency(pelles.get(i));
 			Pair<Pelle, Double> pair = new Pair<Pelle, Double>(pelles.get(i), efficiency);
 			effPelles.add(pair);
 		}
-		
+
 		//nb voyages/heures
 		//
 		tauxPelles = new ArrayList<Pair<Pelle, Double>>();
@@ -325,7 +342,7 @@ public class SommaireFrame extends JFrame {
 			Pair<Pelle, Double> pair = new Pair<Pelle, Double>(pelles.get(i), taux);
 			tauxPelles.add(pair);
 		}
-		
+
 		//plan
 		//
 		planPelles = new ArrayList<Pair<Pelle, Double>>();
@@ -452,14 +469,22 @@ public class SommaireFrame extends JFrame {
 		paramsSimulationPanel.add(mineLabel, gc);
 
 
-		//Nombre de camions
+		//Nombre de petits camions
 		//
-		String nbCamionsText = "Nombre de camions : "+this.nbCamions;
-		JLabel nbCamionsLabel = new JLabel(nbCamionsText);
-		nbCamionsLabel.setFont(fontNormal);
+		String nbSmallCamionsText = "Nombre de camions de 60 tonnes : "+this.nbSmallCamions;
+		JLabel nbSmallCamionsLabel = new JLabel(nbSmallCamionsText);
+		nbSmallCamionsLabel.setFont(fontNormal);
 		gc.gridy++;
-		paramsSimulationPanel.add(nbCamionsLabel, gc);
+		paramsSimulationPanel.add(nbSmallCamionsLabel, gc);
 
+
+		//Nombre de gros camions
+		//
+		String nbLargeCamionsText = "Nombre de camions de 60 tonnes : "+this.nbSmallCamions;
+		JLabel nbLargeCamionsLabel = new JLabel(nbLargeCamionsText);
+		nbLargeCamionsLabel.setFont(fontNormal);
+		gc.gridy++;
+		paramsSimulationPanel.add(nbLargeCamionsLabel, gc);
 
 
 		//Temps de simulation
@@ -514,7 +539,7 @@ public class SommaireFrame extends JFrame {
 		for(int i = 0 ; i < effPelles.size(); i++){
 			Pelle pelle = effPelles.get(i).getKey();
 			double eff = effPelles.get(i).getValue();
-			
+
 			double tauxPlan = planPelles.get(i).getValue();
 			double tauxReel = tauxPelles.get(i).getValue();
 
@@ -531,7 +556,7 @@ public class SommaireFrame extends JFrame {
 			gc.insets = new Insets(5, 10+tabWidth, 0, 0);
 			prodPellesPanel.add(pelleNameLabel, gc);
 
-			
+
 			//Taux de service planifié
 			//
 			gc.insets = new Insets(5, 10+2*tabWidth, 0, 0);
@@ -542,7 +567,7 @@ public class SommaireFrame extends JFrame {
 			JLabel tauxPlanLabel = new JLabel(tauxPlanText );
 			tauxPlanLabel.setFont(fontNormal);
 			prodPellesPanel.add(tauxPlanLabel, gc);
-			
+
 			gc.insets = new Insets(5, 0, 0, 0);
 			gc.gridx = 1;
 			gc.weightx = 0.0;
@@ -550,7 +575,7 @@ public class SommaireFrame extends JFrame {
 			JLabel tauxPlanLabel2 = new JLabel(tauxPlanText2);
 			tauxPlanLabel2.setFont(fontNormal);
 			prodPellesPanel.add(tauxPlanLabel2, gc);
-			
+
 			//Taux de service réel
 			//
 			gc.insets = new Insets(5, 10+2*tabWidth, 0, 0);
@@ -561,7 +586,7 @@ public class SommaireFrame extends JFrame {
 			JLabel tauxReelLabel = new JLabel(tauxReelText );
 			tauxReelLabel.setFont(fontNormal);
 			prodPellesPanel.add(tauxReelLabel, gc);
-			
+
 			gc.insets = new Insets(5, 0, 0, 0);
 			gc.gridx = 1;
 			gc.weightx = 0.0;
@@ -569,8 +594,8 @@ public class SommaireFrame extends JFrame {
 			JLabel tauxReelLabel2 = new JLabel(tauxReelText2);
 			tauxReelLabel2.setFont(fontNormal);
 			prodPellesPanel.add(tauxReelLabel2, gc);
-	
-			
+
+
 			//efficacité
 			//
 			gc.insets = new Insets(5, 10+2*tabWidth, 0, 0);
@@ -778,7 +803,7 @@ public class SommaireFrame extends JFrame {
 		JLabel qteSterileLabel = new JLabel(qteSterileText);
 		qteSterileLabel.setFont(fontNormal);
 		sommaireProdPanel.add(qteSterileLabel, gc);
-		
+
 		//----------------------------------
 		//Total
 		gc.insets = new Insets(5, 10+2*tabWidth, 0, 0);
@@ -958,7 +983,7 @@ public class SommaireFrame extends JFrame {
 		String outString = "";
 
 		//parametres de simulation
-		outString+=this.nomMine+"\t"+this.nbCamions+"\t"+this.dureeSimulationSeconds+"\t";
+		outString+=this.nomMine+"\t"+this.nbSmallCamions+"\t"+this.nbLargeCamions+"\t"+this.dureeSimulationSeconds+"\t";
 
 		//sommaire de productivité
 		outString += this.quantiteMinerai +"\t"+this.quantiteSterile +"\t"+this.pourcentFer+"\t"+this.pourcentsoufre;
@@ -973,7 +998,7 @@ public class SommaireFrame extends JFrame {
 			Pelle pelle = effPelles.get(i).getKey();
 			double tauxPlan = planPelles.get(i).getValue();
 			double tauxReel = tauxPelles.get(i).getValue();
-			
+
 			double eff = effPelles.get(i).getValue();
 
 			outString +=pelle.getId()+"\t"+tauxPlan+"\t"+tauxReel+"\t"+eff+"\t"+pelle.getAverageWaitTimeSeconds()+"\t"+this.attenteMoyenCamions.get(pelle).doubleValue()+"\t";

@@ -599,6 +599,8 @@ public class Mine {
 			smallCamionImage = ImageIO.read(new File("images/"+theme+"/camion_small.png"));
 			largeCamionImage = ImageIO.read(new File("images/"+theme+"/camion_large.png"));
 		} catch (IOException e) {
+			String theme = config.getTheme();
+			System.out.println("images/"+theme+"/camion_small.png");
 			e.printStackTrace();
 		}
 

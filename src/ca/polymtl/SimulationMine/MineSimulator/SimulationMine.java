@@ -27,7 +27,7 @@ public class SimulationMine {
 
 	/**Classe pourles nombres aleatoires*/
 	public static Random random;
-
+ 
 	/**Graphique des temps de parcours*/
 	public static TravelTimeChart chart; 
 
@@ -43,7 +43,7 @@ public class SimulationMine {
 	 */
 	public static void main(String[] args) {
 
-		
+		System.out.println(System.getenv("Path"));
 		try {
 			LpSolve.makeLp(10, 10);
 		} catch (LpSolveException e1) {

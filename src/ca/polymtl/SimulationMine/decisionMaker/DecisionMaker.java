@@ -1148,9 +1148,9 @@ public class DecisionMaker {
 
 			//Fonction de cout
 			//
-			//if(debug) {
+			if(debug) {
 				System.out.println("scores : ");
-			//}
+			}
 			double[] costFunction = new double[camions.size()*pelles.size()+1];
 			int index = 0;
 			for(int i = 0 ; i < camions.size(); i++ ) {
@@ -1172,7 +1172,7 @@ public class DecisionMaker {
 
 					}
 					else if(scoreFunctionString.equals(DecisionMaker.OPTIMIZE_PROD_FUNCTION_STRING)) {
-						System.out.println("optimise pour la production");
+						//System.out.println("optimise pour la production");
 						score = affectScoreOptProd(camion, pelle);
 						//discount factor pour le camion qui nous interesse
 						if(i == 0) {
