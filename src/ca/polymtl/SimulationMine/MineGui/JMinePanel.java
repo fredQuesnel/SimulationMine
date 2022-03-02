@@ -653,7 +653,7 @@ public class JMinePanel extends JPanel{
 		for(Sterile s : mine.getSteriles()) {
 			totalSterile+=s.getTotalQuantity();
 		}
-		String strTotalSterile = String.format("%.0f\n", totalConcentrateur);
+		String strTotalSterile = String.format("%.0f\n", totalSterile);
 		
 		g.setColor(Color.black);
 		g.drawString("Steriles : "+strTotalSterile+" tonnes", this.getWidth()-width+20, 105);
